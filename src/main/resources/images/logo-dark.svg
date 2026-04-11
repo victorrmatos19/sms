@@ -5,5 +5,5 @@
   <rect x="25" y="27" width="20" height="20" rx="4" fill="#e8ecf5"/>
   <rect x="0" y="49" width="45" height="3" rx="1.5" fill="#c9a84c"/>
   <text x="56" y="24" font-family="Georgia,serif" font-size="26" font-weight="700" fill="#ffffff">SMS</text>
-  <text x="57" y="40" font-family="Arial,sans-serif" font-size="9" fill="rgba(255,255,255,0.5)" letter-spacing="2">SIMPLE MANAGE SYSTEM</text>
+  <text x="57" y="40" font-family="Arial,sans-serif" font-size="9" fill="#ffffff" fill-opacity="0.5" letter-spacing="2">SIMPLE MANAGE SYSTEM</text>
 </svg>
