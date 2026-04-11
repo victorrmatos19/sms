@@ -18,12 +18,8 @@
 
             <!-- Header navy com logo -->
             <VBox alignment="CENTER" spacing="12" styleClass="login-header">
-                <!-- Logo SVG como ImageView -->
-                <ImageView fitWidth="180" fitHeight="48" preserveRatio="true">
-                    <image>
-                        <Image url="@../images/logo-dark.svg"/>
-                    </image>
-                </ImageView>
+                <!-- Logo carregado via SvgImageLoader no LoginController (JavaFX não suporta SVG nativo) -->
+                <ImageView fx:id="imgLogo" fitWidth="180" fitHeight="48" preserveRatio="true"/>
                 <Label text="Sistema de Gestão Empresarial" styleClass="login-subtitle"/>
             </VBox>
 

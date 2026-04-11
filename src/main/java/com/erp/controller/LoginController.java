@@ -3,10 +3,12 @@ package com.erp.controller;
 import com.erp.StageManager;
 import com.erp.model.Usuario;
 import com.erp.service.AuthService;
+import com.erp.util.SvgImageLoader;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +29,9 @@ public class LoginController implements Initializable {
 
     private final AuthService authService;
     private final StageManager stageManager;
+    private final SvgImageLoader svgImageLoader;
 
+    @FXML private ImageView imgLogo;
     @FXML private TextField txtLogin;
     @FXML private PasswordField txtSenha;
     @FXML private Button btnEntrar;
@@ -36,6 +40,11 @@ public class LoginController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         lblErro.setVisible(false);
+
+        var logo = svgImageLoader.load("/images/logo-dark.svg", 180, 48);
+        if (logo != null) {
+            imgLogo.setImage(logo);
+        }
 
         // Enter no campo de senha dispara o login
         txtSenha.setOnKeyPressed(event -> {
