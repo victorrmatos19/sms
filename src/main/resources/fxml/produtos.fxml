@@ -50,8 +50,7 @@
     </HBox>
 
     <!-- Tabela -->
-    <TableView fx:id="tblProdutos" VBox.vgrow="ALWAYS" styleClass="table-view"
-               placeholder="&lt;Label text='Nenhum produto encontrado' styleClass='content-placeholder'/&gt;">
+    <TableView fx:id="tblProdutos" VBox.vgrow="ALWAYS" styleClass="table-view">
         <columns>
             <TableColumn fx:id="colCodigo"     text="CÓDIGO"       prefWidth="110" minWidth="80"/>
             <TableColumn fx:id="colDescricao"  text="DESCRIÇÃO"    prefWidth="300" minWidth="150"/>
