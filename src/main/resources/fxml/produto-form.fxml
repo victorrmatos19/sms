@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.ProdutoFormController"
+      spacing="0" prefWidth="720" prefHeight="560"
+      styleClass="dialog-pane">
+
+    <!-- Título -->
+    <Label fx:id="lblTitulo" text="Novo Produto" styleClass="page-title">
+        <VBox.margin><Insets bottom="16"/></VBox.margin>
+    </Label>
+
+    <!-- Abas -->
+    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+
+        <!-- ABA 1 — Dados Gerais -->
+        <Tab text="Dados Gerais">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+                <GridPane hgap="12" vgap="8">
+                    <padding><Insets top="16" right="16" bottom="16" left="4"/></padding>
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="140" prefWidth="140"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <!-- Descrição* -->
+                    <Label text="Descrição *" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <VBox GridPane.rowIndex="0" GridPane.columnIndex="1" spacing="2">
+                        <TextField fx:id="txtDescricao" promptText="Nome do produto"/>
+                        <Label fx:id="lblErrDescricao" styleClass="form-error" visible="false" managed="false"/>
+                    </VBox>
+
+                    <!-- Descrição Reduzida -->
+                    <Label text="Desc. Reduzida" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <VBox GridPane.rowIndex="1" GridPane.columnIndex="1" spacing="2">
+                        <TextField fx:id="txtDescricaoReduzida" promptText="Para impressões (máx. 60 caracteres)"/>
+                        <Label text="Usada em impressões térmicas" styleClass="form-hint"/>
+                    </VBox>
+
+                    <!-- Código Interno -->
+                    <Label text="Código Interno" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtCodigoInterno" promptText="Código próprio do produto"
+                               GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <!-- Código de Barras -->
+                    <Label text="Cód. de Barras" styleClass="form-label" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtCodigoBarras" promptText="EAN-13 ou outro"
+                               GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                    <!-- Grupo -->
+                    <Label text="Grupo" styleClass="form-label" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="cmbGrupo" maxWidth="Infinity"
+                              GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                    <!-- Categoria -->
+                    <Label text="Categoria" styleClass="form-label" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="cmbCategoria" maxWidth="Infinity"
+                              GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                    <!-- Unidade de Medida* -->
+                    <Label text="Unidade *" styleClass="form-label" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+                    <VBox GridPane.rowIndex="6" GridPane.columnIndex="1" spacing="2">
+                        <ComboBox fx:id="cmbUnidade" maxWidth="Infinity"/>
+                        <Label fx:id="lblErrUnidade" styleClass="form-error" visible="false" managed="false"/>
+                    </VBox>
+
+                    <!-- Status -->
+                    <Label text="Status" styleClass="form-label" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+                    <ToggleButton fx:id="btnStatus" text="Ativo" selected="true"
+                                  GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+
+                </GridPane>
+            </ScrollPane>
+        </Tab>
+
+        <!-- ABA 2 — Preços e Estoque -->
+        <Tab text="Preços e Estoque">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+                <GridPane hgap="12" vgap="8">
+                    <padding><Insets top="16" right="16" bottom="16" left="4"/></padding>
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="140" prefWidth="140"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <!-- Preço de Custo -->
+                    <Label text="Preço de Custo" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtPrecoCusto" promptText="0,00"
+                               GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <!-- Preço de Venda* -->
+                    <Label text="Preço de Venda *" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <VBox GridPane.rowIndex="1" GridPane.columnIndex="1" spacing="2">
+                        <TextField fx:id="txtPrecoVenda" promptText="0,00"/>
+                        <Label fx:id="lblErrPrecoVenda" styleClass="form-error" visible="false" managed="false"/>
+                    </VBox>
+
+                    <!-- Preço Mínimo -->
+                    <Label text="Preço Mínimo" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <VBox GridPane.rowIndex="2" GridPane.columnIndex="1" spacing="2">
+                        <TextField fx:id="txtPrecoMinimo" promptText="0,00"/>
+                        <Label text="Menor preço permitido na venda" styleClass="form-hint"/>
+                    </VBox>
+
+                    <!-- Margem de Lucro (calculada) -->
+                    <Label text="Margem de Lucro" styleClass="form-label" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblMargem" text="—" styleClass="form-hint"
+                           GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                    <!-- Separador visual -->
+                    <Separator GridPane.rowIndex="4" GridPane.columnIndex="0"
+                               GridPane.columnSpan="2">
+                        <GridPane.margin><Insets top="4" bottom="4"/></GridPane.margin>
+                    </Separator>
+
+                    <!-- Estoque Atual -->
+                    <Label text="Estoque Atual" styleClass="form-label" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtEstoqueAtual" promptText="0"
+                               GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                    <!-- Estoque Mínimo -->
+                    <Label text="Estoque Mínimo" styleClass="form-label" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+                    <VBox GridPane.rowIndex="6" GridPane.columnIndex="1" spacing="2">
+                        <TextField fx:id="txtEstoqueMinimo" promptText="0"/>
+                        <Label text="Alerta quando abaixo deste valor" styleClass="form-hint"/>
+                    </VBox>
+
+                    <!-- Estoque Máximo -->
+                    <Label text="Estoque Máximo" styleClass="form-label" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtEstoqueMaximo" promptText="0 (opcional)"
+                               GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+
+                    <!-- Localização -->
+                    <Label text="Localização" styleClass="form-label" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtLocalizacao" promptText="Ex: Prateleira A3"
+                               GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+
+                    <!-- Usa Lote e Validade -->
+                    <Label text="" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
+                    <CheckBox fx:id="chkUsaLote" text="Usa Lote e Validade"
+                              GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+
+                </GridPane>
+            </ScrollPane>
+        </Tab>
+
+        <!-- ABA 3 — Fiscal -->
+        <Tab text="Fiscal">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+                <GridPane hgap="12" vgap="8">
+                    <padding><Insets top="16" right="16" bottom="16" left="4"/></padding>
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="140" prefWidth="140"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <!-- NCM -->
+                    <Label text="NCM" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <VBox GridPane.rowIndex="0" GridPane.columnIndex="1" spacing="2">
+                        <TextField fx:id="txtNcm" promptText="0000.00.00"/>
+                        <Label text="Nomenclatura Comum do Mercosul" styleClass="form-hint"/>
+                    </VBox>
+
+                    <!-- CEST -->
+                    <Label text="CEST" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtCest" promptText="00.000.00"
+                               GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <!-- Origem -->
+                    <Label text="Origem" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="cmbOrigem" maxWidth="Infinity"
+                              GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <!-- Separador -->
+                    <Separator GridPane.rowIndex="3" GridPane.columnIndex="0"
+                               GridPane.columnSpan="2">
+                        <GridPane.margin><Insets top="4" bottom="4"/></GridPane.margin>
+                    </Separator>
+
+                    <!-- Observações -->
+                    <Label text="Observações" styleClass="form-label" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <TextArea fx:id="txtObservacoes" prefRowCount="4"
+                              wrapText="true" promptText="Informações adicionais..."
+                              GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                </GridPane>
+            </ScrollPane>
+        </Tab>
+
+    </TabPane>
+
+    <!-- Botões -->
+    <HBox spacing="8" alignment="CENTER_RIGHT">
+        <VBox.margin><Insets top="16"/></VBox.margin>
+        <Button fx:id="btnCancelar" text="Cancelar" onAction="#cancelar" styleClass="btn-outline"/>
+        <Button fx:id="btnSalvar"   text="Salvar"   onAction="#salvar"   styleClass="btn-primary"
+                defaultButton="true"/>
+    </HBox>
+
+</VBox>

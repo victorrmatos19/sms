@@ -831,6 +831,30 @@
 }
 
 /* ============================================================
+   UTILITÁRIOS DE COR — usados em labels calculados (ex: margem)
+   ============================================================ */
+
+.text-success {
+    -fx-text-fill: #1a7a4a;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.text-danger {
+    -fx-text-fill: #c0392b;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.theme-dark .text-success {
+    -fx-text-fill: #2ecc71;
+}
+
+.theme-dark .text-danger {
+    -fx-text-fill: #e74c3c;
+}
+
+/* ============================================================
    SPLIT PANE
    ============================================================ */
 

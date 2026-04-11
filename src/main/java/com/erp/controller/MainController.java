@@ -6,13 +6,16 @@ import com.erp.util.SvgImageLoader;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
@@ -32,6 +35,7 @@ public class MainController implements Initializable {
     private final AuthService authService;
     private final StageManager stageManager;
     private final SvgImageLoader svgImageLoader;
+    private final ApplicationContext springContext;
 
     @FXML private ImageView imgLogoTopbar;
     @FXML private Label lblUsuario;
@@ -67,7 +71,6 @@ public class MainController implements Initializable {
 
     @FXML private void abrirClientes()       { setStatus("Clientes"); }
     @FXML private void abrirFornecedores()   { setStatus("Fornecedores"); }
-    @FXML private void abrirProdutos()       { setStatus("Produtos"); }
     @FXML private void abrirFuncionarios()   { setStatus("Funcionários"); }
     @FXML private void abrirEstoque()        { setStatus("Movimentações de Estoque"); }
     @FXML private void abrirCompras()        { setStatus("Compras"); }
@@ -80,14 +83,33 @@ public class MainController implements Initializable {
     @FXML private void abrirConfiguracoes()  { setStatus("Configurações"); }
 
     @FXML
+    private void abrirProdutos() {
+        carregarModulo("/fxml/produtos.fxml", "Produtos");
+    }
+
+    @FXML
     private void sair() {
         authService.logout();
         stageManager.showLoginScreen();
     }
 
+    private void carregarModulo(String fxmlPath, String nomeModulo) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            loader.setClassLoader(getClass().getClassLoader());
+            loader.setControllerFactory(springContext::getBean);
+            Parent view = loader.load();
+            conteudoPane.getChildren().setAll(view);
+            lblStatus.setText(nomeModulo);
+            log.info("Módulo carregado: {}", nomeModulo);
+        } catch (Exception e) {
+            log.error("Erro ao carregar módulo '{}': {}", nomeModulo, e.getMessage(), e);
+            lblStatus.setText("Erro ao carregar: " + nomeModulo);
+        }
+    }
+
     private void setStatus(String modulo) {
-        lblStatus.setText("Módulo: " + modulo);
-        log.info("Abrindo módulo: {}", modulo);
-        // TODO: carregar o FXML do módulo no conteudoPane
+        lblStatus.setText("Módulo: " + modulo + " — em breve");
+        log.info("Módulo ainda não implementado: {}", modulo);
     }
 }

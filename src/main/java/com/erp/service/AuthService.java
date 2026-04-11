@@ -26,6 +26,9 @@ public class AuthService {
     // Usuário da sessão atual (um usuário por vez na aplicação desktop)
     private Usuario usuarioLogado;
 
+    // Cache do empresaId — carregado dentro da transação de login para evitar LazyInitializationException
+    private Integer empresaIdLogado;
+
     /**
      * Tenta autenticar o usuário com login e senha.
      *
@@ -59,6 +62,7 @@ public class AuthService {
         usuarioRepository.save(usuario);
 
         this.usuarioLogado = usuario;
+        this.empresaIdLogado = usuario.getEmpresa().getId(); // carrega dentro da transação
         log.info("Usuário autenticado: {} ({})", usuario.getNome(), usuario.getPerfil().getNome());
 
         return Optional.of(usuario);
@@ -69,6 +73,11 @@ public class AuthService {
             log.info("Logout: {}", usuarioLogado.getNome());
         }
         this.usuarioLogado = null;
+        this.empresaIdLogado = null;
+    }
+
+    public Integer getEmpresaIdLogado() {
+        return empresaIdLogado;
     }
 
     public Usuario getUsuarioLogado() {

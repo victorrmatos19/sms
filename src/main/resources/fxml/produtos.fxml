@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.ProdutoController"
+      spacing="16" styleClass="content-area">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT">
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Produtos" styleClass="page-title"/>
+            <Label text="Cadastro e gestão de produtos" styleClass="page-subtitle"/>
+        </VBox>
+        <Button fx:id="btnNovo" text="+ Novo Produto" onAction="#abrirNovo"
+                styleClass="btn-primary"/>
+    </HBox>
+
+    <!-- Métricas -->
+    <HBox spacing="12">
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="TOTAL DE PRODUTOS" styleClass="metric-card-label"/>
+            <Label fx:id="lblTotal" text="0" styleClass="metric-card-value"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="ATIVOS" styleClass="metric-card-label"/>
+            <Label fx:id="lblAtivos" text="0" styleClass="metric-card-value"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="ABAIXO DO MÍNIMO" styleClass="metric-card-label"/>
+            <Label fx:id="lblAbaixoMinimo" text="0" styleClass="metric-card-value-accent"/>
+        </VBox>
+    </HBox>
+
+    <!-- Toolbar de filtros e ações -->
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <TextField fx:id="txtBusca"
+                   promptText="Buscar por código ou descrição..."
+                   prefWidth="280"/>
+        <ComboBox fx:id="cmbGrupoFiltro" prefWidth="200"/>
+        <CheckBox fx:id="chkInativos" text="Mostrar inativos"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnEditar" text="Editar" onAction="#abrirEdicao"
+                styleClass="btn-outline" disable="true"/>
+        <Button fx:id="btnToggleAtivo" text="Inativar" onAction="#toggleAtivo"
+                styleClass="btn-outline" disable="true"/>
+    </HBox>
+
+    <!-- Tabela -->
+    <TableView fx:id="tblProdutos" VBox.vgrow="ALWAYS" styleClass="table-view"
+               placeholder="&lt;Label text='Nenhum produto encontrado' styleClass='content-placeholder'/&gt;">
+        <columns>
+            <TableColumn fx:id="colCodigo"     text="CÓDIGO"       prefWidth="110" minWidth="80"/>
+            <TableColumn fx:id="colDescricao"  text="DESCRIÇÃO"    prefWidth="300" minWidth="150"/>
+            <TableColumn fx:id="colUnidade"    text="UN"           prefWidth="60"  minWidth="50"/>
+            <TableColumn fx:id="colPrecoVenda" text="PREÇO VENDA"  prefWidth="130" minWidth="100"/>
+            <TableColumn fx:id="colEstoque"    text="ESTOQUE"      prefWidth="100" minWidth="80"/>
+            <TableColumn fx:id="colStatus"     text="STATUS"       prefWidth="90"  minWidth="80"/>
+        </columns>
+        <placeholder>
+            <Label text="Nenhum produto encontrado" styleClass="content-placeholder"/>
+        </placeholder>
+    </TableView>
+
+</VBox>
