@@ -2,11 +2,13 @@ package com.erp.controller;
 
 import com.erp.StageManager;
 import com.erp.service.AuthService;
+import com.erp.util.SvgImageLoader;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +31,9 @@ public class MainController implements Initializable {
 
     private final AuthService authService;
     private final StageManager stageManager;
+    private final SvgImageLoader svgImageLoader;
 
+    @FXML private ImageView imgLogoTopbar;
     @FXML private Label lblUsuario;
     @FXML private Label lblStatus;
     @FXML private Label lblDataHora;
@@ -40,6 +44,11 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        var logo = svgImageLoader.load("/images/logo-dark.svg", 130, 34);
+        if (logo != null) {
+            imgLogoTopbar.setImage(logo);
+        }
+
         // Exibe nome do usuário logado
         if (authService.getUsuarioLogado() != null) {
             lblUsuario.setText(authService.getUsuarioLogado().getNome()

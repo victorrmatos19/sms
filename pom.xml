@@ -237,6 +237,30 @@
             <version>75.1</version>
         </dependency>
 
+        <!-- Apache Batik — conversão de SVG para PNG em runtime -->
+        <!-- Necessário pois JavaFX não suporta SVG nativo como Image -->
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-transcoder</artifactId>
+            <version>1.17</version>
+            <exclusions>
+                <!-- xml-apis conflita com o JDK moderno e pode corromper o cache Maven -->
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis-ext</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-codec</artifactId>
+            <version>1.17</version>
+        </dependency>
+
         <!-- ================================================ -->
         <!-- TESTES                                           -->
         <!-- ================================================ -->
