@@ -49,6 +49,15 @@
                 styleClass="btn-outline" disable="true"/>
     </HBox>
 
+    <!-- Ações auxiliares -->
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Label text="Tabelas auxiliares:" styleClass="form-hint"/>
+        <Button text="Gerenciar Grupos" onAction="#abrirGerenciarGrupos"
+                styleClass="btn-outline"/>
+        <Button text="Gerenciar Unidades" onAction="#abrirGerenciarUnidades"
+                styleClass="btn-outline"/>
+    </HBox>
+
     <!-- Tabela -->
     <TableView fx:id="tblProdutos" VBox.vgrow="ALWAYS" styleClass="table-view">
         <columns>

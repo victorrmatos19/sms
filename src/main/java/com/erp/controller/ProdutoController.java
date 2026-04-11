@@ -250,6 +250,40 @@ public class ProdutoController implements Initializable {
         });
     }
 
+    @FXML
+    private void abrirGerenciarGrupos() {
+        abrirModalAuxiliar("/fxml/grupo-produto-form.fxml", "Gerenciar Grupos de Produtos", 600, 480);
+        carregarGruposFiltro();
+    }
+
+    @FXML
+    private void abrirGerenciarUnidades() {
+        abrirModalAuxiliar("/fxml/unidade-medida-form.fxml", "Gerenciar Unidades de Medida", 560, 440);
+    }
+
+    private void abrirModalAuxiliar(String fxmlPath, String titulo, double width, double height) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            loader.setClassLoader(getClass().getClassLoader());
+            loader.setControllerFactory(springContext::getBean);
+            Parent root = loader.load();
+
+            Stage dialog = new Stage();
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.initOwner(stageManager.getPrimaryStage());
+            dialog.setTitle(titulo);
+            dialog.setResizable(false);
+            Scene scene = new Scene(root, width, height);
+            scene.getStylesheets().add(
+                getClass().getResource("/css/global.css").toExternalForm());
+            dialog.setScene(scene);
+            dialog.showAndWait();
+
+        } catch (Exception e) {
+            log.error("Erro ao abrir modal: {}", fxmlPath, e);
+        }
+    }
+
     private void abrirFormulario(Produto produto) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/produto-form.fxml"));

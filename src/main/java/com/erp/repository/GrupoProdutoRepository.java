@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface GrupoProdutoRepository extends JpaRepository<GrupoProduto, Integer> {
     List<GrupoProduto> findByEmpresaIdAndAtivoTrueOrderByNome(Integer empresaId);
+
+    List<GrupoProduto> findByEmpresaIdOrderByNome(Integer empresaId);
 }

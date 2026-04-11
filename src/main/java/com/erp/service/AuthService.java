@@ -1,6 +1,8 @@
 package com.erp.service;
 
+import com.erp.model.Empresa;
 import com.erp.model.Usuario;
+import com.erp.repository.EmpresaRepository;
 import com.erp.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,13 +23,16 @@ import java.util.Optional;
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
+    private final EmpresaRepository empresaRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     // Usuário da sessão atual (um usuário por vez na aplicação desktop)
     private Usuario usuarioLogado;
 
-    // Cache do empresaId — carregado dentro da transação de login para evitar LazyInitializationException
+    // Cache do empresaId e da Empresa — carregados dentro da transação de login
+    // para evitar LazyInitializationException fora de contexto transacional
     private Integer empresaIdLogado;
+    private Empresa empresaLogada;
 
     /**
      * Tenta autenticar o usuário com login e senha.
@@ -63,6 +68,7 @@ public class AuthService {
 
         this.usuarioLogado = usuario;
         this.empresaIdLogado = usuario.getEmpresa().getId(); // carrega dentro da transação
+        this.empresaLogada   = empresaRepository.findById(this.empresaIdLogado).orElseThrow();
         log.info("Usuário autenticado: {} ({})", usuario.getNome(), usuario.getPerfil().getNome());
 
         return Optional.of(usuario);
@@ -74,10 +80,15 @@ public class AuthService {
         }
         this.usuarioLogado = null;
         this.empresaIdLogado = null;
+        this.empresaLogada = null;
     }
 
     public Integer getEmpresaIdLogado() {
         return empresaIdLogado;
+    }
+
+    public Empresa getEmpresaLogada() {
+        return empresaLogada;
     }
 
     public Usuario getUsuarioLogado() {

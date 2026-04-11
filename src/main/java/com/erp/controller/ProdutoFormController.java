@@ -147,7 +147,7 @@ public class ProdutoFormController implements Initializable {
     }
 
     private void configurarListeners() {
-        // Ao mudar grupo, filtra categorias
+        // Ao mudar grupo, filtra categorias e desabilita se não houver nenhuma
         cmbGrupo.valueProperty().addListener((obs, old, grupo) -> {
             cmbCategoria.getItems().clear();
             cmbCategoria.getItems().add(null);
@@ -156,9 +156,13 @@ public class ProdutoFormController implements Initializable {
                 List<CategoriaProduto> cats = categoriaProdutoRepository
                     .findByEmpresaIdAndGrupoIdAndAtivoTrueOrderByNome(empresaId, grupo.getId());
                 cmbCategoria.getItems().addAll(cats);
+                cmbCategoria.setDisable(cats.isEmpty());
+            } else {
+                cmbCategoria.setDisable(true);
             }
             cmbCategoria.setValue(null);
         });
+        cmbCategoria.setDisable(true); // desabilitada até um grupo ser selecionado
 
         // Recalcula margem ao mudar preço de custo ou venda
         txtPrecoCusto.textProperty().addListener((obs, old, val) -> atualizarMargem());
@@ -252,12 +256,9 @@ public class ProdutoFormController implements Initializable {
     private void salvar() {
         if (!validar()) return;
 
-        Integer empresaId = authService.getEmpresaIdLogado();
-        Empresa empresa = authService.getUsuarioLogado().getEmpresa();
-
         Produto produto = produtoAtual != null
             ? produtoAtual
-            : Produto.builder().empresa(empresa).build();
+            : Produto.builder().empresa(authService.getEmpresaLogada()).build();
 
         // Aba 1
         produto.setDescricao(txtDescricao.getText().trim());

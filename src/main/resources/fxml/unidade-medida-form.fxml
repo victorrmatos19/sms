@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.UnidadeMedidaController"
+      styleClass="content-area">
+
+    <!-- Painel esquerdo: lista de unidades -->
+    <VBox prefWidth="200" spacing="8" styleClass="card">
+        <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+        <Label text="Unidades" styleClass="card-title"/>
+        <ListView fx:id="lstUnidades" VBox.vgrow="ALWAYS"/>
+        <HBox spacing="6">
+            <Button text="Nova" onAction="#novaUnidade" styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Button text="Excluir" onAction="#excluirUnidade" styleClass="btn-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        </HBox>
+    </VBox>
+
+    <!-- Painel direito: formulário -->
+    <VBox HBox.hgrow="ALWAYS" spacing="12" styleClass="card">
+        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+        <Label fx:id="lblFormTitulo" text="Selecione uma unidade" styleClass="card-title"/>
+
+        <VBox spacing="4">
+            <Label text="Sigla *" styleClass="form-label"/>
+            <TextField fx:id="txtSigla" promptText="Ex: UN, KG, LT" maxWidth="120"/>
+            <Label fx:id="lblErrSigla" styleClass="form-error" visible="false" managed="false"/>
+        </VBox>
+
+        <VBox spacing="4">
+            <Label text="Descrição" styleClass="form-label"/>
+            <TextField fx:id="txtDescricao" promptText="Ex: Unidade, Quilograma, Litro"/>
+        </VBox>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <HBox spacing="8" alignment="CENTER_RIGHT">
+            <Button text="Cancelar" onAction="#cancelar" styleClass="btn-outline"/>
+            <Button text="Salvar" onAction="#salvar" styleClass="btn-primary"/>
+        </HBox>
+    </VBox>
+
+</HBox>
