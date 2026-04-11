@@ -4,12 +4,14 @@ import atlantafx.base.theme.PrimerLight;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Objects;
 
 @Slf4j
@@ -27,21 +29,29 @@ public class StageManager {
     public void init(Stage primaryStage) {
         this.primaryStage = primaryStage;
 
-        // Base AtlantaFX — usamos apenas como reset, o design system é nosso CSS
         javafx.application.Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
 
-        primaryStage.setTitle("ERP Desktop");
+        primaryStage.setTitle("SMS — Simple Manage System");
         primaryStage.setMinWidth(1024);
         primaryStage.setMinHeight(768);
         primaryStage.setMaximized(true);
+
+        // Ícone da janela
+        try (InputStream is = getClass().getResourceAsStream("/images/icon.png")) {
+            if (is != null) {
+                primaryStage.getIcons().add(new Image(is));
+            }
+        } catch (Exception e) {
+            log.warn("Ícone não encontrado: {}", e.getMessage());
+        }
     }
 
     public void showLoginScreen() {
-        showScene("/fxml/login.fxml", "ERP Desktop — Login", false);
+        showScene("/fxml/login.fxml", "SMS — Simple Manage System", false);
     }
 
     public void showMainScreen() {
-        showScene("/fxml/main.fxml", "ERP Desktop", true);
+        showScene("/fxml/main.fxml", "SMS — Simple Manage System", true);
     }
 
     public void showScene(String fxmlPath, String title, boolean maximized) {
@@ -53,14 +63,12 @@ public class StageManager {
             Parent root = loader.load();
             Scene scene = new Scene(root);
 
-            // CSS global do design system
             scene.getStylesheets().add(
                     Objects.requireNonNull(
                             getClass().getResource("/css/global.css")
                     ).toExternalForm()
             );
 
-            // Aplica tema na raiz
             applyTheme(root);
 
             primaryStage.setTitle(title);

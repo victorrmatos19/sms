@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
@@ -12,12 +13,17 @@
 
     <center>
         <VBox alignment="CENTER" spacing="0"
-              maxWidth="390" maxHeight="520"
+              maxWidth="400" maxHeight="540"
               styleClass="login-card">
 
-            <!-- Header navy -->
-            <VBox alignment="CENTER" spacing="8" styleClass="login-header">
-                <Label text="ERP Desktop" styleClass="login-title"/>
+            <!-- Header navy com logo -->
+            <VBox alignment="CENTER" spacing="12" styleClass="login-header">
+                <!-- Logo SVG como ImageView -->
+                <ImageView fitWidth="180" fitHeight="48" preserveRatio="true">
+                    <image>
+                        <Image url="@../images/logo-dark.svg"/>
+                    </image>
+                </ImageView>
                 <Label text="Sistema de Gestão Empresarial" styleClass="login-subtitle"/>
             </VBox>
 
@@ -55,7 +61,8 @@
             </VBox>
 
             <!-- Rodapé -->
-            <Label text="© 2026 ERP Desktop" styleClass="login-footer"
+            <Label text="© 2026 SMS — Simple Manage System"
+                   styleClass="login-footer"
                    maxWidth="Infinity" alignment="CENTER"/>
 
         </VBox>

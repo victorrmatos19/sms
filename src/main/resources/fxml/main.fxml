@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.*?>
 
@@ -9,10 +10,16 @@
             fx:controller="com.erp.controller.MainController"
             prefWidth="1280" prefHeight="800">
 
-    <!-- Topbar -->
+    <!-- Topbar com logo -->
     <top>
         <HBox styleClass="topbar" alignment="CENTER_LEFT" spacing="16">
-            <Label text="ERP Desktop" styleClass="topbar-title"/>
+            <!-- Logo no topbar -->
+            <ImageView fitWidth="130" fitHeight="34" preserveRatio="true">
+                <image>
+                    <Image url="@../images/logo-dark.svg"/>
+                </image>
+            </ImageView>
+            <Region styleClass="topbar-divider" prefWidth="1" prefHeight="20"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="lblUsuario" styleClass="topbar-usuario"/>
             <Region styleClass="topbar-divider" prefWidth="1" prefHeight="20"/>
@@ -81,8 +88,9 @@
     <bottom>
         <HBox styleClass="statusbar" alignment="CENTER_LEFT" spacing="16">
             <padding><Insets top="0" right="16" bottom="0" left="16"/></padding>
-            <Label fx:id="lblStatus" styleClass="" text="Pronto"/>
+            <Label fx:id="lblStatus" text="Pronto"/>
             <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblDataHora" styleClass=""/>
         </HBox>
     </bottom>
 
