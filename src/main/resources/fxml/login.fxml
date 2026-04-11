@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.erp.controller.LoginController"
+            prefWidth="1024" prefHeight="768"
+            styleClass="login-root">
+
+    <center>
+        <VBox alignment="CENTER" spacing="0"
+              maxWidth="390" maxHeight="520"
+              styleClass="login-card">
+
+            <!-- Header navy -->
+            <VBox alignment="CENTER" spacing="8" styleClass="login-header">
+                <Label text="ERP Desktop" styleClass="login-title"/>
+                <Label text="Sistema de Gestão Empresarial" styleClass="login-subtitle"/>
+            </VBox>
+
+            <!-- Barra dourada -->
+            <Region styleClass="login-accent-bar" maxWidth="Infinity"/>
+
+            <!-- Formulário -->
+            <VBox spacing="16" styleClass="login-form">
+
+                <VBox spacing="6">
+                    <Label text="Usuário" styleClass="form-label"/>
+                    <TextField fx:id="txtLogin"
+                               promptText="Digite seu usuário"
+                               maxWidth="Infinity"/>
+                </VBox>
+
+                <VBox spacing="6">
+                    <Label text="Senha" styleClass="form-label"/>
+                    <PasswordField fx:id="txtSenha"
+                                   promptText="Digite sua senha"
+                                   maxWidth="Infinity"/>
+                </VBox>
+
+                <Label fx:id="lblErro"
+                       styleClass="login-erro"
+                       wrapText="true"
+                       visible="false"/>
+
+                <Button fx:id="btnEntrar"
+                        text="Entrar"
+                        onAction="#fazerLogin"
+                        maxWidth="Infinity"
+                        defaultButton="true"
+                        styleClass="btn-login"/>
+            </VBox>
+
+            <!-- Rodapé -->
+            <Label text="© 2026 ERP Desktop" styleClass="login-footer"
+                   maxWidth="Infinity" alignment="CENTER"/>
+
+        </VBox>
+    </center>
+</BorderPane>

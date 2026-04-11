@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.erp.controller.MainController"
+            prefWidth="1280" prefHeight="800">
+
+    <!-- Topbar -->
+    <top>
+        <HBox styleClass="topbar" alignment="CENTER_LEFT" spacing="16">
+            <Label text="ERP Desktop" styleClass="topbar-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblUsuario" styleClass="topbar-usuario"/>
+            <Region styleClass="topbar-divider" prefWidth="1" prefHeight="20"/>
+            <Label fx:id="lblDataHora" styleClass="topbar-usuario"/>
+            <Button text="Sair" onAction="#sair" styleClass="btn-topbar"/>
+        </HBox>
+    </top>
+
+    <!-- Sidebar + Conteúdo -->
+    <center>
+        <SplitPane dividerPositions="0.165" styleClass="main-split">
+
+            <!-- Sidebar -->
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="sidebar-scroll">
+                <VBox styleClass="sidebar" spacing="0">
+
+                    <Label text="CADASTROS" styleClass="sidebar-section"/>
+                    <Button text="Clientes"      onAction="#abrirClientes"     maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button text="Fornecedores"  onAction="#abrirFornecedores" maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button text="Produtos"      onAction="#abrirProdutos"     maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button text="Funcionários"  onAction="#abrirFuncionarios" maxWidth="Infinity" styleClass="sidebar-btn"/>
+
+                    <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
+
+                    <Label text="ESTOQUE" styleClass="sidebar-section"/>
+                    <Button text="Movimentações" onAction="#abrirEstoque"  maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button text="Compras"       onAction="#abrirCompras"  maxWidth="Infinity" styleClass="sidebar-btn"/>
+
+                    <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
+
+                    <Label text="COMERCIAL" styleClass="sidebar-section"/>
+                    <Button text="Orçamentos" onAction="#abrirOrcamentos" maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button text="Vendas"     onAction="#abrirVendas"     maxWidth="Infinity" styleClass="sidebar-btn"/>
+
+                    <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
+
+                    <Label text="FINANCEIRO" styleClass="sidebar-section"/>
+                    <Button text="Caixa"             onAction="#abrirCaixa"          maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button text="Contas a Pagar"    onAction="#abrirContasPagar"    maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button text="Contas a Receber"  onAction="#abrirContasReceber"  maxWidth="Infinity" styleClass="sidebar-btn"/>
+
+                    <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
+
+                    <Label text="RELATÓRIOS" styleClass="sidebar-section"/>
+                    <Button text="Relatórios" onAction="#abrirRelatorios" maxWidth="Infinity" styleClass="sidebar-btn"/>
+
+                    <Region VBox.vgrow="ALWAYS"/>
+
+                    <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
+                    <Label text="SISTEMA" styleClass="sidebar-section"/>
+                    <Button text="Configurações" onAction="#abrirConfiguracoes" maxWidth="Infinity" styleClass="sidebar-btn"/>
+
+                </VBox>
+            </ScrollPane>
+
+            <!-- Área de conteúdo -->
+            <StackPane fx:id="conteudoPane" styleClass="content-area">
+                <Label text="Selecione um módulo no menu lateral"
+                       styleClass="content-placeholder"/>
+            </StackPane>
+
+        </SplitPane>
+    </center>
+
+    <!-- Statusbar -->
+    <bottom>
+        <HBox styleClass="statusbar" alignment="CENTER_LEFT" spacing="16">
+            <padding><Insets top="0" right="16" bottom="0" left="16"/></padding>
+            <Label fx:id="lblStatus" styleClass="" text="Pronto"/>
+            <Region HBox.hgrow="ALWAYS"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>
