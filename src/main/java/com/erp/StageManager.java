@@ -58,7 +58,7 @@ public class StageManager {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource(fxmlPath));
-            loader.setClassLoader(Thread.currentThread().getContextClassLoader());
+            loader.setClassLoader(getClass().getClassLoader());
             loader.setControllerFactory(springContext::getBean);
 
             Parent root = loader.load();
