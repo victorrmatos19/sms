@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.FornecedorFormController"
+      spacing="0" styleClass="content-area">
+
+    <fx:define>
+        <ToggleGroup fx:id="grpTipoPessoa"/>
+    </fx:define>
+
+    <!-- Cabeçalho -->
+    <HBox styleClass="card" alignment="CENTER_LEFT" spacing="12">
+        <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
+        <Label fx:id="lblTitulo" text="Novo Fornecedor" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- TabPane principal -->
+    <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+
+        <!-- ABA 1: Dados Principais -->
+        <Tab text="Dados Principais">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+                <VBox spacing="12">
+                    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+                    <!-- Seletor PF / PJ -->
+                    <HBox spacing="0" styleClass="card">
+                        <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
+                        <ToggleButton fx:id="btnPF" text="  Pessoa Física  "
+                                      toggleGroup="$grpTipoPessoa" selected="true"/>
+                        <ToggleButton fx:id="btnPJ" text="  Pessoa Jurídica  "
+                                      toggleGroup="$grpTipoPessoa"/>
+                    </HBox>
+
+                    <!-- Painel exclusivo PF -->
+                    <VBox fx:id="panePF" spacing="10">
+                        <HBox spacing="12">
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="CPF *" styleClass="form-label"/>
+                                <TextField fx:id="txtCpf" promptText="000.000.000-00" maxWidth="180"/>
+                                <Label fx:id="lblErrCpf" styleClass="form-error" visible="false" managed="false"/>
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="RG" styleClass="form-label"/>
+                                <TextField fx:id="txtRg" promptText="RG" maxWidth="180"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Painel exclusivo PJ -->
+                    <VBox fx:id="panePJ" spacing="10" visible="false" managed="false">
+                        <HBox spacing="12">
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="CNPJ *" styleClass="form-label"/>
+                                <TextField fx:id="txtCnpj" promptText="00.000.000/0000-00" maxWidth="220"/>
+                                <Label fx:id="lblErrCnpj" styleClass="form-error" visible="false" managed="false"/>
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Inscrição Estadual" styleClass="form-label"/>
+                                <TextField fx:id="txtIe" promptText="Inscrição Estadual" maxWidth="200"/>
+                            </VBox>
+                        </HBox>
+                        <VBox spacing="4">
+                            <Label text="Razão Social *" styleClass="form-label"/>
+                            <TextField fx:id="txtRazaoSocial" promptText="Razão Social"/>
+                            <Label fx:id="lblErrRazaoSocial" styleClass="form-error" visible="false" managed="false"/>
+                        </VBox>
+                    </VBox>
+
+                    <!-- Campos comuns -->
+                    <VBox spacing="4">
+                        <Label fx:id="lblNome" text="Nome Completo *" styleClass="form-label"/>
+                        <TextField fx:id="txtNome" promptText="Nome do fornecedor"/>
+                        <Label fx:id="lblErrNome" styleClass="form-error" visible="false" managed="false"/>
+                    </VBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Telefone" styleClass="form-label"/>
+                            <TextField fx:id="txtTelefone" promptText="(00) 0000-0000"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Celular" styleClass="form-label"/>
+                            <TextField fx:id="txtCelular" promptText="(00) 00000-0000"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="E-mail" styleClass="form-label"/>
+                            <TextField fx:id="txtEmail" promptText="email@exemplo.com"/>
+                            <Label fx:id="lblErrEmail" styleClass="form-error" visible="false" managed="false"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Site" styleClass="form-label"/>
+                            <TextField fx:id="txtSite" promptText="www.fornecedor.com.br"/>
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="4">
+                        <Label text="Nome do Contato" styleClass="form-label"/>
+                        <TextField fx:id="txtContatoNome" promptText="Pessoa responsável"/>
+                        <Label styleClass="form-hint" text="Pessoa de contato na empresa"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="Observações" styleClass="form-label"/>
+                        <TextArea fx:id="txtObservacoes" prefRowCount="3" wrapText="true"/>
+                    </VBox>
+
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Label text="Status:" styleClass="form-label"/>
+                        <ToggleButton fx:id="btnStatus" text="Ativo"/>
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+        </Tab>
+
+        <!-- ABA 2: Endereço -->
+        <Tab text="Endereço">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+                <VBox spacing="12">
+                    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <VBox spacing="4">
+                            <Label text="CEP" styleClass="form-label"/>
+                            <TextField fx:id="txtCep" promptText="00000-000" prefWidth="130"/>
+                            <Label fx:id="lblErrCep" styleClass="form-hint" visible="false" managed="false"/>
+                        </VBox>
+                        <Label fx:id="lblBuscandoCep" text="Buscando..." styleClass="form-hint"
+                               visible="false" managed="false"/>
+                    </HBox>
+
+                    <VBox spacing="4">
+                        <Label text="Logradouro" styleClass="form-label"/>
+                        <TextField fx:id="txtLogradouro" promptText="Rua, Avenida..."/>
+                    </VBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4">
+                            <Label text="Número" styleClass="form-label"/>
+                            <TextField fx:id="txtNumero" promptText="Nº" prefWidth="100"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Complemento" styleClass="form-label"/>
+                            <TextField fx:id="txtComplemento" promptText="Apto, Sala..."/>
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="4">
+                        <Label text="Bairro" styleClass="form-label"/>
+                        <TextField fx:id="txtBairro" promptText="Bairro"/>
+                    </VBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Cidade" styleClass="form-label"/>
+                            <TextField fx:id="txtCidade" promptText="Cidade"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="UF" styleClass="form-label"/>
+                            <ComboBox fx:id="cmbUf" prefWidth="90"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+        </Tab>
+
+        <!-- ABA 3: Dados Bancários -->
+        <Tab text="Dados Bancários">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+                <VBox spacing="12">
+                    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Banco" styleClass="form-label"/>
+                            <TextField fx:id="txtBancoNome" promptText="Ex: Itaú, Bradesco, Nubank"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Tipo de Conta" styleClass="form-label"/>
+                            <ComboBox fx:id="cmbTipoConta" prefWidth="140"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Agência" styleClass="form-label"/>
+                            <TextField fx:id="txtAgencia" promptText="0000"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Conta" styleClass="form-label"/>
+                            <TextField fx:id="txtConta" promptText="00000-0"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Separador PIX -->
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Region HBox.hgrow="ALWAYS" prefHeight="1" styleClass="sidebar-divider"/>
+                        <Label text="Chave PIX" styleClass="form-label"/>
+                        <Region HBox.hgrow="ALWAYS" prefHeight="1" styleClass="sidebar-divider"/>
+                    </HBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4">
+                            <Label text="Tipo da Chave" styleClass="form-label"/>
+                            <ComboBox fx:id="cmbPixTipo" prefWidth="160"/>
+                            <Label fx:id="lblErrPixTipo" styleClass="form-error" visible="false" managed="false"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Chave PIX" styleClass="form-label"/>
+                            <TextField fx:id="txtPixChave" promptText="Selecione o tipo primeiro"
+                                       disable="true"/>
+                            <Label fx:id="lblErrPixChave" styleClass="form-error" visible="false" managed="false"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+        </Tab>
+    </TabPane>
+
+    <!-- Rodapé com botões -->
+    <HBox spacing="8" alignment="CENTER_RIGHT" styleClass="card">
+        <padding><Insets top="10" right="16" bottom="10" left="16"/></padding>
+        <Button text="Cancelar" onAction="#cancelar" styleClass="btn-outline"/>
+        <Button text="Salvar" onAction="#salvar" styleClass="btn-primary"/>
+    </HBox>
+
+</VBox>
