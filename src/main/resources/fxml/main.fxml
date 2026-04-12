@@ -20,6 +20,7 @@
             <Label fx:id="lblUsuario" styleClass="topbar-usuario"/>
             <Region styleClass="topbar-divider" prefWidth="1" prefHeight="20"/>
             <Label fx:id="lblDataHora" styleClass="topbar-usuario"/>
+            <Button fx:id="btnTema" onAction="#toggleTema" styleClass="btn-topbar" text="☀"/>
             <Button text="Sair" onAction="#sair" styleClass="btn-topbar"/>
         </HBox>
     </top>

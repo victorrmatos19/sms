@@ -81,6 +81,7 @@ public class LoginController implements Initializable {
 
         if (usuarioOpt.isPresent()) {
             log.info("Login bem-sucedido: {}", login);
+            stageManager.carregarTemaDoUsuario(authService.getEmpresaIdLogado());
             stageManager.showMainScreen();
         } else {
             mostrarErro("Login ou senha incorretos.");

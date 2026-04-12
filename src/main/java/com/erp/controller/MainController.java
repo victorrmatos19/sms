@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
@@ -38,6 +39,7 @@ public class MainController implements Initializable {
     private final ApplicationContext springContext;
 
     @FXML private ImageView imgLogoTopbar;
+    @FXML private Button btnTema;
     @FXML private Label lblUsuario;
     @FXML private Label lblStatus;
     @FXML private Label lblDataHora;
@@ -65,6 +67,19 @@ public class MainController implements Initializable {
         ));
         clock.setCycleCount(Timeline.INDEFINITE);
         clock.play();
+
+        // Sincronizar ícone do botão com tema atual
+        atualizarIconeTema();
+    }
+
+    @FXML
+    private void toggleTema() {
+        stageManager.toggleDarkMode();
+        atualizarIconeTema();
+    }
+
+    private void atualizarIconeTema() {
+        btnTema.setText(stageManager.isDarkMode() ? "☀" : "☾");
     }
 
     // ---- Handlers do menu lateral ----
