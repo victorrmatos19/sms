@@ -8,12 +8,12 @@
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.erp.controller.ProdutoFormController"
       spacing="0" prefWidth="720" prefHeight="560"
-      styleClass="dialog-pane">
+      styleClass="modal-root">
 
-    <!-- Título -->
-    <Label fx:id="lblTitulo" text="Novo Produto" styleClass="page-title">
-        <VBox.margin><Insets bottom="16"/></VBox.margin>
-    </Label>
+    <!-- Cabeçalho -->
+    <HBox styleClass="modal-header" alignment="CENTER_LEFT">
+        <Label fx:id="lblTitulo" text="Novo Produto" styleClass="page-title"/>
+    </HBox>
 
     <!-- Abas -->
     <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
@@ -195,8 +195,7 @@
     </TabPane>
 
     <!-- Botões -->
-    <HBox spacing="8" alignment="CENTER_RIGHT">
-        <VBox.margin><Insets top="16"/></VBox.margin>
+    <HBox spacing="8" alignment="CENTER_RIGHT" styleClass="modal-footer">
         <Button fx:id="btnCancelar" text="Cancelar" onAction="#cancelar" styleClass="btn-outline"/>
         <Button fx:id="btnSalvar"   text="Salvar"   onAction="#salvar"   styleClass="btn-primary"
                 defaultButton="true"/>

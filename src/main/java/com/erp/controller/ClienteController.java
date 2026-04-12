@@ -247,6 +247,7 @@ public class ClienteController implements Initializable {
             loader.setControllerFactory(springContext::getBean);
             Parent root = loader.load();
 
+            stageManager.applyTheme(root);
             ClienteFormController formCtrl = loader.getController();
             formCtrl.setCliente(cliente);
             formCtrl.setOnSaved(this::carregarClientes);
@@ -263,6 +264,7 @@ public class ClienteController implements Initializable {
             Scene scene = new Scene(root);
             scene.getStylesheets().add(
                 getClass().getResource("/css/global.css").toExternalForm());
+            stageManager.applySceneFill(scene);
             dialog.setScene(scene);
             dialog.showAndWait();
 

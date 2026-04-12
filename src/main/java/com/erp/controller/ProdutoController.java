@@ -267,6 +267,7 @@ public class ProdutoController implements Initializable {
             loader.setClassLoader(getClass().getClassLoader());
             loader.setControllerFactory(springContext::getBean);
             Parent root = loader.load();
+            stageManager.applyTheme(root);
 
             Stage dialog = new Stage();
             dialog.initModality(Modality.APPLICATION_MODAL);
@@ -276,6 +277,7 @@ public class ProdutoController implements Initializable {
             Scene scene = new Scene(root, width, height);
             scene.getStylesheets().add(
                 getClass().getResource("/css/global.css").toExternalForm());
+            stageManager.applySceneFill(scene);
             dialog.setScene(scene);
             dialog.showAndWait();
 
@@ -291,6 +293,7 @@ public class ProdutoController implements Initializable {
             loader.setControllerFactory(springContext::getBean);
             Parent root = loader.load();
 
+            stageManager.applyTheme(root);
             ProdutoFormController formCtrl = loader.getController();
             formCtrl.setProduto(produto);
             formCtrl.setOnSaved(this::carregarProdutos);
@@ -305,6 +308,7 @@ public class ProdutoController implements Initializable {
             Scene scene = new Scene(root, 720, 560);
             scene.getStylesheets().add(
                 getClass().getResource("/css/global.css").toExternalForm());
+            stageManager.applySceneFill(scene);
             dialog.setScene(scene);
             dialog.setWidth(720);
             dialog.setHeight(560);

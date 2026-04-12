@@ -16,7 +16,7 @@
             <Label text="Compras" styleClass="page-title"/>
             <Label text="Gestão de pedidos de compra e recebimento de mercadorias" styleClass="page-subtitle"/>
         </VBox>
-        <Button text="+ Nova Compra" onAction="#abrirNovo" styleClass="btn-primary"/>
+        <Button fx:id="btnNovaCompra" text="+ Nova Compra" onAction="#abrirNovo" styleClass="btn-primary"/>
     </HBox>
 
     <!-- Métricas -->
@@ -29,7 +29,7 @@
             <Label text="VALOR COMPRADO (MÊS)" styleClass="metric-card-label"/>
             <Label fx:id="lblValorMes" text="R$ 0,00" styleClass="metric-card-value-accent"/>
         </VBox>
-        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+        <VBox fx:id="cardAguardandoConfirmacao" styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
             <Label text="AGUARDANDO CONFIRMAÇÃO" styleClass="metric-card-label"/>
             <Label fx:id="lblRascunhos" text="0" styleClass="metric-card-value"/>
         </VBox>

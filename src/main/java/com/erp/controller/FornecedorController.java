@@ -219,6 +219,7 @@ public class FornecedorController implements Initializable {
             loader.setControllerFactory(springContext::getBean);
             Parent root = loader.load();
 
+            stageManager.applyTheme(root);
             FornecedorFormController formCtrl = loader.getController();
             formCtrl.setFornecedor(fornecedor);
             formCtrl.setOnSaved(this::carregarFornecedores);
@@ -235,6 +236,7 @@ public class FornecedorController implements Initializable {
             Scene scene = new Scene(root);
             scene.getStylesheets().add(
                 getClass().getResource("/css/global.css").toExternalForm());
+            stageManager.applySceneFill(scene);
             dialog.setScene(scene);
             dialog.showAndWait();
 

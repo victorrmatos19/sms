@@ -7,6 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -79,6 +80,7 @@ public class StageManager {
             );
 
             applyTheme(root);
+            applySceneFill(scene);
 
             primaryStage.setTitle(title);
             primaryStage.setScene(scene);
@@ -128,9 +130,17 @@ public class StageManager {
         return darkMode;
     }
 
-    private void applyTheme(Parent root) {
+    public void applyTheme(Parent root) {
         root.getStyleClass().removeAll("theme-light", "theme-dark");
         root.getStyleClass().add(darkMode ? "theme-dark" : "theme-light");
+    }
+
+    /**
+     * Aplica o fill correto na Scene para eliminar bordas brancas em modais.
+     * Deve ser chamado após criar a Scene e antes de exibi-la.
+     */
+    public void applySceneFill(Scene scene) {
+        scene.setFill(darkMode ? Color.web("#000000") : Color.web("#f5f5f5"));
     }
 
     public Stage getPrimaryStage() {

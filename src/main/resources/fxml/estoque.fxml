@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="rootPane"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.EstoqueController"
+      spacing="16" styleClass="content-area">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT">
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Movimentações de Estoque" styleClass="page-title"/>
+            <Label text="Controle de entradas, saídas e ajustes de estoque" styleClass="page-subtitle"/>
+        </VBox>
+        <Button fx:id="btnRegistrarMovimentacao" text="+ Registrar Movimentação"
+                onAction="#abrirRegistrarMovimentacao" styleClass="btn-primary"/>
+    </HBox>
+
+    <!-- Métricas -->
+    <HBox spacing="12">
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="PRODUTOS ATIVOS" styleClass="metric-card-label"/>
+            <Label fx:id="lblTotalProdutos" text="0" styleClass="metric-card-value"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="VALOR TOTAL DO ESTOQUE" styleClass="metric-card-label"/>
+            <Label fx:id="lblValorTotal" text="R$ 0,00" styleClass="metric-card-value-accent"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="ABAIXO DO MÍNIMO" styleClass="metric-card-label"/>
+            <Label fx:id="lblAbaixoMinimo" text="0" styleClass="metric-card-value"/>
+        </VBox>
+    </HBox>
+
+    <!-- Abas: Posição e Histórico -->
+    <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+
+        <!-- ABA: Posição do Estoque -->
+        <Tab fx:id="tabPosicao" text="Posição do Estoque">
+            <VBox spacing="8" style="-fx-padding: 8 0 0 0;">
+
+                <!-- Filtro -->
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <TextField fx:id="txtBuscaEstoque"
+                               promptText="Buscar por produto, código..."
+                               prefWidth="300"/>
+                    <ComboBox fx:id="cmbFiltroEstoque" prefWidth="160"/>
+                </HBox>
+
+                <!-- Tabela de posição -->
+                <TableView fx:id="tabelaPosicao" VBox.vgrow="ALWAYS" styleClass="table-view">
+                    <columns>
+                        <TableColumn fx:id="colECodigo"    text="CÓDIGO"         prefWidth="100" minWidth="80"/>
+                        <TableColumn fx:id="colEDescricao" text="PRODUTO"         prefWidth="280" minWidth="180"/>
+                        <TableColumn fx:id="colEEstoque"   text="ESTOQUE ATUAL"   prefWidth="120" minWidth="100"/>
+                        <TableColumn fx:id="colEMinimo"    text="MÍNIMO"          prefWidth="100" minWidth="80"/>
+                        <TableColumn fx:id="colECusto"     text="CUSTO UNIT."     prefWidth="120" minWidth="100"/>
+                        <TableColumn fx:id="colEValor"     text="VALOR TOTAL"     prefWidth="130" minWidth="100"/>
+                        <TableColumn fx:id="colESituacao"  text="SITUAÇÃO"        prefWidth="120" minWidth="100"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="Nenhum produto encontrado" styleClass="content-placeholder"/>
+                    </placeholder>
+                </TableView>
+
+            </VBox>
+        </Tab>
+
+        <!-- ABA: Histórico de Movimentações -->
+        <Tab fx:id="tabHistorico" text="Histórico">
+            <VBox spacing="8" style="-fx-padding: 8 0 0 0;">
+
+                <!-- Filtro de período -->
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Label text="De:" styleClass="form-label"/>
+                    <DatePicker fx:id="dpInicio" prefWidth="150"/>
+                    <Label text="Até:" styleClass="form-label"/>
+                    <DatePicker fx:id="dpFim" prefWidth="150"/>
+                    <Button text="Filtrar" onAction="#filtrarHistorico" styleClass="btn-secondary"/>
+                </HBox>
+
+                <!-- Tabela de histórico -->
+                <TableView fx:id="tabelaHistorico" VBox.vgrow="ALWAYS" styleClass="table-view">
+                    <columns>
+                        <TableColumn fx:id="colHData"       text="DATA/HORA"      prefWidth="140" minWidth="120"/>
+                        <TableColumn fx:id="colHProduto"    text="PRODUTO"        prefWidth="220" minWidth="150"/>
+                        <TableColumn fx:id="colHTipo"       text="TIPO"           prefWidth="120" minWidth="100"/>
+                        <TableColumn fx:id="colHOrigem"     text="ORIGEM"         prefWidth="110" minWidth="90"/>
+                        <TableColumn fx:id="colHQtd"        text="QUANTIDADE"     prefWidth="110" minWidth="90"/>
+                        <TableColumn fx:id="colHSaldoAnt"   text="SALDO ANTERIOR" prefWidth="120" minWidth="100"/>
+                        <TableColumn fx:id="colHSaldoPost"  text="SALDO POSTERIOR" prefWidth="130" minWidth="100"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="Nenhuma movimentação encontrada" styleClass="content-placeholder"/>
+                    </placeholder>
+                </TableView>
+
+            </VBox>
+        </Tab>
+
+    </TabPane>
+
+</VBox>

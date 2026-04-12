@@ -40,10 +40,14 @@ public class MainController implements Initializable {
 
     @FXML private ImageView imgLogoTopbar;
     @FXML private Button btnTema;
-    @FXML private Label lblUsuario;
     @FXML private Label lblStatus;
     @FXML private Label lblDataHora;
     @FXML private StackPane conteudoPane;
+
+    // Sidebar user area
+    @FXML private Label lblAvatarSidebar;
+    @FXML private Label lblNomeSidebar;
+    @FXML private Label lblPerfilSidebar;
 
     private static final DateTimeFormatter FORMATTER =
         DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -55,10 +59,17 @@ public class MainController implements Initializable {
             imgLogoTopbar.setImage(logo);
         }
 
-        // Exibe nome do usuário logado
-        if (authService.getUsuarioLogado() != null) {
-            lblUsuario.setText(authService.getUsuarioLogado().getNome()
-                + " — " + authService.getUsuarioLogado().getPerfil().getNome());
+        // Preenche área de usuário na sidebar
+        var usuario = authService.getUsuarioLogado();
+        if (usuario != null) {
+            String nome = usuario.getNome() != null ? usuario.getNome() : "?";
+            String[] partes = nome.trim().split("\\s+");
+            String iniciais = partes.length >= 2
+                ? String.valueOf(partes[0].charAt(0)) + partes[partes.length - 1].charAt(0)
+                : String.valueOf(partes[0].charAt(0));
+            lblAvatarSidebar.setText(iniciais.toUpperCase());
+            lblNomeSidebar.setText(nome);
+            lblPerfilSidebar.setText(usuario.getPerfil() != null ? usuario.getPerfil().getNome() : "");
         }
 
         // Relógio em tempo real
@@ -96,7 +107,7 @@ public class MainController implements Initializable {
     private void abrirFuncionarios() {
         carregarModulo("/fxml/funcionarios.fxml", "Funcionários");
     }
-    @FXML private void abrirEstoque()        { setStatus("Movimentações de Estoque"); }
+    @FXML private void abrirEstoque()        { carregarModulo("/fxml/estoque.fxml", "Movimentações de Estoque"); }
     @FXML private void abrirCompras()        { carregarModulo("/fxml/compras.fxml", "Compras"); }
     @FXML private void abrirOrcamentos()     { setStatus("Orçamentos"); }
     @FXML private void abrirVendas()         { setStatus("Vendas"); }

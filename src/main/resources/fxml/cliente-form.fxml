@@ -7,15 +7,14 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.erp.controller.ClienteFormController"
-      spacing="0" styleClass="content-area">
+      spacing="0" styleClass="modal-root">
 
     <fx:define>
         <ToggleGroup fx:id="grpTipoPessoa"/>
     </fx:define>
 
     <!-- Cabeçalho -->
-    <HBox styleClass="card" alignment="CENTER_LEFT" spacing="12">
-        <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
+    <HBox styleClass="modal-header" alignment="CENTER_LEFT" spacing="12">
         <Label fx:id="lblTitulo" text="Novo Cliente" styleClass="page-title" HBox.hgrow="ALWAYS"/>
     </HBox>
 
@@ -168,8 +167,7 @@
     </TabPane>
 
     <!-- Rodapé com botões -->
-    <HBox spacing="8" alignment="CENTER_RIGHT" styleClass="card">
-        <padding><Insets top="10" right="16" bottom="10" left="16"/></padding>
+    <HBox spacing="8" alignment="CENTER_RIGHT" styleClass="modal-footer">
         <Button text="Cancelar" onAction="#cancelar" styleClass="btn-outline"/>
         <Button fx:id="btnSalvar" text="Salvar" onAction="#salvar" styleClass="btn-primary"/>
     </HBox>

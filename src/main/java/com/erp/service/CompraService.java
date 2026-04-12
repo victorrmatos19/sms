@@ -44,6 +44,16 @@ public class CompraService {
         return compraRepository.findById(id);
     }
 
+    /**
+     * Carrega a compra com todos os itens, produtos e lotes já inicializados,
+     * evitando {@link org.hibernate.LazyInitializationException} ao acessar
+     * {@code compra.getItens()} fora de uma sessão Hibernate (ex: no FX thread).
+     */
+    @Transactional(readOnly = true)
+    public Optional<Compra> buscarComItens(Integer id) {
+        return compraRepository.findByIdWithItens(id);
+    }
+
     @Transactional(readOnly = true)
     public long contarRascunhos(Integer empresaId) {
         return compraRepository.countByEmpresaIdAndStatus(empresaId, "RASCUNHO");

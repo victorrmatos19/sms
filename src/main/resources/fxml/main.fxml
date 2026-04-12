@@ -17,8 +17,6 @@
             <ImageView fx:id="imgLogoTopbar" fitWidth="130" fitHeight="34" preserveRatio="true"/>
             <Region styleClass="topbar-divider" prefWidth="1" prefHeight="20"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label fx:id="lblUsuario" styleClass="topbar-usuario"/>
-            <Region styleClass="topbar-divider" prefWidth="1" prefHeight="20"/>
             <Label fx:id="lblDataHora" styleClass="topbar-usuario"/>
             <Button fx:id="btnTema" onAction="#toggleTema" styleClass="btn-topbar" text="☀"/>
             <Button text="Sair" onAction="#sair" styleClass="btn-topbar"/>
@@ -68,6 +66,13 @@
                     <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
                     <Label text="SISTEMA" styleClass="sidebar-section"/>
                     <Button text="Configurações" onAction="#abrirConfiguracoes" maxWidth="Infinity" styleClass="sidebar-btn"/>
+
+                    <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
+                    <VBox styleClass="sidebar-user-area" spacing="3" alignment="CENTER_LEFT">
+                        <Label fx:id="lblAvatarSidebar" styleClass="sidebar-user-avatar" text="?"/>
+                        <Label fx:id="lblNomeSidebar"   styleClass="sidebar-user-nome"   text=""/>
+                        <Label fx:id="lblPerfilSidebar" styleClass="sidebar-user-perfil" text=""/>
+                    </VBox>
 
                 </VBox>
             </ScrollPane>

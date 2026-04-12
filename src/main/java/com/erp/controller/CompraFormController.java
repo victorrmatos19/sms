@@ -9,6 +9,7 @@ import com.erp.service.AuthService;
 import com.erp.service.CompraService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -30,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -68,6 +68,9 @@ public class CompraFormController implements Initializable {
     @FXML private TextField             txtOutrasDespesas;
     @FXML private Label                 lblValorTotal;
 
+    // ---- Validação inline ----
+    @FXML private Label                 errFornecedor;
+
     // ---- Botões ----
     @FXML private HBox                  hboxBotoes;
     @FXML private Button                btnSalvarRascunho;
@@ -77,9 +80,12 @@ public class CompraFormController implements Initializable {
     private Compra compraAtual;
     private StackPane conteudoPane;
     private List<Fornecedor> todosFornecedores = new ArrayList<>();
+    private ObservableList<Fornecedor> fornecedoresDisplay;
     private List<Produto> todosProdutos = new ArrayList<>();
     private final List<ItemRow> itemRows = new ArrayList<>();
     private boolean somenteLeitura = false;
+    /** Guard contra loop infinito: filtrar → ComboBox reseta editor → listener → filtrar */
+    private boolean filtrando = false;
 
     private static final NumberFormat CURRENCY_FMT =
             NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
@@ -104,34 +110,80 @@ public class CompraFormController implements Initializable {
     }
 
     private void configurarFornecedorCombo() {
-        cmbFornecedor.setItems(FXCollections.observableArrayList(todosFornecedores));
+        // Usa setAll() na mesma referência de lista para evitar:
+        // 1. setItems() → troca referência → editor reseta → listener → loop
+        // 2. FilteredList.setPredicate() → refilter() → índices corrompidos → IndexOutOfBounds no click
+        fornecedoresDisplay = FXCollections.observableArrayList(todosFornecedores);
+        cmbFornecedor.setItems(fornecedoresDisplay);
         cmbFornecedor.setConverter(new javafx.util.StringConverter<>() {
             @Override public String toString(Fornecedor f) {
                 if (f == null) return "";
                 return "PJ".equals(f.getTipoPessoa()) && f.getRazaoSocial() != null
                         ? f.getRazaoSocial() : f.getNome();
             }
-            @Override public Fornecedor fromString(String s) { return null; }
+            /**
+             * Chamado pelo JavaFX ao fazer commitValue() quando o editor perde o foco.
+             * Retornar null aqui fazia setValue(null) → seleção sumia ao clicar fora.
+             * A correção: buscar o fornecedor cujo nome display coincide com o texto;
+             * se nenhum coincidir, preservar o valor já selecionado.
+             */
+            @Override public Fornecedor fromString(String s) {
+                if (s == null || s.isBlank()) return null;
+                return todosFornecedores.stream()
+                        .filter(f -> {
+                            String nome = "PJ".equals(f.getTipoPessoa())
+                                    && f.getRazaoSocial() != null
+                                    ? f.getRazaoSocial() : f.getNome();
+                            return s.equals(nome);
+                        })
+                        .findFirst()
+                        .orElse(cmbFornecedor.getValue()); // mantém seleção se texto parcial
+            }
         });
         cmbFornecedor.setEditable(true);
-        cmbFornecedor.getEditor().textProperty().addListener((obs, old, val) -> filtrarFornecedores(val));
+        // Platform.runLater: adia o filtro para após a cadeia de eventos do ComboBox terminar,
+        // evitando IndexOutOfBounds no ListViewBehavior quando o usuário clica num item.
+        cmbFornecedor.getEditor().textProperty().addListener((obs, old, val) ->
+                Platform.runLater(() -> filtrarFornecedores(val)));
     }
 
     private void filtrarFornecedores(String texto) {
-        if (texto == null || texto.isBlank()) {
-            cmbFornecedor.setItems(FXCollections.observableArrayList(todosFornecedores));
-            return;
+        if (filtrando || fornecedoresDisplay == null) return;
+
+        // Guard principal: se o texto é exatamente o nome display do fornecedor já
+        // selecionado, ele foi gerado pelo próprio setValue() → converter.toString(),
+        // não por digitação do usuário. Filtrar agora chamaria setAll() que emite um
+        // evento REPLACED, o SingleSelectionModel interpretaria como "item removido" e
+        // chamaria setValue(null) — apagando a seleção silenciosamente.
+        Fornecedor selecionado = cmbFornecedor.getValue();
+        if (selecionado != null && texto != null) {
+            String nomeDisplay = "PJ".equals(selecionado.getTipoPessoa())
+                    && selecionado.getRazaoSocial() != null
+                    ? selecionado.getRazaoSocial() : selecionado.getNome();
+            if (texto.equals(nomeDisplay)) return;
         }
-        String lower = texto.toLowerCase();
-        var filtrados = todosFornecedores.stream()
-                .filter(f -> {
-                    String nome = "PJ".equals(f.getTipoPessoa()) && f.getRazaoSocial() != null
-                            ? f.getRazaoSocial() : f.getNome();
-                    return nome != null && nome.toLowerCase().contains(lower);
-                })
-                .collect(Collectors.toList());
-        cmbFornecedor.setItems(FXCollections.observableArrayList(filtrados));
-        if (!filtrados.isEmpty() && !cmbFornecedor.isShowing()) cmbFornecedor.show();
+
+        filtrando = true;
+        try {
+            if (texto == null || texto.isBlank()) {
+                fornecedoresDisplay.setAll(todosFornecedores);
+                return;
+            }
+            String lower = texto.toLowerCase();
+            List<Fornecedor> filtrados = todosFornecedores.stream()
+                    .filter(f -> {
+                        String nome = "PJ".equals(f.getTipoPessoa()) && f.getRazaoSocial() != null
+                                ? f.getRazaoSocial() : f.getNome();
+                        return nome != null && nome.toLowerCase().contains(lower);
+                    })
+                    .toList();
+            fornecedoresDisplay.setAll(filtrados);
+            if (!filtrados.isEmpty() && !cmbFornecedor.isShowing()) {
+                cmbFornecedor.show();
+            }
+        } finally {
+            filtrando = false;
+        }
     }
 
     private void configurarCondicaoCombo() {
@@ -183,7 +235,13 @@ public class CompraFormController implements Initializable {
     // ================================================================
 
     public void setCompra(Compra compra) {
-        this.compraAtual = compra;
+        // Recarrega com itens já inicializados para evitar LazyInitializationException
+        // ao acessar compra.getItens() no FX thread (fora da sessão Hibernate).
+        if (compra != null && compra.getId() != null) {
+            this.compraAtual = compraService.buscarComItens(compra.getId()).orElse(compra);
+        } else {
+            this.compraAtual = compra;
+        }
         Platform.runLater(this::preencherFormulario);
     }
 
@@ -281,23 +339,63 @@ public class CompraFormController implements Initializable {
                 String cod = p.getCodigoInterno() != null ? "[" + p.getCodigoInterno() + "] " : "";
                 return cod + p.getDescricao();
             }
-            @Override public Produto fromString(String s) { return null; }
+            /**
+             * Chamado pelo JavaFX ao fazer commitValue() quando o editor perde o foco.
+             * Retornar null aqui fazia setValue(null) → seleção sumia ao clicar fora.
+             * A correção: buscar o produto cujo nome display coincide com o texto;
+             * se nenhum coincidir, preservar o valor já selecionado.
+             */
+            @Override public Produto fromString(String s) {
+                if (s == null || s.isBlank()) return null;
+                return todosProdutos.stream()
+                        .filter(p -> {
+                            String cod = p.getCodigoInterno() != null
+                                    ? "[" + p.getCodigoInterno() + "] " : "";
+                            String display = cod + p.getDescricao();
+                            return s.equals(display);
+                        })
+                        .findFirst()
+                        .orElse(ir.cbProduto.getValue()); // mantém seleção se texto parcial
+            }
         });
         ir.cbProduto.setEditable(true);
-        ir.cbProduto.getEditor().textProperty().addListener((obs, old, val) -> {
-            if (val == null || val.isBlank()) {
-                ir.cbProduto.setItems(FXCollections.observableArrayList(todosProdutos));
-                return;
-            }
-            String lower = val.toLowerCase();
-            var filtrados = todosProdutos.stream()
-                    .filter(p -> p.getDescricao().toLowerCase().contains(lower)
-                            || (p.getCodigoInterno() != null && p.getCodigoInterno().toLowerCase().contains(lower))
-                            || (p.getCodigoBarras() != null && p.getCodigoBarras().contains(val)))
-                    .collect(Collectors.toList());
-            ir.cbProduto.setItems(FXCollections.observableArrayList(filtrados));
-            if (!filtrados.isEmpty() && !ir.cbProduto.isShowing()) ir.cbProduto.show();
-        });
+        ObservableList<Produto> produtosDisplay = FXCollections.observableArrayList(todosProdutos);
+        ir.cbProduto.setItems(produtosDisplay);
+        final boolean[] filtrandoProduto = {false};
+        // Platform.runLater: adia o filtro para após a cadeia de eventos do ComboBox terminar,
+        // evitando IndexOutOfBounds no ListViewBehavior quando o usuário clica num item filtrado.
+        ir.cbProduto.getEditor().textProperty().addListener((obs, old, val) ->
+                Platform.runLater(() -> {
+                    if (filtrandoProduto[0]) return;
+
+                    // Guard: se o texto é o nome display do produto já selecionado,
+                    // veio do setValue() → não filtrar (setAll() apagaria a seleção).
+                    Produto prodSelecionado = ir.cbProduto.getValue();
+                    if (prodSelecionado != null && val != null) {
+                        String cod = prodSelecionado.getCodigoInterno() != null
+                                ? "[" + prodSelecionado.getCodigoInterno() + "] " : "";
+                        String nomeDisplay = cod + prodSelecionado.getDescricao();
+                        if (val.equals(nomeDisplay)) return;
+                    }
+
+                    filtrandoProduto[0] = true;
+                    try {
+                        if (val == null || val.isBlank()) {
+                            produtosDisplay.setAll(todosProdutos);
+                            return;
+                        }
+                        String lower = val.toLowerCase();
+                        List<Produto> filtrados = todosProdutos.stream()
+                                .filter(p -> p.getDescricao().toLowerCase().contains(lower)
+                                        || (p.getCodigoInterno() != null && p.getCodigoInterno().toLowerCase().contains(lower))
+                                        || (p.getCodigoBarras() != null && p.getCodigoBarras().contains(val)))
+                                .toList();
+                        produtosDisplay.setAll(filtrados);
+                        if (!filtrados.isEmpty() && !ir.cbProduto.isShowing()) ir.cbProduto.show();
+                    } finally {
+                        filtrandoProduto[0] = false;
+                    }
+                }));
         ir.cbProduto.valueProperty().addListener((obs, old, prod) -> aoSelecionarProduto(ir, prod));
 
         // --- Lote ---
@@ -431,12 +529,28 @@ public class CompraFormController implements Initializable {
     // Ações dos botões
     // ================================================================
 
+    /** Valida campos obrigatórios do cabeçalho. Retorna {@code false} se inválido. */
+    private boolean validarCabecalho() {
+        errFornecedor.setVisible(false);
+        errFornecedor.setManaged(false);
+        if (cmbFornecedor.getValue() == null) {
+            errFornecedor.setText("Fornecedor é obrigatório.");
+            errFornecedor.setVisible(true);
+            errFornecedor.setManaged(true);
+            return false;
+        }
+        return true;
+    }
+
     @FXML
     private void salvarRascunho() {
+        if (!validarCabecalho()) return;
         try {
             Compra compra = montarCompra();
             Compra salva = compraService.salvarRascunho(compra);
-            this.compraAtual = salva;
+            // Recarrega com itens inicializados — a entidade retornada pelo save é desanexada
+            // e acessar compraAtual.getItens() fora da sessão causaria LazyInitializationException.
+            this.compraAtual = compraService.buscarComItens(salva.getId()).orElse(salva);
             lblTitulo.setText("Compra — " + salva.getNumeroDocumento());
             new Alert(Alert.AlertType.INFORMATION,
                     "Rascunho salvo: " + salva.getNumeroDocumento(), ButtonType.OK).showAndWait();
@@ -450,6 +564,7 @@ public class CompraFormController implements Initializable {
 
     @FXML
     private void confirmarCompra() {
+        if (!validarCabecalho()) return;
         try {
             Compra compra = montarCompra();
             Compra rascunho = compraService.salvarRascunho(compra);

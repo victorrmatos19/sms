@@ -253,6 +253,12 @@ public class CompraController implements Initializable {
 
     private void abrirFormulario(Compra compra) {
         try {
+            // Recarrega a compra com itens, produto e lote já inicializados para evitar
+            // LazyInitializationException ao acessar compra.getItens() no FX thread
+            // (fora do contexto da sessão Hibernate).
+            Compra compraComItens = compraService.buscarComItens(compra.getId())
+                    .orElse(compra);
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/compra-form.fxml"));
             loader.setClassLoader(getClass().getClassLoader());
             loader.setControllerFactory(springContext::getBean);
@@ -260,7 +266,7 @@ public class CompraController implements Initializable {
 
             CompraFormController ctrl = loader.getController();
             StackPane pane = (StackPane) rootPane.getParent();
-            ctrl.setCompra(compra);
+            ctrl.setCompra(compraComItens);
             ctrl.setConteudoPane(pane);
 
             pane.getChildren().setAll(formView);

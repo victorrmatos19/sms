@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.MovimentacaoFormController"
+      spacing="0" prefWidth="520" prefHeight="420"
+      styleClass="modal-root">
+
+    <!-- Cabeçalho -->
+    <HBox styleClass="modal-header" alignment="CENTER_LEFT">
+        <Label text="Registrar Movimentação" styleClass="page-title"/>
+    </HBox>
+
+    <!-- Formulário -->
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+        <GridPane hgap="12" vgap="10">
+            <padding><Insets top="16" right="16" bottom="16" left="4"/></padding>
+            <columnConstraints>
+                <ColumnConstraints minWidth="140" prefWidth="140"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
+
+            <!-- Produto -->
+            <Label text="Produto *" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <VBox GridPane.rowIndex="0" GridPane.columnIndex="1" spacing="2">
+                <ComboBox fx:id="cmbProduto" maxWidth="Infinity" promptText="Selecione o produto..."/>
+            </VBox>
+
+            <!-- Tipo de Movimentação -->
+            <Label text="Tipo *" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <ComboBox fx:id="cmbTipoMovimentacao" maxWidth="Infinity"
+                      GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+            <!-- Saldo Atual -->
+            <Label text="Saldo Atual" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+            <Label fx:id="lblSaldoAtual" text="—" styleClass="form-hint"
+                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+            <!-- Quantidade -->
+            <Label fx:id="lblQuantidadeLabel" text="Quantidade *" styleClass="form-label"
+                   GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+            <VBox GridPane.rowIndex="3" GridPane.columnIndex="1" spacing="2">
+                <TextField fx:id="txtQuantidade" promptText="0"/>
+            </VBox>
+
+            <!-- Lote (visível apenas quando produto usa lote) -->
+            <Label fx:id="lblLote" text="Lote" styleClass="form-label"
+                   GridPane.rowIndex="4" GridPane.columnIndex="0"
+                   visible="false" managed="false"/>
+            <TextField fx:id="txtLote" promptText="Número do lote"
+                       GridPane.rowIndex="4" GridPane.columnIndex="1"
+                       visible="false" managed="false"/>
+
+            <!-- Validade (visível apenas quando produto usa lote) -->
+            <Label fx:id="lblValidade" text="Validade" styleClass="form-label"
+                   GridPane.rowIndex="5" GridPane.columnIndex="0"
+                   visible="false" managed="false"/>
+            <DatePicker fx:id="dpValidade" maxWidth="Infinity"
+                        GridPane.rowIndex="5" GridPane.columnIndex="1"
+                        visible="false" managed="false"/>
+
+            <!-- Motivo -->
+            <Label text="Motivo *" styleClass="form-label" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+            <VBox GridPane.rowIndex="6" GridPane.columnIndex="1" spacing="2">
+                <TextField fx:id="txtMotivo" promptText="Descreva o motivo da movimentação"/>
+                <Label fx:id="errMotivo" styleClass="form-error" visible="false" managed="false"/>
+            </VBox>
+
+        </GridPane>
+    </ScrollPane>
+
+    <!-- Botões -->
+    <HBox spacing="8" alignment="CENTER_RIGHT" styleClass="modal-footer">
+        <Button text="Cancelar" onAction="#cancelar" styleClass="btn-outline"/>
+        <Button fx:id="btnRegistrar" text="Registrar" onAction="#registrar"
+                styleClass="btn-primary" defaultButton="true"/>
+    </HBox>
+
+</VBox>

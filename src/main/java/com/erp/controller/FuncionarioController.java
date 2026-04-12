@@ -231,6 +231,7 @@ public class FuncionarioController implements Initializable {
             loader.setControllerFactory(springContext::getBean);
             Parent root = loader.load();
 
+            stageManager.applyTheme(root);
             FuncionarioFormController formCtrl = loader.getController();
             formCtrl.setFuncionario(funcionario);
             formCtrl.setOnSaved(this::carregarFuncionarios);
@@ -247,6 +248,7 @@ public class FuncionarioController implements Initializable {
             Scene scene = new Scene(root);
             scene.getStylesheets().add(
                 getClass().getResource("/css/global.css").toExternalForm());
+            stageManager.applySceneFill(scene);
             dialog.setScene(scene);
             dialog.showAndWait();
 

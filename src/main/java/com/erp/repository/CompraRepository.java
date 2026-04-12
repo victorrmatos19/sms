@@ -25,6 +25,21 @@ public interface CompraRepository extends JpaRepository<Compra, Integer> {
 
     long countByEmpresaId(Integer empresaId);
 
+    /**
+     * Carrega a compra com todos os itens inicializados (JOIN FETCH c.itens).
+     * Necessário para evitar LazyInitializationException ao abrir o formulário
+     * de edição fora do contexto da sessão Hibernate.
+     */
+    @Query("""
+            SELECT c FROM Compra c
+            LEFT JOIN FETCH c.itens i
+            LEFT JOIN FETCH i.produto
+            LEFT JOIN FETCH i.lote
+            JOIN FETCH c.fornecedor
+            WHERE c.id = :id
+            """)
+    Optional<Compra> findByIdWithItens(@Param("id") Integer id);
+
     @Query("""
             SELECT ci.custoUnitario FROM CompraItem ci
             WHERE ci.compra.empresa.id = :empresaId

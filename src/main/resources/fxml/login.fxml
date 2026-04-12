@@ -16,14 +16,14 @@
               maxWidth="400" maxHeight="540"
               styleClass="login-card">
 
-            <!-- Header navy com logo -->
+            <!-- Header preto com logo -->
             <VBox alignment="CENTER" spacing="12" styleClass="login-header">
                 <!-- Logo carregado via SvgImageLoader no LoginController (JavaFX não suporta SVG nativo) -->
                 <ImageView fx:id="imgLogo" fitWidth="180" fitHeight="48" preserveRatio="true"/>
                 <Label text="Sistema de Gestão Empresarial" styleClass="login-subtitle"/>
             </VBox>
 
-            <!-- Barra dourada -->
+            <!-- Barra verde -->
             <Region styleClass="login-accent-bar" maxWidth="Infinity"/>
 
             <!-- Formulário -->

@@ -81,6 +81,7 @@
                     <TextArea fx:id="txtObservacoes" prefRowCount="2" wrapText="true"
                               GridPane.rowIndex="4" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
                 </GridPane>
+                <Label fx:id="errFornecedor" styleClass="form-error" visible="false" managed="false"/>
             </VBox>
 
             <!-- GRADE DE ITENS -->
@@ -102,11 +103,11 @@
                 <VBox fx:id="vboxItens" spacing="4"/>
 
                 <!-- Botão adicionar -->
-                <Button text="+ Adicionar Item" onAction="#adicionarItem" styleClass="btn-secondary"/>
+                <Button fx:id="btnAdicionarItem" text="+ Adicionar Item" onAction="#adicionarItem" styleClass="btn-secondary"/>
             </VBox>
 
             <!-- TOTAIS -->
-            <VBox spacing="0" style="-fx-padding: 8; -fx-background-color: -fx-background;" styleClass="card">
+            <VBox spacing="0" styleClass="card compra-totais">
                 <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
                     <Label text="Valor dos Produtos:" styleClass="form-label"/>
                     <Label fx:id="lblValorProdutos" text="R$ 0,00" prefWidth="150"
@@ -139,9 +140,8 @@
     </ScrollPane>
 
     <!-- Botões de ação fixos no rodapé -->
-    <HBox fx:id="hboxBotoes" spacing="8" alignment="CENTER_RIGHT"
-          style="-fx-padding: 12 0 0 0; -fx-border-color: derive(-fx-background, -15%) transparent transparent transparent; -fx-border-width: 1 0 0 0;">
-        <Button text="Cancelar" onAction="#voltar" styleClass="btn-outline"/>
+    <HBox fx:id="hboxBotoes" spacing="8" alignment="CENTER_RIGHT" styleClass="content-footer">
+        <Button fx:id="btnCancelarCompra" text="Cancelar" onAction="#voltar" styleClass="btn-outline"/>
         <Button fx:id="btnSalvarRascunho" text="Salvar Rascunho" onAction="#salvarRascunho"
                 styleClass="btn-secondary"/>
         <Button fx:id="btnConfirmar" text="Confirmar Compra" onAction="#confirmarCompra"
