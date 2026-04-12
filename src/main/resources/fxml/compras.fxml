@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="rootPane"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.CompraController"
+      spacing="16" styleClass="content-area">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT">
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Compras" styleClass="page-title"/>
+            <Label text="Gestão de pedidos de compra e recebimento de mercadorias" styleClass="page-subtitle"/>
+        </VBox>
+        <Button text="+ Nova Compra" onAction="#abrirNovo" styleClass="btn-primary"/>
+    </HBox>
+
+    <!-- Métricas -->
+    <HBox spacing="12">
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="COMPRAS NO MÊS" styleClass="metric-card-label"/>
+            <Label fx:id="lblTotalMes" text="0" styleClass="metric-card-value"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="VALOR COMPRADO (MÊS)" styleClass="metric-card-label"/>
+            <Label fx:id="lblValorMes" text="R$ 0,00" styleClass="metric-card-value-accent"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="AGUARDANDO CONFIRMAÇÃO" styleClass="metric-card-label"/>
+            <Label fx:id="lblRascunhos" text="0" styleClass="metric-card-value"/>
+        </VBox>
+    </HBox>
+
+    <!-- Toolbar de filtros e ações -->
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <TextField fx:id="txtBusca"
+                   promptText="Buscar por número ou fornecedor..."
+                   prefWidth="300"/>
+        <ComboBox fx:id="cmbFiltroStatus" prefWidth="160"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnConfirmar" text="Confirmar" onAction="#confirmarSelecionada"
+                styleClass="btn-primary" disable="true"/>
+        <Button fx:id="btnCancelarCompra" text="Cancelar" onAction="#cancelarSelecionada"
+                styleClass="btn-danger" disable="true"/>
+        <Button fx:id="btnVisualizar" text="Visualizar" onAction="#visualizarSelecionada"
+                styleClass="btn-outline" disable="true"/>
+    </HBox>
+
+    <!-- Tabela -->
+    <TableView fx:id="tblCompras" VBox.vgrow="ALWAYS" styleClass="table-view">
+        <columns>
+            <TableColumn fx:id="colNumero"     text="NÚMERO"          prefWidth="140" minWidth="100"/>
+            <TableColumn fx:id="colFornecedor" text="FORNECEDOR"      prefWidth="220" minWidth="150"/>
+            <TableColumn fx:id="colDataEmissao" text="EMISSÃO"        prefWidth="100" minWidth="90"/>
+            <TableColumn fx:id="colPrevisao"   text="PREV. ENTREGA"   prefWidth="110" minWidth="90"/>
+            <TableColumn fx:id="colValorTotal" text="VALOR TOTAL"     prefWidth="130" minWidth="100"/>
+            <TableColumn fx:id="colCondicao"   text="CONDIÇÃO PGTO"   prefWidth="130" minWidth="100"/>
+            <TableColumn fx:id="colStatus"     text="STATUS"          prefWidth="110" minWidth="90"/>
+        </columns>
+        <placeholder>
+            <Label text="Nenhuma compra encontrada" styleClass="content-placeholder"/>
+        </placeholder>
+    </TableView>
+
+</VBox>

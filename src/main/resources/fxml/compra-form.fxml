@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="rootPane"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.CompraFormController"
+      spacing="0" styleClass="content-area">
+
+    <!-- Header fixo com voltar + título -->
+    <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-padding: 0 0 12 0;">
+        <Button text="← Voltar" onAction="#voltar" styleClass="btn-outline"/>
+        <Label fx:id="lblTitulo" text="Nova Compra" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- Banner de status (somente leitura) -->
+    <Label fx:id="lblBannerStatus" text=""
+           maxWidth="Infinity" wrapText="true"
+           style="-fx-padding: 8 16 8 16; -fx-font-size: 13px;"
+           visible="false" managed="false"/>
+
+    <!-- Conteúdo com scroll -->
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" hbarPolicy="NEVER"
+                style="-fx-background-color: transparent; -fx-border-color: transparent;">
+        <VBox spacing="20" style="-fx-padding: 0 4 16 0;">
+
+            <!-- CABEÇALHO DA COMPRA -->
+            <VBox spacing="8">
+                <Label text="Dados da Compra" styleClass="card-title"/>
+                <GridPane hgap="16" vgap="10">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="120" prefWidth="140"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                        <ColumnConstraints minWidth="120" prefWidth="140"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <!-- Fornecedor (span 3 cols) -->
+                    <Label text="Fornecedor *" styleClass="form-label"
+                           GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="cmbFornecedor" maxWidth="Infinity" promptText="Selecione o fornecedor..."
+                              GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
+
+                    <!-- Número do Documento -->
+                    <Label text="Nº Documento" styleClass="form-label"
+                           GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtNumeroDoc" promptText="Nº NF do fornecedor (opcional)"
+                               GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <!-- Data de Emissão -->
+                    <Label text="Data Emissão *" styleClass="form-label"
+                           GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                    <DatePicker fx:id="dpEmissao" maxWidth="Infinity"
+                                GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+                    <!-- Condição de Pagamento -->
+                    <Label text="Condição Pgto" styleClass="form-label"
+                           GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="cmbCondicao" maxWidth="Infinity"
+                              GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <!-- Previsão de Entrega -->
+                    <Label text="Prev. Entrega" styleClass="form-label"
+                           GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                    <DatePicker fx:id="dpPrevisao" maxWidth="Infinity"
+                                GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+
+                    <!-- Nº de Parcelas -->
+                    <Label fx:id="lblParcelasRow" text="Nº Parcelas" styleClass="form-label"
+                           GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <Spinner fx:id="spnParcelas" min="1" max="12" initialValue="1"
+                             editable="true" prefWidth="100"
+                             GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                    <!-- Observações -->
+                    <Label text="Observações" styleClass="form-label"
+                           GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <TextArea fx:id="txtObservacoes" prefRowCount="2" wrapText="true"
+                              GridPane.rowIndex="4" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
+                </GridPane>
+            </VBox>
+
+            <!-- GRADE DE ITENS -->
+            <VBox spacing="8">
+                <Label text="Itens da Compra" styleClass="card-title"/>
+
+                <!-- Cabeçalho da grade -->
+                <HBox spacing="8" style="-fx-padding: 0 0 4 0;">
+                    <Label text="Produto"          prefWidth="260" styleClass="form-label"/>
+                    <Label text="Lote"             prefWidth="100" styleClass="form-label"/>
+                    <Label text="Validade"         prefWidth="130" styleClass="form-label"/>
+                    <Label text="Qtd"              prefWidth="80"  styleClass="form-label"/>
+                    <Label text="Custo Unit. R$"   prefWidth="100" styleClass="form-label"/>
+                    <Label text="Desconto R$"      prefWidth="90"  styleClass="form-label"/>
+                    <Label text="Total R$"         prefWidth="110" styleClass="form-label"/>
+                </HBox>
+
+                <!-- Linhas adicionadas dinamicamente -->
+                <VBox fx:id="vboxItens" spacing="4"/>
+
+                <!-- Botão adicionar -->
+                <Button text="+ Adicionar Item" onAction="#adicionarItem" styleClass="btn-secondary"/>
+            </VBox>
+
+            <!-- TOTAIS -->
+            <VBox spacing="0" style="-fx-padding: 8; -fx-background-color: -fx-background;" styleClass="card">
+                <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
+                    <Label text="Valor dos Produtos:" styleClass="form-label"/>
+                    <Label fx:id="lblValorProdutos" text="R$ 0,00" prefWidth="150"
+                           style="-fx-alignment: CENTER-RIGHT;"/>
+                </HBox>
+                <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
+                    <Label text="Valor do Frete:" styleClass="form-label"/>
+                    <TextField fx:id="txtFrete" text="0" prefWidth="150"
+                               style="-fx-alignment: CENTER-RIGHT;"/>
+                </HBox>
+                <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
+                    <Label text="Desconto Global:" styleClass="form-label"/>
+                    <TextField fx:id="txtDescontoGlobal" text="0" prefWidth="150"
+                               style="-fx-alignment: CENTER-RIGHT;"/>
+                </HBox>
+                <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
+                    <Label text="Outras Despesas:" styleClass="form-label"/>
+                    <TextField fx:id="txtOutrasDespesas" text="0" prefWidth="150"
+                               style="-fx-alignment: CENTER-RIGHT;"/>
+                </HBox>
+                <Separator style="-fx-padding: 4 0;"/>
+                <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 8 0 4 0;">
+                    <Label text="VALOR TOTAL:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <Label fx:id="lblValorTotal" text="R$ 0,00" prefWidth="150"
+                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-alignment: CENTER-RIGHT;"/>
+                </HBox>
+            </VBox>
+
+        </VBox>
+    </ScrollPane>
+
+    <!-- Botões de ação fixos no rodapé -->
+    <HBox fx:id="hboxBotoes" spacing="8" alignment="CENTER_RIGHT"
+          style="-fx-padding: 12 0 0 0; -fx-border-color: derive(-fx-background, -15%) transparent transparent transparent; -fx-border-width: 1 0 0 0;">
+        <Button text="Cancelar" onAction="#voltar" styleClass="btn-outline"/>
+        <Button fx:id="btnSalvarRascunho" text="Salvar Rascunho" onAction="#salvarRascunho"
+                styleClass="btn-secondary"/>
+        <Button fx:id="btnConfirmar" text="Confirmar Compra" onAction="#confirmarCompra"
+                styleClass="btn-primary"/>
+    </HBox>
+
+</VBox>
