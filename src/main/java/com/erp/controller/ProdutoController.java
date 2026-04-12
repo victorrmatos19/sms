@@ -302,10 +302,12 @@ public class ProdutoController implements Initializable {
             dialog.setResizable(true);
             dialog.setMinWidth(720);
             dialog.setMinHeight(560);
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(root, 720, 560);
             scene.getStylesheets().add(
                 getClass().getResource("/css/global.css").toExternalForm());
             dialog.setScene(scene);
+            dialog.setWidth(720);
+            dialog.setHeight(560);
             dialog.showAndWait();
 
         } catch (Exception e) {

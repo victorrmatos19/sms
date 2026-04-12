@@ -1,7 +1,9 @@
 package com.erp.ui;
 
+import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 import org.testfx.api.FxAssert;
+import org.testfx.framework.junit5.Start;
 import org.testfx.matcher.control.LabeledMatchers;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -12,6 +14,11 @@ import static org.hamcrest.Matchers.emptyOrNullString;
  * Testes de UI para a tela de Login.
  */
 class LoginUITest extends BaseUITest {
+
+    @Start
+    void start(Stage stage) throws Exception {
+        startLoginScreen(stage);
+    }
 
     // ---- Autenticação bem-sucedida ----
 

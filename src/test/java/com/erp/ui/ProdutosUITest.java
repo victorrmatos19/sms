@@ -1,9 +1,12 @@
 package com.erp.ui;
 
 import javafx.scene.control.TableView;
+import javafx.scene.input.KeyCode;
+import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testfx.api.FxAssert;
+import org.testfx.framework.junit5.Start;
 import org.testfx.matcher.control.LabeledMatchers;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,6 +17,11 @@ import static org.hamcrest.Matchers.emptyOrNullString;
  * Testes de UI para o módulo de Produtos.
  */
 class ProdutosUITest extends BaseUITest {
+
+    @Start
+    void start(Stage stage) throws Exception {
+        startLoginScreen(stage);
+    }
 
     @BeforeEach
     void navegarParaProdutos() {
@@ -63,8 +71,23 @@ class ProdutosUITest extends BaseUITest {
 
         clickOn("#txtDescricao").write("Produto Teste UI");
 
+        // Seleciona a primeira unidade de medida com teclado
+        // (sem setCellFactory no ComboBox, toString() não exibe sigla no dropdown)
+        clickOn("#cmbUnidade");
+        sleep(200);
+        type(KeyCode.DOWN);   // seleciona primeiro item
+        type(KeyCode.ENTER);
+        sleep(200);
+
+        // Preço de Venda fica na aba 2 — navega para lá antes de preencher
+        clickOn("Preços e Estoque");
+        sleep(300);
+
+        // Define preço > 0 (obrigatório)
+        clickOn("#txtPrecoVenda").write("10");
+
         clickOn("#btnSalvar");
-        sleep(600);
+        sleep(800);
 
         // Formulário fechou — tabela está visível e produto foi inserido
         @SuppressWarnings("unchecked")

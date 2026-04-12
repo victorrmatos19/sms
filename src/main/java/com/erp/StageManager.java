@@ -136,4 +136,12 @@ public class StageManager {
     public Stage getPrimaryStage() {
         return primaryStage;
     }
+
+    /**
+     * Registra o stage sem aplicar maximize nem ícone.
+     * Usado pelos testes de UI para evitar conflitos com o Monocle headless.
+     */
+    public void setPrimaryStage(Stage stage) {
+        this.primaryStage = stage;
+    }
 }
