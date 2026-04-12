@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.FuncionarioFormController"
+      spacing="0" styleClass="content-area">
+
+    <!-- Cabeçalho -->
+    <HBox styleClass="card" alignment="CENTER_LEFT" spacing="12">
+        <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
+        <Label fx:id="lblTitulo" text="Novo Funcionário" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- Formulário -->
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+        <VBox spacing="12">
+            <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+            <!-- Nome -->
+            <VBox spacing="4">
+                <Label text="Nome *" styleClass="form-label"/>
+                <TextField fx:id="txtNome" promptText="Nome completo do funcionário"/>
+                <Label fx:id="lblErrNome" styleClass="form-error" visible="false" managed="false"/>
+            </VBox>
+
+            <!-- CPF e Cargo -->
+            <HBox spacing="12">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="CPF" styleClass="form-label"/>
+                    <TextField fx:id="txtCpf" promptText="000.000.000-00" maxWidth="180"/>
+                    <Label fx:id="lblErrCpf" styleClass="form-error" visible="false" managed="false"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Cargo" styleClass="form-label"/>
+                    <TextField fx:id="txtCargo" promptText="ex: Vendedor, Gerente, Caixa"/>
+                </VBox>
+            </HBox>
+
+            <!-- Telefone e Email -->
+            <HBox spacing="12">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Telefone" styleClass="form-label"/>
+                    <TextField fx:id="txtTelefone" promptText="(00) 0000-0000" maxWidth="180"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="E-mail" styleClass="form-label"/>
+                    <TextField fx:id="txtEmail" promptText="email@exemplo.com"/>
+                    <Label fx:id="lblErrEmail" styleClass="form-error" visible="false" managed="false"/>
+                </VBox>
+            </HBox>
+
+            <!-- Data Admissão e Status -->
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <VBox spacing="4">
+                    <Label text="Data de Admissão" styleClass="form-label"/>
+                    <DatePicker fx:id="dpAdmissao" promptText="dd/MM/yyyy" prefWidth="160"/>
+                </VBox>
+                <VBox spacing="4">
+                    <Label text="Status" styleClass="form-label"/>
+                    <ToggleButton fx:id="btnStatus" text="Ativo"/>
+                </VBox>
+            </HBox>
+
+            <!-- Seção informativa de acesso ao sistema -->
+            <VBox spacing="4" styleClass="card">
+                <padding><Insets top="10" right="12" bottom="10" left="12"/></padding>
+                <Label fx:id="lblAcesso" styleClass="form-hint" wrapText="true"/>
+            </VBox>
+
+        </VBox>
+    </ScrollPane>
+
+    <!-- Rodapé com botões -->
+    <HBox spacing="8" alignment="CENTER_RIGHT" styleClass="card">
+        <padding><Insets top="10" right="16" bottom="10" left="16"/></padding>
+        <Button text="Cancelar" onAction="#cancelar" styleClass="btn-outline"/>
+        <Button text="Salvar" onAction="#salvar" styleClass="btn-primary"/>
+    </HBox>
+
+</VBox>
