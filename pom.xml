@@ -270,6 +270,27 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- TestFX — testes de UI para JavaFX -->
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-core</artifactId>
+            <version>4.0.18</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+            <version>4.0.18</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Monocle — renderização headless para CI -->
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>openjfx-monocle</artifactId>
+            <version>21.0.2</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -290,6 +311,18 @@
                             <artifactId>lombok</artifactId>
                         </path>
                     </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Surefire — exclui UITests do mvn test padrão -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*UITest.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
 
@@ -346,5 +379,39 @@
     </build>
 
     <!-- escpos-coffee 4.1.0 está disponível no Maven Central, sem repositório extra necessário -->
+
+    <profiles>
+        <!-- mvn test -P ui-tests — executa apenas os testes de UI com JavaFX headless -->
+        <profile>
+            <id>ui-tests</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.2.5</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*UITest.java</include>
+                            </includes>
+                            <excludes>
+                                <exclude>none</exclude>
+                            </excludes>
+                            <argLine>
+                                -Dtestfx.robot=glass
+                                -Dtestfx.headless=true
+                                -Dglass.platform=Monocle
+                                -Dmonocle.platform=Headless
+                                -Dprism.order=sw
+                                --add-opens=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
+                                --add-opens=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
+                                --add-opens=javafx.base/com.sun.javafx=ALL-UNNAMED
+                            </argLine>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

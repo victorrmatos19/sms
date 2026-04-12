@@ -229,7 +229,7 @@
     <HBox spacing="8" alignment="CENTER_RIGHT" styleClass="card">
         <padding><Insets top="10" right="16" bottom="10" left="16"/></padding>
         <Button text="Cancelar" onAction="#cancelar" styleClass="btn-outline"/>
-        <Button text="Salvar" onAction="#salvar" styleClass="btn-primary"/>
+        <Button fx:id="btnSalvar" text="Salvar" onAction="#salvar" styleClass="btn-primary"/>
     </HBox>
 
 </VBox>

@@ -32,9 +32,14 @@ public class EmbeddedPostgresConfig {
     @Value("${erp.postgres.database:erp_db}")
     private String databaseName;
 
+    @Value("${erp.postgres.datadir:#{null}}")
+    private String dataDirOverride;
+
     @Bean(destroyMethod = "close")
     public EmbeddedPostgres embeddedPostgres() throws IOException {
-        Path dataDir = Paths.get(System.getProperty("user.home"), "erp-desktop", "data");
+        Path dataDir = dataDirOverride != null && !dataDirOverride.isBlank()
+            ? Paths.get(dataDirOverride)
+            : Paths.get(System.getProperty("user.home"), "erp-desktop", "data");
         dataDir.toFile().mkdirs();
 
         log.info("Iniciando PostgreSQL embarcado em: {}", dataDir);
