@@ -11,11 +11,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FornecedorService {
+
+    private static final Pattern EMAIL_PATTERN =
+        Pattern.compile("^[\\w.+\\-]+@[\\w\\-]+(\\.[\\w\\-]+)*\\.[a-zA-Z]{2,}$");
 
     private final FornecedorRepository fornecedorRepository;
 
@@ -86,31 +90,51 @@ public class FornecedorService {
         Integer empresaId = fornecedor.getEmpresa().getId();
         String cpfCnpj = CpfCnpjValidator.limpar(fornecedor.getCpfCnpj());
 
-        if (cpfCnpj.isEmpty()) return;
-
-        if ("PF".equals(fornecedor.getTipoPessoa())) {
-            if (!CpfCnpjValidator.validarCpf(cpfCnpj)) {
-                throw new NegocioException("CPF inválido: " + fornecedor.getCpfCnpj());
+        if (!cpfCnpj.isEmpty()) {
+            if ("PF".equals(fornecedor.getTipoPessoa())) {
+                if (!CpfCnpjValidator.validarCpf(cpfCnpj)) {
+                    throw new NegocioException("CPF inválido: " + fornecedor.getCpfCnpj());
+                }
+            } else {
+                if (!CpfCnpjValidator.validarCnpj(cpfCnpj)) {
+                    throw new NegocioException("CNPJ inválido: " + fornecedor.getCpfCnpj());
+                }
             }
-        } else {
-            if (!CpfCnpjValidator.validarCnpj(cpfCnpj)) {
-                throw new NegocioException("CNPJ inválido: " + fornecedor.getCpfCnpj());
+
+            if (fornecedor.getId() == null) {
+                if (fornecedorRepository.existsByEmpresaIdAndCpfCnpj(empresaId, cpfCnpj)) {
+                    throw new NegocioException(
+                        ("PF".equals(fornecedor.getTipoPessoa()) ? "CPF" : "CNPJ")
+                        + " já cadastrado para outro fornecedor.");
+                }
+            } else {
+                if (fornecedorRepository.existsByEmpresaIdAndCpfCnpjAndIdNot(
+                        empresaId, cpfCnpj, fornecedor.getId())) {
+                    throw new NegocioException(
+                        ("PF".equals(fornecedor.getTipoPessoa()) ? "CPF" : "CNPJ")
+                        + " já cadastrado para outro fornecedor.");
+                }
             }
         }
 
-        if (fornecedor.getId() == null) {
-            if (fornecedorRepository.existsByEmpresaIdAndCpfCnpj(empresaId, cpfCnpj)) {
-                throw new NegocioException(
-                    ("PF".equals(fornecedor.getTipoPessoa()) ? "CPF" : "CNPJ")
-                    + " já cadastrado para outro fornecedor.");
-            }
-        } else {
-            if (fornecedorRepository.existsByEmpresaIdAndCpfCnpjAndIdNot(
-                    empresaId, cpfCnpj, fornecedor.getId())) {
-                throw new NegocioException(
-                    ("PF".equals(fornecedor.getTipoPessoa()) ? "CPF" : "CNPJ")
-                    + " já cadastrado para outro fornecedor.");
-            }
+        // Validação de e-mail
+        String email = fornecedor.getEmail();
+        if (email != null && !email.isBlank()
+                && !EMAIL_PATTERN.matcher(email.trim()).matches()) {
+            throw new NegocioException("Email inválido: " + email);
+        }
+
+        // Validação cruzada PIX
+        String pixTipo = fornecedor.getBancoPixTipo();
+        String pixChave = fornecedor.getBancoPixChave();
+        boolean temTipo = pixTipo != null && !pixTipo.isBlank();
+        boolean temChave = pixChave != null && !pixChave.isBlank();
+
+        if (temTipo && !temChave) {
+            throw new NegocioException("Chave PIX é obrigatória quando o tipo é informado.");
+        }
+        if (temChave && !temTipo) {
+            throw new NegocioException("Tipo da chave PIX é obrigatório quando a chave é informada.");
         }
     }
 }
