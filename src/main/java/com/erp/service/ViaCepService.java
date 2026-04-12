@@ -30,9 +30,18 @@ public class ViaCepService {
         String uf
     ) {}
 
-    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(5))
-        .build();
+    private final HttpClient httpClient;
+
+    public ViaCepService() {
+        this.httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build();
+    }
+
+    /** Construtor para testes — permite injetar um HttpClient mockado. */
+    ViaCepService(HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     /**
      * Busca dados de endereço pelo CEP informado.
@@ -53,7 +62,7 @@ public class ViaCepService {
                 .GET()
                 .build();
 
-            HttpResponse<String> response = HTTP_CLIENT.send(request,
+            HttpResponse<String> response = httpClient.send(request,
                 HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
