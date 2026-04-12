@@ -412,6 +412,35 @@
                 </plugins>
             </build>
         </profile>
+        <!-- ./mvnw test -P ui-tests-visual — abre janela real para ver os testes executando -->
+        <profile>
+            <id>ui-tests-visual</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.2.5</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*UITest.java</include>
+                            </includes>
+                            <excludes>
+                                <exclude>none</exclude>
+                            </excludes>
+                            <argLine>
+                                -Dtestfx.robot=glass
+                                -Dtestfx.headless=false
+                                -Djava.awt.headless=false
+                                --add-opens=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
+                                --add-opens=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
+                                --add-opens=javafx.base/com.sun.javafx=ALL-UNNAMED
+                            </argLine>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
 </project>

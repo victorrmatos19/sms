@@ -69,6 +69,8 @@ public abstract class BaseUITest extends FxRobot {
         stage.setWidth(1280);
         stage.setHeight(800);
         stage.show();
+        stage.toFront();
+        stage.requestFocus();
 
         // Força layout no Monocle headless (pulse não dispara automaticamente)
         root.applyCss();
