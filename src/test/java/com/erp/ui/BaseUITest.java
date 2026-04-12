@@ -57,6 +57,7 @@ public abstract class BaseUITest extends FxRobot {
         sm.setPrimaryStage(stage);
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
+        loader.setClassLoader(getClass().getClassLoader()); // FX thread pode ter classLoader null no Surefire
         loader.setControllerFactory(springCtx::getBean);
         Parent root = loader.load();
 
