@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.ClienteController"
+      spacing="16" styleClass="content-area">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT">
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Clientes" styleClass="page-title"/>
+            <Label text="Cadastro e gestão de clientes" styleClass="page-subtitle"/>
+        </VBox>
+        <Button fx:id="btnNovo" text="+ Novo Cliente" onAction="#abrirNovo"
+                styleClass="btn-primary"/>
+    </HBox>
+
+    <!-- Métricas -->
+    <HBox spacing="12">
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="TOTAL DE CLIENTES" styleClass="metric-card-label"/>
+            <Label fx:id="lblTotal" text="0" styleClass="metric-card-value"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="ATIVOS" styleClass="metric-card-label"/>
+            <Label fx:id="lblAtivos" text="0" styleClass="metric-card-value"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="COM LIMITE DE CRÉDITO" styleClass="metric-card-label"/>
+            <Label fx:id="lblComLimite" text="0" styleClass="metric-card-value-accent"/>
+        </VBox>
+    </HBox>
+
+    <!-- Toolbar de filtros e ações -->
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <TextField fx:id="txtBusca"
+                   promptText="Buscar por nome, CPF/CNPJ ou telefone..."
+                   prefWidth="320"/>
+        <CheckBox fx:id="chkInativos" text="Mostrar inativos"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnEditar" text="Editar" onAction="#abrirEdicao"
+                styleClass="btn-outline" disable="true"/>
+        <Button fx:id="btnToggleAtivo" text="Inativar" onAction="#toggleAtivo"
+                styleClass="btn-outline" disable="true"/>
+    </HBox>
+
+    <!-- Tabela -->
+    <TableView fx:id="tblClientes" VBox.vgrow="ALWAYS" styleClass="table-view">
+        <columns>
+            <TableColumn fx:id="colNome"         text="NOME / RAZÃO SOCIAL"  prefWidth="260" minWidth="160"/>
+            <TableColumn fx:id="colCpfCnpj"      text="CPF / CNPJ"           prefWidth="160" minWidth="120"/>
+            <TableColumn fx:id="colTelefone"     text="TELEFONE"             prefWidth="140" minWidth="100"/>
+            <TableColumn fx:id="colCidadeUf"     text="CIDADE/UF"            prefWidth="160" minWidth="100"/>
+            <TableColumn fx:id="colLimite"       text="LIMITE CRÉDITO"       prefWidth="130" minWidth="100"/>
+            <TableColumn fx:id="colStatus"       text="STATUS"               prefWidth="90"  minWidth="80"/>
+        </columns>
+        <placeholder>
+            <Label text="Nenhum cliente encontrado" styleClass="content-placeholder"/>
+        </placeholder>
+    </TableView>
+
+</VBox>

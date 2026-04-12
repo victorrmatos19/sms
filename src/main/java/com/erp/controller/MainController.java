@@ -69,7 +69,10 @@ public class MainController implements Initializable {
 
     // ---- Handlers do menu lateral ----
 
-    @FXML private void abrirClientes()       { setStatus("Clientes"); }
+    @FXML
+    private void abrirClientes() {
+        carregarModulo("/fxml/clientes.fxml", "Clientes");
+    }
     @FXML private void abrirFornecedores()   { setStatus("Fornecedores"); }
     @FXML private void abrirFuncionarios()   { setStatus("Funcionários"); }
     @FXML private void abrirEstoque()        { setStatus("Movimentações de Estoque"); }
