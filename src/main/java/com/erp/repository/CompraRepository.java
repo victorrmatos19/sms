@@ -51,4 +51,23 @@ public interface CompraRepository extends JpaRepository<Compra, Integer> {
     Optional<BigDecimal> findUltimoCustoProduto(
             @Param("empresaId") Integer empresaId,
             @Param("produtoId") Integer produtoId);
+
+    /**
+     * Top 5 produtos mais comprados no mês por valor total.
+     * Retorna Object[]{String descricao, BigDecimal total}.
+     */
+    @Query(value = """
+            SELECT p.descricao, SUM(ci.valor_total) AS total
+            FROM compra_item ci
+            JOIN compra c ON ci.compra_id = c.id
+            JOIN produto p ON ci.produto_id = p.id
+            WHERE c.empresa_id = :empresaId
+              AND c.status = 'CONFIRMADA'
+              AND c.data_emissao >= :inicio
+            GROUP BY p.id, p.descricao
+            ORDER BY total DESC
+            LIMIT 5
+            """, nativeQuery = true)
+    List<Object[]> findTopProdutosMes(@Param("empresaId") Integer empresaId,
+                                      @Param("inicio") java.time.LocalDate inicio);
 }

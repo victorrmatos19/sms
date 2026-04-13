@@ -7,7 +7,7 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.erp.controller.MovimentacaoFormController"
-      spacing="0" prefWidth="520" prefHeight="420"
+      spacing="0" prefWidth="520" prefHeight="460"
       styleClass="modal-root">
 
     <!-- Cabeçalho -->
@@ -20,7 +20,7 @@
         <GridPane hgap="12" vgap="10">
             <padding><Insets top="16" right="16" bottom="16" left="4"/></padding>
             <columnConstraints>
-                <ColumnConstraints minWidth="140" prefWidth="140"/>
+                <ColumnConstraints minWidth="160" prefWidth="160"/>
                 <ColumnConstraints hgrow="ALWAYS"/>
             </columnConstraints>
 
@@ -28,6 +28,7 @@
             <Label text="Produto *" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
             <VBox GridPane.rowIndex="0" GridPane.columnIndex="1" spacing="2">
                 <ComboBox fx:id="cmbProduto" maxWidth="Infinity" promptText="Selecione o produto..."/>
+                <Label fx:id="errProduto" styleClass="form-error" visible="false" managed="false"/>
             </VBox>
 
             <!-- Tipo de Movimentação -->
@@ -45,27 +46,38 @@
                    GridPane.rowIndex="3" GridPane.columnIndex="0"/>
             <VBox GridPane.rowIndex="3" GridPane.columnIndex="1" spacing="2">
                 <TextField fx:id="txtQuantidade" promptText="0"/>
+                <Label fx:id="errQuantidade" styleClass="form-error" visible="false" managed="false"/>
+            </VBox>
+
+            <!-- Custo Unitário (visível apenas para Entrada Manual) -->
+            <Label fx:id="lblCustoUnitario" text="Custo Unitário" styleClass="form-label"
+                   GridPane.rowIndex="4" GridPane.columnIndex="0"
+                   visible="false" managed="false"/>
+            <VBox GridPane.rowIndex="4" GridPane.columnIndex="1" spacing="2"
+                  fx:id="vboxCusto" visible="false" managed="false">
+                <TextField fx:id="txtCustoUnitario" promptText="0,00"/>
+                <Label text="Deixe em branco para manter o custo atual do produto" styleClass="form-hint"/>
             </VBox>
 
             <!-- Lote (visível apenas quando produto usa lote) -->
             <Label fx:id="lblLote" text="Lote" styleClass="form-label"
-                   GridPane.rowIndex="4" GridPane.columnIndex="0"
+                   GridPane.rowIndex="5" GridPane.columnIndex="0"
                    visible="false" managed="false"/>
             <TextField fx:id="txtLote" promptText="Número do lote"
-                       GridPane.rowIndex="4" GridPane.columnIndex="1"
+                       GridPane.rowIndex="5" GridPane.columnIndex="1"
                        visible="false" managed="false"/>
 
             <!-- Validade (visível apenas quando produto usa lote) -->
             <Label fx:id="lblValidade" text="Validade" styleClass="form-label"
-                   GridPane.rowIndex="5" GridPane.columnIndex="0"
+                   GridPane.rowIndex="6" GridPane.columnIndex="0"
                    visible="false" managed="false"/>
             <DatePicker fx:id="dpValidade" maxWidth="Infinity"
-                        GridPane.rowIndex="5" GridPane.columnIndex="1"
+                        GridPane.rowIndex="6" GridPane.columnIndex="1"
                         visible="false" managed="false"/>
 
             <!-- Motivo -->
-            <Label text="Motivo *" styleClass="form-label" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
-            <VBox GridPane.rowIndex="6" GridPane.columnIndex="1" spacing="2">
+            <Label text="Motivo *" styleClass="form-label" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+            <VBox GridPane.rowIndex="7" GridPane.columnIndex="1" spacing="2">
                 <TextField fx:id="txtMotivo" promptText="Descreva o motivo da movimentação"/>
                 <Label fx:id="errMotivo" styleClass="form-error" visible="false" managed="false"/>
             </VBox>

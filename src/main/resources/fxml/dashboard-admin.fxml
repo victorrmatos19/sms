@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:id="dashboardAdmin"
+            fx:controller="com.erp.controller.DashboardAdminController"
+            fitToWidth="true" hbarPolicy="NEVER" styleClass="dash-scroll">
+
+    <VBox spacing="20" styleClass="dashboard-root">
+        <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
+
+        <!-- ============================================================
+             CABEÇALHO
+             "Bom dia, Victor 👋"
+             "Sexta-feira, 11 de abril de 2026"
+             [ADMINISTRADOR]
+             ============================================================ -->
+        <VBox spacing="6">
+            <Label fx:id="lblSaudacao" styleClass="dash-greeting" text="Bom dia"/>
+            <Label fx:id="lblData"     styleClass="dash-date"     text=""/>
+            <HBox>
+                <Label fx:id="lblBadgePerfil" styleClass="dash-badge-perfil" text="ADMINISTRADOR"/>
+            </HBox>
+        </VBox>
+
+        <!-- ============================================================
+             LINHA 1 — 5 cards de métricas
+             ============================================================ -->
+        <HBox spacing="12">
+
+            <!-- 1. VENDAS HOJE (verde) -->
+            <VBox fx:id="cardVendasHoje" styleClass="dash-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="5">
+                <Label text="VENDAS HOJE" styleClass="dash-card-label"/>
+                <Label fx:id="lblVendasHoje" text="—" styleClass="dash-val-green"/>
+                <Label fx:id="lblSubVendasHoje" text="módulo em breve" styleClass="dash-card-sub"/>
+            </VBox>
+
+            <!-- 2. A RECEBER HOJE (azul) -->
+            <VBox fx:id="cardReceberHoje" styleClass="dash-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="5">
+                <Label text="A RECEBER HOJE" styleClass="dash-card-label"/>
+                <Label text="—" styleClass="dash-val-blue"/>
+                <Label text="módulo em breve" styleClass="dash-card-sub"/>
+            </VBox>
+
+            <!-- 3. A PAGAR HOJE (vermelho) -->
+            <VBox fx:id="cardPagarHoje" styleClass="dash-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="5">
+                <Label text="A PAGAR HOJE" styleClass="dash-card-label"/>
+                <Label fx:id="lblValorAPagarHoje" text="R$ 0,00" styleClass="dash-val-red"/>
+                <Label fx:id="lblQtdAPagarHoje"   text="0 contas"    styleClass="dash-card-sub"/>
+            </VBox>
+
+            <!-- 4. CAIXA ATUAL (branco) -->
+            <VBox fx:id="cardCaixa" styleClass="dash-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="5">
+                <Label text="CAIXA ATUAL" styleClass="dash-card-label"/>
+                <Label text="—" styleClass="dash-val-white"/>
+                <Label text="módulo em breve" styleClass="dash-card-sub"/>
+            </VBox>
+
+            <!-- 5. TICKET MÉDIO (branco) -->
+            <VBox fx:id="cardTicketMedio" styleClass="dash-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="5">
+                <Label text="TICKET MÉDIO" styleClass="dash-card-label"/>
+                <Label text="—" styleClass="dash-val-white"/>
+                <Label text="Últimos 7 dias" styleClass="dash-card-sub"/>
+            </VBox>
+
+        </HBox>
+
+        <!-- ============================================================
+             LINHA 2 — Gráfico (esq) + Requer Atenção (dir)
+             ============================================================ -->
+        <HBox spacing="12">
+
+            <!-- Gráfico -->
+            <VBox styleClass="dash-section-card" HBox.hgrow="ALWAYS" spacing="10">
+                <Label text="VENDAS — ÚLTIMOS 7 DIAS" styleClass="dash-section-title"/>
+                <BarChart fx:id="chartCompras" VBox.vgrow="ALWAYS"
+                          minHeight="240" maxHeight="280"
+                          animated="false" legendVisible="false"
+                          styleClass="dash-bar-chart">
+                    <xAxis><CategoryAxis side="BOTTOM" tickMarkVisible="false"/></xAxis>
+                    <yAxis><NumberAxis side="LEFT" label="R$" tickLabelGap="4"/></yAxis>
+                </BarChart>
+            </VBox>
+
+            <!-- Requer Atenção -->
+            <VBox styleClass="dash-section-card" prefWidth="340" minWidth="280" spacing="12">
+                <Label text="⚡  REQUER ATENÇÃO" styleClass="dash-section-title"/>
+                <VBox fx:id="alertasPane" spacing="8"/>
+            </VBox>
+
+        </HBox>
+
+        <!-- ============================================================
+             LINHA 3 — Top Produtos (esq) + Top Clientes (dir)
+             ============================================================ -->
+        <HBox spacing="12">
+
+            <!-- Top 5 Produtos -->
+            <VBox styleClass="dash-section-card" HBox.hgrow="ALWAYS" spacing="12">
+                <Label text="TOP 5 PRODUTOS DO MÊS" styleClass="dash-section-title"/>
+                <VBox fx:id="topProdutosPane" spacing="8"/>
+            </VBox>
+
+            <!-- Top Clientes — placeholder -->
+            <VBox styleClass="dash-section-card" HBox.hgrow="ALWAYS" spacing="12">
+                <Label text="TOP CLIENTES DO MÊS" styleClass="dash-section-title"/>
+                <VBox VBox.vgrow="ALWAYS" alignment="CENTER">
+                    <padding><Insets top="20" bottom="20"/></padding>
+                    <Label text="Módulo de Vendas em desenvolvimento"
+                           styleClass="dash-empty-msg" wrapText="true" textAlignment="CENTER"/>
+                </VBox>
+            </VBox>
+
+        </HBox>
+
+        <Region prefHeight="16"/>
+    </VBox>
+</ScrollPane>

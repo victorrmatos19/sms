@@ -1098,8 +1098,21 @@
     -fx-spacing: 0;
 }
 
+/* Quando theme-dark está no próprio nó modal-root (dialog/stage próprio) */
+/* Quando theme-dark está no próprio nó modal-root (dialog/stage próprio) */
+.modal-root.theme-dark {
+    -fx-background-color: #111111;
+}
+/* Quando theme-dark está em um ancestral (ex: main scene) */
 .theme-dark .modal-root {
     -fx-background-color: #111111;
+}
+
+/* ScrollPane e GridPane internos transparentes p/ herdar o fundo do modal */
+.modal-root .scroll-pane,
+.modal-root .scroll-pane > .viewport,
+.modal-root .grid-pane {
+    -fx-background-color: transparent;
 }
 
 /* Header do modal — plano, sem arredondamento, cola no topo */
@@ -1604,4 +1617,443 @@
 
 .theme-dark .progress-bar .bar {
     -fx-background-color: #1db954;
+}
+
+/* ============================================================
+   DASHBOARD — design system v2
+   ============================================================ */
+
+/* ScrollPane sem bordas */
+.dash-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+.dash-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.dashboard-root {
+    -fx-background-color: transparent;
+}
+
+/* ---- Cabeçalho ---- */
+.dash-greeting {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+.dash-date {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6b7280;
+}
+.dash-badge-perfil {
+    -fx-background-color: #dcfce7;
+    -fx-background-radius: 20;
+    -fx-text-fill: #15803d;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 12 4 12;
+}
+
+/* ---- Cards de métricas ---- */
+.dash-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-padding: 18 20 18 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2);
+}
+.dash-card-alerta {
+    -fx-background-color: #fff1f2;
+    -fx-background-radius: 12;
+    -fx-border-color: #fecdd3;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-padding: 18 20 18 20;
+    -fx-effect: dropshadow(gaussian, rgba(220,38,38,0.06), 8, 0, 0, 2);
+}
+.dash-card-label {
+    -fx-font-size: 10.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #9ca3af;
+}
+.dash-val-green {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #16a34a;
+}
+.dash-val-blue {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2563eb;
+}
+.dash-val-red {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #dc2626;
+}
+.dash-val-white {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+.dash-card-sub {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6b7280;
+    -fx-wrap-text: true;
+}
+
+/* ---- Cards de seção (gráfico, alertas, rankings) ---- */
+.dash-section-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-padding: 20 22 20 22;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2);
+}
+.dash-section-title {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #6b7280;
+}
+
+/* ---- Gráfico de barras ---- */
+.dash-bar-chart {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.dash-bar-chart .chart-plot-background {
+    -fx-background-color: transparent;
+}
+.dash-bar-chart .chart-vertical-grid-lines {
+    -fx-stroke: transparent;
+}
+.dash-bar-chart .chart-horizontal-grid-lines {
+    -fx-stroke: #e5e7eb;
+    -fx-stroke-dash-array: 4 4;
+}
+.dash-bar-chart .axis {
+    -fx-tick-label-fill: #9ca3af;
+    -fx-tick-mark-stroke: #e5e7eb;
+}
+.dash-bar-chart .axis-label {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 11px;
+}
+.dash-bar-chart .chart-bar {
+    -fx-bar-fill: #15803d;
+    -fx-background-radius: 4 4 0 0;
+}
+
+/* ---- Painel Requer Atenção ---- */
+.dash-alerta-row {
+    -fx-padding: 8 10 8 10;
+    -fx-background-color: #f9fafb;
+    -fx-background-radius: 8;
+}
+.dash-alerta-texto {
+    -fx-font-size: 13px;
+    -fx-text-fill: #374151;
+}
+.dash-alerta-valor {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+.dash-dot-critico { -fx-font-size: 14px; -fx-text-fill: #ef4444; }
+.dash-dot-aviso   { -fx-font-size: 14px; -fx-text-fill: #f59e0b; }
+.dash-dot-info    { -fx-font-size: 14px; -fx-text-fill: #22c55e; }
+.dash-dot-ok      { -fx-font-size: 14px; -fx-text-fill: #6b7280; }
+
+/* ---- Top Produtos / Clientes ---- */
+.dash-top-row {
+    -fx-padding: 8 4 8 4;
+}
+.dash-top-rank {
+    -fx-font-size: 14px;
+    -fx-text-fill: #9ca3af;
+    -fx-alignment: CENTER_LEFT;
+}
+.dash-top-nome {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+/* Linha verde sob o nome do produto — igual ao mockup */
+.dash-top-underline {
+    -fx-background-color: #22c55e;
+    -fx-pref-height: 2;
+}
+.dash-top-valor {
+    -fx-font-size: 14px;
+    -fx-text-fill: #374151;
+}
+.dash-empty-msg {
+    -fx-font-size: 13px;
+    -fx-text-fill: #9ca3af;
+}
+
+/* ==============================================================
+   DARK MODE — Dashboard
+   ============================================================== */
+.theme-dark .dash-scroll { -fx-background-color: transparent; }
+.theme-dark .dash-scroll > .viewport { -fx-background-color: transparent; }
+
+.theme-dark .dash-greeting { -fx-text-fill: rgba(255,255,255,0.95); }
+.theme-dark .dash-date     { -fx-text-fill: rgba(255,255,255,0.45); }
+.theme-dark .dash-badge-perfil {
+    -fx-background-color: rgba(34,197,94,0.18);
+    -fx-text-fill: #22c55e;
+}
+.theme-dark .dash-top-underline { -fx-background-color: #22c55e; }
+
+.theme-dark .dash-card {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: rgba(255,255,255,0.07);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2);
+}
+.theme-dark .dash-card-alerta {
+    -fx-background-color: rgba(220,38,38,0.12);
+    -fx-border-color: rgba(220,38,38,0.25);
+}
+.theme-dark .dash-card-label  { -fx-text-fill: rgba(255,255,255,0.4); }
+.theme-dark .dash-val-green   { -fx-text-fill: #22c55e; }
+.theme-dark .dash-val-blue    { -fx-text-fill: #60a5fa; }
+.theme-dark .dash-val-red     { -fx-text-fill: #f87171; }
+.theme-dark .dash-val-white   { -fx-text-fill: rgba(255,255,255,0.95); }
+.theme-dark .dash-card-sub    { -fx-text-fill: rgba(255,255,255,0.4); }
+
+.theme-dark .dash-section-card {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: rgba(255,255,255,0.07);
+}
+.theme-dark .dash-section-title { -fx-text-fill: rgba(255,255,255,0.45); }
+
+.theme-dark .dash-bar-chart .chart-horizontal-grid-lines {
+    -fx-stroke: rgba(255,255,255,0.07);
+}
+.theme-dark .dash-bar-chart .axis { -fx-tick-label-fill: rgba(255,255,255,0.4); }
+.theme-dark .dash-bar-chart .axis-label { -fx-text-fill: rgba(255,255,255,0.4); }
+
+.theme-dark .dash-alerta-row    { -fx-background-color: rgba(255,255,255,0.04); }
+.theme-dark .dash-alerta-texto  { -fx-text-fill: rgba(255,255,255,0.8); }
+.theme-dark .dash-alerta-valor  { -fx-text-fill: rgba(255,255,255,0.95); }
+
+.theme-dark .dash-top-row   { -fx-padding: 8 4 8 4; }
+.theme-dark .dash-top-rank  { -fx-text-fill: rgba(255,255,255,0.35); }
+.theme-dark .dash-top-nome  { -fx-text-fill: rgba(255,255,255,0.9); }
+.theme-dark .dash-top-valor { -fx-text-fill: rgba(255,255,255,0.65); }
+.theme-dark .dash-empty-msg{ -fx-text-fill: rgba(255,255,255,0.3); }
+
+/* ---- Classes legadas mantidas para compatibilidade (outros FXMLs) ---- */
+
+/* Cards de métricas padrão */
+.metric-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-padding: 20 24 20 24;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);
+}
+
+.metric-card-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #64748b;
+    -fx-letter-spacing: 0.5;
+}
+
+.metric-card-value {
+    -fx-font-size: 34px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a2744;
+}
+
+.metric-card-value-accent {
+    -fx-font-size: 34px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #c9a84c;
+}
+
+.metric-card-value-danger {
+    -fx-font-size: 34px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #dc2626;
+}
+
+.metric-card-value-warning {
+    -fx-font-size: 34px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #d97706;
+}
+
+.metric-card-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: #94a3b8;
+}
+
+/* Card de perigo (contas vencidas) */
+.metric-card-danger {
+    -fx-background-color: #fff5f5;
+    -fx-background-radius: 10;
+    -fx-border-color: #fecaca;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-padding: 20 24 20 24;
+    -fx-effect: dropshadow(gaussian, rgba(220,38,38,0.08), 8, 0, 0, 2);
+}
+
+/* Card de aviso (estoque mínimo) */
+.metric-card-warning {
+    -fx-background-color: #fffbeb;
+    -fx-background-radius: 10;
+    -fx-border-color: #fde68a;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-padding: 20 24 20 24;
+    -fx-effect: dropshadow(gaussian, rgba(217,119,6,0.08), 8, 0, 0, 2);
+}
+
+/* Gráfico */
+.dashboard-chart-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-padding: 20 24 20 24;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);
+}
+
+.dashboard-chart-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a2744;
+}
+
+/* Card informativo (módulos em breve) */
+.dashboard-info-card {
+    -fx-background-color: #f8fafc;
+    -fx-background-radius: 10;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-padding: 24;
+}
+
+.dashboard-info-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #374151;
+}
+
+.dashboard-info-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6b7280;
+}
+
+/* BarChart JavaFX nativo */
+.dashboard-bar-chart {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.dashboard-bar-chart .chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.dashboard-bar-chart .chart-vertical-grid-lines {
+    -fx-stroke: transparent;
+}
+
+.dashboard-bar-chart .chart-horizontal-grid-lines {
+    -fx-stroke: rgba(0,0,0,0.08);
+}
+
+.dashboard-bar-chart .axis {
+    -fx-tick-label-fill: #64748b;
+    -fx-tick-mark-stroke: #94a3b8;
+}
+
+.dashboard-bar-chart .axis-label {
+    -fx-text-fill: #64748b;
+}
+
+.dashboard-bar-chart .bar {
+    -fx-bar-fill: #c9a84c;
+    -fx-background-radius: 4 4 0 0;
+}
+
+.dashboard-bar-chart .data0.chart-bar { -fx-bar-fill: #c9a84c; }
+
+/* ---- Dark Mode Dashboard ---- */
+
+.theme-dark .metric-card {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: rgba(255,255,255,0.08);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 0, 2);
+}
+
+.theme-dark .metric-card-label {
+    -fx-text-fill: rgba(255,255,255,0.5);
+}
+
+.theme-dark .metric-card-value {
+    -fx-text-fill: rgba(255,255,255,0.9);
+}
+
+.theme-dark .metric-card-subtitle {
+    -fx-text-fill: rgba(255,255,255,0.4);
+}
+
+.theme-dark .metric-card-danger {
+    -fx-background-color: rgba(220,38,38,0.15);
+    -fx-border-color: rgba(220,38,38,0.3);
+}
+
+.theme-dark .metric-card-warning {
+    -fx-background-color: rgba(217,119,6,0.15);
+    -fx-border-color: rgba(217,119,6,0.3);
+}
+
+.theme-dark .dashboard-chart-card {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: rgba(255,255,255,0.08);
+}
+
+.theme-dark .dashboard-chart-title {
+    -fx-text-fill: rgba(255,255,255,0.9);
+}
+
+.theme-dark .dashboard-info-card {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: rgba(255,255,255,0.08);
+}
+
+.theme-dark .dashboard-info-title {
+    -fx-text-fill: rgba(255,255,255,0.85);
+}
+
+.theme-dark .dashboard-info-subtitle {
+    -fx-text-fill: rgba(255,255,255,0.5);
+}
+
+.theme-dark .dashboard-bar-chart .chart-horizontal-grid-lines {
+    -fx-stroke: rgba(255,255,255,0.08);
+}
+
+.theme-dark .dashboard-bar-chart .axis {
+    -fx-tick-label-fill: rgba(255,255,255,0.5);
+    -fx-tick-mark-stroke: rgba(255,255,255,0.2);
+}
+
+.theme-dark .dashboard-bar-chart .axis-label {
+    -fx-text-fill: rgba(255,255,255,0.5);
 }

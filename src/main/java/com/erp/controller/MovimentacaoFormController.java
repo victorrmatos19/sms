@@ -11,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 @Slf4j
@@ -38,6 +40,11 @@ public class MovimentacaoFormController implements Initializable {
     @FXML private Label             lblSaldoAtual;
     @FXML private Label             lblQuantidadeLabel;
     @FXML private TextField         txtQuantidade;
+    @FXML private Label             errProduto;
+    @FXML private Label             errQuantidade;
+    @FXML private Label             lblCustoUnitario;
+    @FXML private VBox              vboxCusto;
+    @FXML private TextField         txtCustoUnitario;
     @FXML private Label             lblLote;
     @FXML private TextField         txtLote;
     @FXML private Label             lblValidade;
@@ -143,70 +150,118 @@ public class MovimentacaoFormController implements Initializable {
         lblSaldoAtual.setText(QTD_FMT.format(saldo) + unidade);
 
         boolean usaLote = Boolean.TRUE.equals(produto.getUsaLoteValidade());
-        lblLote.setVisible(usaLote);    lblLote.setManaged(usaLote);
-        txtLote.setVisible(usaLote);    txtLote.setManaged(usaLote);
-        lblValidade.setVisible(usaLote); lblValidade.setManaged(usaLote);
-        dpValidade.setVisible(usaLote);  dpValidade.setManaged(usaLote);
+        boolean isEntrada = "Entrada Manual".equals(cmbTipoMovimentacao.getValue());
+
+        lblLote.setVisible(usaLote && isEntrada);    lblLote.setManaged(usaLote && isEntrada);
+        txtLote.setVisible(usaLote && isEntrada);    txtLote.setManaged(usaLote && isEntrada);
+        lblValidade.setVisible(usaLote && isEntrada); lblValidade.setManaged(usaLote && isEntrada);
+        dpValidade.setVisible(usaLote && isEntrada);  dpValidade.setManaged(usaLote && isEntrada);
     }
 
     private void configurarTipoCombo() {
         cmbTipoMovimentacao.setItems(FXCollections.observableArrayList(
                 "Entrada Manual", "Saída Manual", "Ajuste de Inventário"));
         cmbTipoMovimentacao.setValue("Entrada Manual");
+        atualizarVisibilidadePorTipo("Entrada Manual");
         cmbTipoMovimentacao.valueProperty().addListener((obs, old, val) -> {
-            if ("Ajuste de Inventário".equals(val)) {
-                lblQuantidadeLabel.setText("Quantidade real em estoque *");
-            } else {
-                lblQuantidadeLabel.setText("Quantidade *");
-            }
+            atualizarVisibilidadePorTipo(val);
+            // Re-avalia lote se produto selecionado
+            Produto prod = cmbProduto.getValue();
+            if (prod != null) atualizarSaldo(prod);
         });
+    }
+
+    private void atualizarVisibilidadePorTipo(String tipo) {
+        if (tipo == null) return;
+        boolean isAjuste  = "Ajuste de Inventário".equals(tipo);
+        boolean isEntrada = "Entrada Manual".equals(tipo);
+
+        lblQuantidadeLabel.setText(isAjuste ? "Quantidade real em estoque *" : "Quantidade *");
+
+        // Custo Unitário apenas para entrada
+        lblCustoUnitario.setVisible(isEntrada);
+        lblCustoUnitario.setManaged(isEntrada);
+        vboxCusto.setVisible(isEntrada);
+        vboxCusto.setManaged(isEntrada);
+
+        // Lote/Validade apenas para entrada (também dependem do produto)
+        Produto prod = cmbProduto.getValue();
+        boolean usaLote = prod != null && Boolean.TRUE.equals(prod.getUsaLoteValidade());
+        lblLote.setVisible(usaLote && isEntrada);    lblLote.setManaged(usaLote && isEntrada);
+        txtLote.setVisible(usaLote && isEntrada);    txtLote.setManaged(usaLote && isEntrada);
+        lblValidade.setVisible(usaLote && isEntrada); lblValidade.setManaged(usaLote && isEntrada);
+        dpValidade.setVisible(usaLote && isEntrada);  dpValidade.setManaged(usaLote && isEntrada);
     }
 
     @FXML
     private void registrar() {
-        errMotivo.setVisible(false);
-        errMotivo.setManaged(false);
+        // Limpa erros
+        esconderErro(errProduto);
+        esconderErro(errQuantidade);
+        esconderErro(errMotivo);
 
-        // Motivo validado primeiro — exibe label inline sem Alert
-        if (txtMotivo.getText() == null || txtMotivo.getText().isBlank()) {
-            errMotivo.setText("Motivo é obrigatório.");
-            errMotivo.setVisible(true);
-            errMotivo.setManaged(true);
-            return;
-        }
+        boolean valido = true;
 
         Produto produto = cmbProduto.getValue();
         if (produto == null) {
-            new Alert(Alert.AlertType.WARNING, "Selecione um produto.", ButtonType.OK).showAndWait();
-            return;
+            mostrarErro(errProduto, "Selecione um produto.");
+            valido = false;
         }
 
-        BigDecimal quantidade;
+        BigDecimal quantidade = null;
         try {
-            quantidade = new BigDecimal(txtQuantidade.getText().trim().replace(",", "."));
+            String qtdText = txtQuantidade.getText() == null ? "" : txtQuantidade.getText().trim().replace(",", ".");
+            if (qtdText.isEmpty()) throw new NumberFormatException("vazio");
+            quantidade = new BigDecimal(qtdText);
+            if (quantidade.compareTo(BigDecimal.ZERO) <= 0) {
+                mostrarErro(errQuantidade, "Quantidade deve ser maior que zero.");
+                valido = false;
+            }
         } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.WARNING, "Quantidade inválida.", ButtonType.OK).showAndWait();
-            return;
+            mostrarErro(errQuantidade, "Quantidade inválida.");
+            valido = false;
+        }
+
+        if (txtMotivo.getText() == null || txtMotivo.getText().isBlank()) {
+            mostrarErro(errMotivo, "Motivo é obrigatório.");
+            valido = false;
+        }
+
+        if (!valido) return;
+
+        // Confirmação para saída quando pode resultar em estoque negativo
+        if ("Saída Manual".equals(cmbTipoMovimentacao.getValue()) && produto != null && quantidade != null) {
+            BigDecimal saldo = produto.getEstoqueAtual() != null ? produto.getEstoqueAtual() : BigDecimal.ZERO;
+            if (saldo.compareTo(quantidade) < 0) {
+                Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION,
+                        String.format("O saldo atual é %s e a saída de %s deixará o estoque negativo. Deseja continuar?",
+                                QTD_FMT.format(saldo), QTD_FMT.format(quantidade)),
+                        ButtonType.YES, ButtonType.NO);
+                confirmacao.setHeaderText("Estoque insuficiente");
+                Optional<ButtonType> resp = confirmacao.showAndWait();
+                if (resp.isEmpty() || resp.get() != ButtonType.YES) return;
+            }
         }
 
         Integer empresaId = authService.getEmpresaIdLogado();
         String tipo = cmbTipoMovimentacao.getValue();
         String motivo = txtMotivo.getText().trim();
+        final BigDecimal qtdFinal = quantidade;
 
         try {
             switch (tipo) {
                 case "Entrada Manual" -> {
                     if (Boolean.TRUE.equals(produto.getUsaLoteValidade()) && !txtLote.getText().isBlank()) {
                         estoqueService.registrarEntradaComLote(empresaId, produto.getId(),
-                                txtLote.getText().trim(), dpValidade.getValue(), quantidade, motivo);
+                                txtLote.getText().trim(), dpValidade.getValue(), qtdFinal, motivo);
                     } else {
-                        estoqueService.registrarEntrada(empresaId, produto.getId(), quantidade, motivo);
+                        estoqueService.registrarEntrada(empresaId, produto.getId(), qtdFinal, motivo);
                     }
                 }
                 case "Saída Manual" ->
-                        estoqueService.registrarSaida(empresaId, produto.getId(), quantidade, motivo);
+                        estoqueService.registrarSaidaPermitindoNegativo(empresaId, produto.getId(), qtdFinal, motivo);
                 case "Ajuste de Inventário" ->
-                        estoqueService.ajustarInventario(empresaId, produto.getId(), quantidade, motivo);
+                        estoqueService.ajustarInventario(empresaId, produto.getId(), qtdFinal, motivo);
             }
             if (onSucessoCallback != null) onSucessoCallback.run();
             fechar();
@@ -223,5 +278,13 @@ public class MovimentacaoFormController implements Initializable {
 
     private void fechar() {
         ((Stage) btnRegistrar.getScene().getWindow()).close();
+    }
+
+    private void mostrarErro(Label lbl, String msg) {
+        lbl.setText(msg); lbl.setVisible(true); lbl.setManaged(true);
+    }
+
+    private void esconderErro(Label lbl) {
+        lbl.setVisible(false); lbl.setManaged(false);
     }
 }

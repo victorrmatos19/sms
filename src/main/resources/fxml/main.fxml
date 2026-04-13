@@ -14,7 +14,9 @@
     <top>
         <HBox styleClass="topbar" alignment="CENTER_LEFT" spacing="16">
             <!-- Logo carregado via SvgImageLoader no MainController (JavaFX não suporta SVG nativo) -->
-            <ImageView fx:id="imgLogoTopbar" fitWidth="130" fitHeight="34" preserveRatio="true"/>
+            <!-- onMouseClicked navega para o dashboard do perfil do usuário logado -->
+            <ImageView fx:id="imgLogoTopbar" fitWidth="130" fitHeight="34" preserveRatio="true"
+                       onMouseClicked="#irParaDashboard" style="-fx-cursor: hand;"/>
             <Region styleClass="topbar-divider" prefWidth="1" prefHeight="20"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="lblDataHora" styleClass="topbar-usuario"/>

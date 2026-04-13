@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:id="dashboardFinanceiro"
+      fx:controller="com.erp.controller.DashboardFinanceiroController"
+      styleClass="dashboard-root"
+      spacing="24">
+    <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
+
+    <!-- Cabeçalho -->
+    <VBox spacing="4">
+        <Label text="Dashboard" styleClass="page-title"/>
+        <Label text="Visão financeira do mês" styleClass="page-subtitle"/>
+    </VBox>
+
+    <!-- Linha 1 -->
+    <HBox spacing="16">
+        <VBox fx:id="cardPagarHoje" styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+            <Label text="CONTAS A PAGAR ABERTAS" styleClass="metric-card-label"/>
+            <Label fx:id="lblContasAbertas" text="0" styleClass="metric-card-value"/>
+            <Label fx:id="lblTotalAberto" text="R$ 0,00" styleClass="metric-card-subtitle"/>
+        </VBox>
+
+        <VBox fx:id="cardVencidos" styleClass="metric-card-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+            <Label text="CONTAS VENCIDAS" styleClass="metric-card-label"/>
+            <Label fx:id="lblContasVencidas" text="0" styleClass="metric-card-value-danger"/>
+            <Label fx:id="lblTotalVencido" text="R$ 0,00" styleClass="metric-card-subtitle"/>
+        </VBox>
+
+        <VBox fx:id="cardCaixa" styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+            <Label text="COMPRAS CONFIRMADAS — MÊS" styleClass="metric-card-label"/>
+            <Label fx:id="lblComprasMes" text="0" styleClass="metric-card-value"/>
+            <Label fx:id="lblValorComprasMes" text="R$ 0,00" styleClass="metric-card-subtitle"/>
+        </VBox>
+    </HBox>
+
+    <!-- Aviso módulos em breve -->
+    <VBox styleClass="dashboard-info-card" spacing="8" alignment="CENTER">
+        <padding><Insets top="32" right="32" bottom="32" left="32"/></padding>
+        <Label text="🚧  Caixa e Contas a Receber em desenvolvimento" styleClass="dashboard-info-title"/>
+        <Label text="Os módulos de Caixa e Contas a Receber estão previstos para a Fase 1 do sistema."
+               styleClass="dashboard-info-subtitle" wrapText="true" textAlignment="CENTER"/>
+    </VBox>
+
+</VBox>

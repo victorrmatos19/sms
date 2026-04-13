@@ -27,12 +27,16 @@
             <Label fx:id="lblTotalProdutos" text="0" styleClass="metric-card-value"/>
         </VBox>
         <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
-            <Label text="VALOR TOTAL DO ESTOQUE" styleClass="metric-card-label"/>
-            <Label fx:id="lblValorTotal" text="R$ 0,00" styleClass="metric-card-value-accent"/>
+            <Label text="ZERADOS" styleClass="metric-card-label"/>
+            <Label fx:id="lblZerados" text="0" styleClass="metric-card-value"/>
         </VBox>
         <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
             <Label text="ABAIXO DO MÍNIMO" styleClass="metric-card-label"/>
             <Label fx:id="lblAbaixoMinimo" text="0" styleClass="metric-card-value"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="VALOR TOTAL DO ESTOQUE" styleClass="metric-card-label"/>
+            <Label fx:id="lblValorTotal" text="R$ 0,00" styleClass="metric-card-value-accent"/>
         </VBox>
     </HBox>
 
@@ -43,11 +47,12 @@
         <Tab fx:id="tabPosicao" text="Posição do Estoque">
             <VBox spacing="8" style="-fx-padding: 8 0 0 0;">
 
-                <!-- Filtro -->
+                <!-- Filtros -->
                 <HBox spacing="8" alignment="CENTER_LEFT">
                     <TextField fx:id="txtBuscaEstoque"
                                promptText="Buscar por produto, código..."
-                               prefWidth="300"/>
+                               prefWidth="280"/>
+                    <ComboBox fx:id="cmbFiltroGrupo" prefWidth="160" promptText="Grupo"/>
                     <ComboBox fx:id="cmbFiltroEstoque" prefWidth="160"/>
                 </HBox>
 
@@ -55,12 +60,12 @@
                 <TableView fx:id="tabelaPosicao" VBox.vgrow="ALWAYS" styleClass="table-view">
                     <columns>
                         <TableColumn fx:id="colECodigo"    text="CÓDIGO"         prefWidth="100" minWidth="80"/>
-                        <TableColumn fx:id="colEDescricao" text="PRODUTO"         prefWidth="280" minWidth="180"/>
+                        <TableColumn fx:id="colEDescricao" text="PRODUTO"         prefWidth="260" minWidth="160"/>
                         <TableColumn fx:id="colEEstoque"   text="ESTOQUE ATUAL"   prefWidth="120" minWidth="100"/>
                         <TableColumn fx:id="colEMinimo"    text="MÍNIMO"          prefWidth="100" minWidth="80"/>
                         <TableColumn fx:id="colECusto"     text="CUSTO UNIT."     prefWidth="120" minWidth="100"/>
-                        <TableColumn fx:id="colEValor"     text="VALOR TOTAL"     prefWidth="130" minWidth="100"/>
-                        <TableColumn fx:id="colESituacao"  text="SITUAÇÃO"        prefWidth="120" minWidth="100"/>
+                        <TableColumn fx:id="colEValor"     text="VALOR TOTAL"     prefWidth="120" minWidth="100"/>
+                        <TableColumn fx:id="colESituacao"  text="SITUAÇÃO"        prefWidth="130" minWidth="100"/>
                     </columns>
                     <placeholder>
                         <Label text="Nenhum produto encontrado" styleClass="content-placeholder"/>
@@ -74,25 +79,30 @@
         <Tab fx:id="tabHistorico" text="Histórico">
             <VBox spacing="8" style="-fx-padding: 8 0 0 0;">
 
-                <!-- Filtro de período -->
+                <!-- Filtros de período e tipo -->
                 <HBox spacing="8" alignment="CENTER_LEFT">
                     <Label text="De:" styleClass="form-label"/>
-                    <DatePicker fx:id="dpInicio" prefWidth="150"/>
+                    <DatePicker fx:id="dpInicio" prefWidth="140"/>
                     <Label text="Até:" styleClass="form-label"/>
-                    <DatePicker fx:id="dpFim" prefWidth="150"/>
+                    <DatePicker fx:id="dpFim" prefWidth="140"/>
                     <Button text="Filtrar" onAction="#filtrarHistorico" styleClass="btn-secondary"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="txtBuscaHistorico" promptText="Buscar produto..." prefWidth="200"/>
+                    <ComboBox fx:id="cmbTipoHistorico" prefWidth="160"/>
                 </HBox>
 
                 <!-- Tabela de histórico -->
                 <TableView fx:id="tabelaHistorico" VBox.vgrow="ALWAYS" styleClass="table-view">
                     <columns>
-                        <TableColumn fx:id="colHData"       text="DATA/HORA"      prefWidth="140" minWidth="120"/>
-                        <TableColumn fx:id="colHProduto"    text="PRODUTO"        prefWidth="220" minWidth="150"/>
-                        <TableColumn fx:id="colHTipo"       text="TIPO"           prefWidth="120" minWidth="100"/>
-                        <TableColumn fx:id="colHOrigem"     text="ORIGEM"         prefWidth="110" minWidth="90"/>
-                        <TableColumn fx:id="colHQtd"        text="QUANTIDADE"     prefWidth="110" minWidth="90"/>
-                        <TableColumn fx:id="colHSaldoAnt"   text="SALDO ANTERIOR" prefWidth="120" minWidth="100"/>
-                        <TableColumn fx:id="colHSaldoPost"  text="SALDO POSTERIOR" prefWidth="130" minWidth="100"/>
+                        <TableColumn fx:id="colHData"       text="DATA/HORA"       prefWidth="130" minWidth="110"/>
+                        <TableColumn fx:id="colHProduto"    text="PRODUTO"          prefWidth="200" minWidth="140"/>
+                        <TableColumn fx:id="colHTipo"       text="TIPO"             prefWidth="120" minWidth="100"/>
+                        <TableColumn fx:id="colHOrigem"     text="ORIGEM"           prefWidth="90"  minWidth="80"/>
+                        <TableColumn fx:id="colHQtd"        text="QUANTIDADE"       prefWidth="100" minWidth="80"/>
+                        <TableColumn fx:id="colHCusto"      text="CUSTO UNIT."      prefWidth="110" minWidth="90"/>
+                        <TableColumn fx:id="colHSaldoAnt"   text="SALDO ANTERIOR"   prefWidth="110" minWidth="90"/>
+                        <TableColumn fx:id="colHSaldoPost"  text="SALDO POSTERIOR"  prefWidth="120" minWidth="90"/>
+                        <TableColumn fx:id="colHUsuario"    text="USUÁRIO"          prefWidth="110" minWidth="90"/>
                     </columns>
                     <placeholder>
                         <Label text="Nenhuma movimentação encontrada" styleClass="content-placeholder"/>

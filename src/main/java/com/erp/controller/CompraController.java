@@ -253,11 +253,12 @@ public class CompraController implements Initializable {
 
     private void abrirFormulario(Compra compra) {
         try {
-            // Recarrega a compra com itens, produto e lote já inicializados para evitar
-            // LazyInitializationException ao acessar compra.getItens() no FX thread
-            // (fora do contexto da sessão Hibernate).
-            Compra compraComItens = compraService.buscarComItens(compra.getId())
-                    .orElse(compra);
+            // Quando compra == null é uma nova compra; não há id para buscar.
+            // Quando compra != null, recarrega com itens (JOIN FETCH) para evitar
+            // LazyInitializationException fora da sessão Hibernate no FX thread.
+            Compra compraParaForm = (compra != null)
+                    ? compraService.buscarComItens(compra.getId()).orElse(compra)
+                    : null;
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/compra-form.fxml"));
             loader.setClassLoader(getClass().getClassLoader());
@@ -266,7 +267,7 @@ public class CompraController implements Initializable {
 
             CompraFormController ctrl = loader.getController();
             StackPane pane = (StackPane) rootPane.getParent();
-            ctrl.setCompra(compraComItens);
+            ctrl.setCompra(compraParaForm);
             ctrl.setConteudoPane(pane);
 
             pane.getChildren().setAll(formView);

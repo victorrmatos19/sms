@@ -237,6 +237,13 @@
             <version>75.1</version>
         </dependency>
 
+        <!-- JFreeChart — gráficos para o dashboard -->
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.5.4</version>
+        </dependency>
+
         <!-- Apache Batik — conversão de SVG para PNG em runtime -->
         <!-- Necessário pois JavaFX não suporta SVG nativo como Image -->
         <dependency>

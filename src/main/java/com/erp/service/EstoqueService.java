@@ -44,6 +44,12 @@ public class EstoqueService {
     }
 
     @Transactional(readOnly = true)
+    public List<MovimentacaoEstoque> buscarHistoricoPorProduto(Integer empresaId, Integer produtoId) {
+        return movimentacaoEstoqueRepository
+                .findByEmpresaIdAndProdutoIdOrderByCriadoEmDesc(empresaId, produtoId);
+    }
+
+    @Transactional(readOnly = true)
     public BigDecimal calcularValorTotalEstoque(Integer empresaId) {
         return produtoRepository.findByEmpresaIdAndAtivoTrue(empresaId).stream()
                 .map(p -> {
@@ -94,6 +100,28 @@ public class EstoqueService {
                 quantidade, saldoAnterior, saldoPosterior, motivo, null);
         MovimentacaoEstoque salvo = movimentacaoEstoqueRepository.save(mov);
         log.info("Saída manual: produto={} qtd={} saldo={}", produtoId, quantidade, saldoPosterior);
+        return salvo;
+    }
+
+    /**
+     * Saída manual que permite saldo negativo (confirmado pelo usuário na tela).
+     */
+    @Transactional
+    public MovimentacaoEstoque registrarSaidaPermitindoNegativo(Integer empresaId, Integer produtoId,
+                                                                 BigDecimal quantidade, String motivo) {
+        validarQuantidade(quantidade);
+        Produto produto = buscarProduto(produtoId);
+
+        BigDecimal saldoAnterior  = produto.getEstoqueAtual();
+        BigDecimal saldoPosterior = saldoAnterior.subtract(quantidade);
+
+        produto.setEstoqueAtual(saldoPosterior);
+        produtoRepository.save(produto);
+
+        MovimentacaoEstoque mov = criarMovimentacao(produto, "SAIDA", "AJUSTE_MANUAL",
+                quantidade, saldoAnterior, saldoPosterior, motivo, null);
+        MovimentacaoEstoque salvo = movimentacaoEstoqueRepository.save(mov);
+        log.info("Saída manual (neg. permitido): produto={} qtd={} saldo={}", produtoId, quantidade, saldoPosterior);
         return salvo;
     }
 

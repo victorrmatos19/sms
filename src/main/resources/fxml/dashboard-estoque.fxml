@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:id="dashboardEstoque"
+      fx:controller="com.erp.controller.DashboardEstoqueController"
+      styleClass="dashboard-root"
+      spacing="24">
+    <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
+
+    <!-- Cabeçalho -->
+    <VBox spacing="4">
+        <Label text="Dashboard" styleClass="page-title"/>
+        <Label text="Visão de estoque do mês" styleClass="page-subtitle"/>
+    </VBox>
+
+    <!-- Métricas -->
+    <HBox spacing="16">
+        <VBox fx:id="cardValorEstoque" styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+            <Label text="PRODUTOS ATIVOS" styleClass="metric-card-label"/>
+            <Label fx:id="lblTotalProdutos" text="0" styleClass="metric-card-value"/>
+            <Label text="no catálogo" styleClass="metric-card-subtitle"/>
+        </VBox>
+
+        <VBox fx:id="cardAbaixoMinimo" styleClass="metric-card-warning" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+            <Label text="ABAIXO DO ESTOQUE MÍNIMO" styleClass="metric-card-label"/>
+            <Label fx:id="lblAbaixoMinimo" text="0" styleClass="metric-card-value-warning"/>
+            <Label text="precisam de reposição" styleClass="metric-card-subtitle"/>
+        </VBox>
+
+        <VBox fx:id="cardComprasPendentes" styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+            <Label text="ENTRADAS — MÊS" styleClass="metric-card-label"/>
+            <Label fx:id="lblEntradasMes" text="0" styleClass="metric-card-value"/>
+            <Label text="movimentações de entrada" styleClass="metric-card-subtitle"/>
+        </VBox>
+
+        <VBox fx:id="cardZerados" styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+            <Label text="SAÍDAS — MÊS" styleClass="metric-card-label"/>
+            <Label fx:id="lblSaidasMes" text="0" styleClass="metric-card-value"/>
+            <Label text="movimentações de saída" styleClass="metric-card-subtitle"/>
+        </VBox>
+    </HBox>
+
+    <!-- Aviso módulos em breve -->
+    <VBox styleClass="dashboard-info-card" spacing="8" alignment="CENTER">
+        <padding><Insets top="32" right="32" bottom="32" left="32"/></padding>
+        <Label text="Acesse o menu lateral para gerenciar o estoque" styleClass="dashboard-info-title"/>
+        <Label text="Use Movimentações para registrar ajustes e Compras para entradas de fornecedores."
+               styleClass="dashboard-info-subtitle" wrapText="true" textAlignment="CENTER"/>
+    </VBox>
+
+</VBox>

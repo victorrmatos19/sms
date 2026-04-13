@@ -57,6 +57,7 @@ public class MainController implements Initializable {
         var logo = svgImageLoader.load("/images/logo-dark.svg", 130, 34);
         if (logo != null) {
             imgLogoTopbar.setImage(logo);
+            imgLogoTopbar.setStyle("-fx-cursor: hand;");
         }
 
         // Preenche área de usuário na sidebar
@@ -81,6 +82,9 @@ public class MainController implements Initializable {
 
         // Sincronizar ícone do botão com tema atual
         atualizarIconeTema();
+
+        // Carrega o dashboard do perfil do usuário logado
+        carregarDashboard();
     }
 
     @FXML
@@ -123,9 +127,29 @@ public class MainController implements Initializable {
     }
 
     @FXML
+    private void irParaDashboard() {
+        carregarDashboard();
+    }
+
+    @FXML
     private void sair() {
         authService.logout();
         stageManager.showLoginScreen();
+    }
+
+    public void carregarDashboard() {
+        var usuario = authService.getUsuarioLogado();
+        String perfil = (usuario != null && usuario.getPerfil() != null)
+                ? usuario.getPerfil().getNome() : "ADMINISTRADOR";
+
+        String fxmlPath = switch (perfil) {
+            case "VENDAS"      -> "/fxml/dashboard-vendas.fxml";
+            case "FINANCEIRO"  -> "/fxml/dashboard-financeiro.fxml";
+            case "ESTOQUE"     -> "/fxml/dashboard-estoque.fxml";
+            default            -> "/fxml/dashboard-admin.fxml"; // ADMINISTRADOR, GERENTE e demais
+        };
+
+        carregarModulo(fxmlPath, "Dashboard");
     }
 
     private void carregarModulo(String fxmlPath, String nomeModulo) {
