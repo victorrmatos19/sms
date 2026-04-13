@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FuncionarioRepository extends JpaRepository<Funcionario, Integer> {
 
@@ -20,6 +21,8 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Intege
     long countByEmpresaIdAndAtivoTrue(Integer empresaId);
 
     long countByEmpresaIdAndUsuarioIdIsNotNull(Integer empresaId);
+
+    Optional<Funcionario> findByEmpresaIdAndUsuarioId(Integer empresaId, Integer usuarioId);
 
     @Query("SELECT f FROM Funcionario f " +
            "WHERE f.empresa.id = :empresaId " +

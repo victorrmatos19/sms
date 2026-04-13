@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+              http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="orcamento"
+              pageWidth="595" pageHeight="842"
+              leftMargin="30" rightMargin="30"
+              topMargin="20" bottomMargin="20"
+              whenNoDataType="NoDataSection"
+              uuid="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
+
+    <!-- Parameters -->
+    <parameter name="EMPRESA_NOME"      class="java.lang.String"/>
+    <parameter name="EMPRESA_CNPJ"      class="java.lang.String"/>
+    <parameter name="EMPRESA_TELEFONE"  class="java.lang.String"/>
+    <parameter name="EMPRESA_EMAIL"     class="java.lang.String"/>
+    <parameter name="EMPRESA_LOGOTIPO"  class="byte[]"/>
+    <parameter name="ORC_NUMERO"        class="java.lang.String"/>
+    <parameter name="ORC_DATA_EMISSAO"  class="java.lang.String"/>
+    <parameter name="ORC_DATA_VALIDADE" class="java.lang.String"/>
+    <parameter name="CLIENTE_NOME"      class="java.lang.String"/>
+    <parameter name="CLIENTE_CPFCNPJ"   class="java.lang.String"/>
+    <parameter name="CLIENTE_ENDERECO"  class="java.lang.String"/>
+    <parameter name="VENDEDOR_NOME"     class="java.lang.String"/>
+    <parameter name="ORC_OBSERVACOES"   class="java.lang.String"/>
+    <parameter name="ORC_SUBTOTAL"      class="java.math.BigDecimal"/>
+    <parameter name="ORC_DESCONTO"      class="java.math.BigDecimal"/>
+    <parameter name="ORC_TOTAL"         class="java.math.BigDecimal"/>
+
+    <!-- Fields (from OrcamentoItemReportDTO) -->
+    <field name="ordem"         class="java.lang.Integer"/>
+    <field name="descricao"     class="java.lang.String"/>
+    <field name="quantidade"    class="java.math.BigDecimal"/>
+    <field name="unidade"       class="java.lang.String"/>
+    <field name="precoUnitario" class="java.math.BigDecimal"/>
+    <field name="desconto"      class="java.math.BigDecimal"/>
+    <field name="total"         class="java.math.BigDecimal"/>
+
+    <!-- Title Band — Company Header + Orçamento Header -->
+    <title>
+        <band height="200" splitType="Stretch">
+
+            <!-- Linha superior -->
+            <rectangle>
+                <reportElement x="0" y="0" width="535" height="4" uuid="rect-top"/>
+                <graphicElement>
+                    <pen lineWidth="0.0"/>
+                </graphicElement>
+                <box>
+                    <pen lineWidth="0.0"/>
+                </box>
+            </rectangle>
+
+            <!-- Nome da empresa -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="0" y="8" width="350" height="22" uuid="tf-empresa-nome"/>
+                <textElement>
+                    <font size="14" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{EMPRESA_NOME}]]></textFieldExpression>
+            </textField>
+
+            <!-- CNPJ -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="0" y="32" width="350" height="16" uuid="tf-empresa-cnpj"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["CNPJ: " + $P{EMPRESA_CNPJ}]]></textFieldExpression>
+            </textField>
+
+            <!-- Telefone / Email -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="0" y="50" width="350" height="16" uuid="tf-empresa-contato"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{EMPRESA_TELEFONE} + "  |  " + $P{EMPRESA_EMAIL}]]></textFieldExpression>
+            </textField>
+
+            <!-- Título ORÇAMENTO -->
+            <staticText>
+                <reportElement x="350" y="8" width="185" height="30" uuid="st-titulo"/>
+                <textElement textAlignment="Right">
+                    <font size="20" isBold="true"/>
+                </textElement>
+                <text><![CDATA[ORÇAMENTO]]></text>
+            </staticText>
+
+            <!-- Número -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="350" y="40" width="185" height="16" uuid="tf-numero"/>
+                <textElement textAlignment="Right">
+                    <font size="11" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{ORC_NUMERO}]]></textFieldExpression>
+            </textField>
+
+            <!-- Data de Emissão -->
+            <staticText>
+                <reportElement x="350" y="58" width="90" height="14" uuid="st-emissao-label"/>
+                <textElement textAlignment="Right">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[Emissão:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="442" y="58" width="93" height="14" uuid="tf-emissao"/>
+                <textElement textAlignment="Right">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{ORC_DATA_EMISSAO}]]></textFieldExpression>
+            </textField>
+
+            <!-- Data de Validade em destaque -->
+            <staticText>
+                <reportElement x="350" y="74" width="90" height="14" uuid="st-validade-label"/>
+                <textElement textAlignment="Right">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[Válido até:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="442" y="74" width="93" height="16" uuid="tf-validade"
+                               forecolor="#C9184A"/>
+                <textElement textAlignment="Right">
+                    <font size="10" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{ORC_DATA_VALIDADE}]]></textFieldExpression>
+            </textField>
+
+            <!-- Separador -->
+            <line>
+                <reportElement x="0" y="100" width="535" height="1" uuid="line1"/>
+                <graphicElement>
+                    <pen lineWidth="1.5" lineColor="#1a2744"/>
+                </graphicElement>
+            </line>
+
+            <!-- Cliente -->
+            <staticText>
+                <reportElement x="0" y="108" width="80" height="14" uuid="st-cliente-label"/>
+                <textElement>
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[CLIENTE:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="80" y="108" width="455" height="14" uuid="tf-cliente-nome"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{CLIENTE_NOME}]]></textFieldExpression>
+            </textField>
+
+            <!-- CPF/CNPJ -->
+            <staticText>
+                <reportElement x="0" y="124" width="80" height="14" uuid="st-cpfcnpj-label"/>
+                <textElement>
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[CPF/CNPJ:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="80" y="124" width="200" height="14" uuid="tf-cliente-cpfcnpj"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{CLIENTE_CPFCNPJ}]]></textFieldExpression>
+            </textField>
+
+            <!-- Vendedor -->
+            <staticText>
+                <reportElement x="310" y="124" width="70" height="14" uuid="st-vendedor-label"/>
+                <textElement textAlignment="Right">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Vendedor:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="385" y="124" width="150" height="14" uuid="tf-vendedor"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{VENDEDOR_NOME}]]></textFieldExpression>
+            </textField>
+
+            <!-- Endereço -->
+            <staticText>
+                <reportElement x="0" y="140" width="80" height="14" uuid="st-endereco-label"/>
+                <textElement>
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Endereço:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="80" y="140" width="455" height="14" uuid="tf-cliente-end"/>
+                <textElement>
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{CLIENTE_ENDERECO}]]></textFieldExpression>
+            </textField>
+
+            <!-- Separador -->
+            <line>
+                <reportElement x="0" y="162" width="535" height="1" uuid="line2"/>
+                <graphicElement>
+                    <pen lineWidth="0.5" lineColor="#888888"/>
+                </graphicElement>
+            </line>
+        </band>
+    </title>
+
+    <!-- Column Header — Cabeçalho da tabela de itens -->
+    <columnHeader>
+        <band height="20" splitType="Stretch">
+            <rectangle>
+                <reportElement x="0" y="0" width="535" height="20" backcolor="#1a2744"
+                               uuid="rect-colheader"/>
+                <graphicElement>
+                    <pen lineWidth="0.0"/>
+                </graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="4"   y="3" width="26"  height="14" uuid="sh-num"
+                               forecolor="#FFFFFF"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[#]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="32"  y="3" width="195" height="14" uuid="sh-desc"
+                               forecolor="#FFFFFF"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[DESCRIÇÃO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="230" y="3" width="45"  height="14" uuid="sh-qtd"
+                               forecolor="#FFFFFF"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[QTD]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="278" y="3" width="40"  height="14" uuid="sh-un"
+                               forecolor="#FFFFFF"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[UN]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="320" y="3" width="80"  height="14" uuid="sh-preco"
+                               forecolor="#FFFFFF"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[PREÇO UNIT.]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="402" y="3" width="60"  height="14" uuid="sh-desc2"
+                               forecolor="#FFFFFF"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[DESCONTO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="464" y="3" width="67"  height="14" uuid="sh-total"
+                               forecolor="#FFFFFF"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[TOTAL]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <!-- Detail Band — Linha por item -->
+    <detail>
+        <band height="18" splitType="Stretch">
+            <textField isBlankWhenNull="true">
+                <reportElement x="4"   y="2" width="26"  height="14" uuid="df-num"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{ordem}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="32"  y="2" width="195" height="14" uuid="df-desc"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{descricao}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true" pattern="#,##0.####">
+                <reportElement x="230" y="2" width="45"  height="14" uuid="df-qtd"/>
+                <textElement textAlignment="Right"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{quantidade}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="278" y="2" width="40"  height="14" uuid="df-un"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{unidade}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true" pattern="#,##0.00">
+                <reportElement x="320" y="2" width="80"  height="14" uuid="df-preco"/>
+                <textElement textAlignment="Right"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{precoUnitario}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true" pattern="#,##0.00">
+                <reportElement x="402" y="2" width="60"  height="14" uuid="df-desc2"/>
+                <textElement textAlignment="Right"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{desconto}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true" pattern="#,##0.00">
+                <reportElement x="464" y="2" width="67"  height="14" uuid="df-total"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$F{total}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="0" y="17" width="535" height="1" uuid="line-detail"/>
+                <graphicElement>
+                    <pen lineWidth="0.3" lineColor="#DDDDDD"/>
+                </graphicElement>
+            </line>
+        </band>
+    </detail>
+
+    <!-- Summary Band — Totais + Rodapé -->
+    <summary>
+        <band height="160" splitType="Stretch">
+
+            <!-- Separador acima dos totais -->
+            <line>
+                <reportElement x="0" y="8" width="535" height="1" uuid="line-sum1"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#1a2744"/>
+                </graphicElement>
+            </line>
+
+            <!-- Subtotal -->
+            <staticText>
+                <reportElement x="350" y="16" width="110" height="14" uuid="ss-sub-label"/>
+                <textElement textAlignment="Right"><font size="9"/></textElement>
+                <text><![CDATA[Subtotal:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true" pattern="R$ #,##0.00">
+                <reportElement x="464" y="16" width="67" height="14" uuid="sf-sub"/>
+                <textElement textAlignment="Right"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{ORC_SUBTOTAL}]]></textFieldExpression>
+            </textField>
+
+            <!-- Desconto -->
+            <staticText>
+                <reportElement x="350" y="32" width="110" height="14" uuid="ss-desc-label"/>
+                <textElement textAlignment="Right"><font size="9"/></textElement>
+                <text><![CDATA[Desconto:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true" pattern="R$ #,##0.00">
+                <reportElement x="464" y="32" width="67" height="14" uuid="sf-desc"/>
+                <textElement textAlignment="Right"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{ORC_DESCONTO}]]></textFieldExpression>
+            </textField>
+
+            <!-- Total -->
+            <rectangle>
+                <reportElement x="348" y="48" width="185" height="24" backcolor="#1a2744"
+                               uuid="rect-total"/>
+                <graphicElement>
+                    <pen lineWidth="0.0"/>
+                </graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="352" y="52" width="106" height="16" uuid="ss-total-label"
+                               forecolor="#FFFFFF"/>
+                <textElement textAlignment="Right">
+                    <font size="11" isBold="true"/>
+                </textElement>
+                <text><![CDATA[VALOR TOTAL:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true" pattern="R$ #,##0.00">
+                <reportElement x="460" y="52" width="69" height="16" uuid="sf-total"
+                               forecolor="#c9a84c"/>
+                <textElement textAlignment="Right">
+                    <font size="11" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{ORC_TOTAL}]]></textFieldExpression>
+            </textField>
+
+            <!-- Observações -->
+            <textField isBlankWhenNull="true" isStretchWithOverflow="true">
+                <reportElement x="0" y="82" width="340" height="40" uuid="sf-obs"/>
+                <textElement>
+                    <font size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[($P{ORC_OBSERVACOES} != null && !$P{ORC_OBSERVACOES}.isEmpty())
+                    ? "Observações: " + $P{ORC_OBSERVACOES} : ""]]></textFieldExpression>
+            </textField>
+
+            <!-- Aviso de validade -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="0" y="126" width="535" height="14" uuid="sf-aviso"/>
+                <textElement textAlignment="Center">
+                    <font size="9" isItalic="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Este orçamento é válido até " + $P{ORC_DATA_VALIDADE}]]></textFieldExpression>
+            </textField>
+
+            <!-- Linha de assinatura -->
+            <line>
+                <reportElement x="100" y="144" width="180" height="1" uuid="line-ass"/>
+                <graphicElement>
+                    <pen lineWidth="0.5"/>
+                </graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="100" y="147" width="180" height="12" uuid="ss-ass"/>
+                <textElement textAlignment="Center">
+                    <font size="8"/>
+                </textElement>
+                <text><![CDATA[Assinatura do Cliente]]></text>
+            </staticText>
+
+            <!-- Data de aprovação -->
+            <staticText>
+                <reportElement x="320" y="144" width="215" height="12" uuid="ss-aprov"/>
+                <textElement>
+                    <font size="8"/>
+                </textElement>
+                <text><![CDATA[Aprovado em: ____/____/______]]></text>
+            </staticText>
+        </band>
+    </summary>
+
+    <!-- No Data Section -->
+    <noData>
+        <band height="20">
+            <staticText>
+                <reportElement x="0" y="0" width="535" height="20" uuid="nodata-st"/>
+                <textElement textAlignment="Center"><font size="9"/></textElement>
+                <text><![CDATA[Nenhum item no orçamento.]]></text>
+            </staticText>
+        </band>
+    </noData>
+
+</jasperReport>

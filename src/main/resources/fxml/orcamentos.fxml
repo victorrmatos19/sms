@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="rootPane"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.OrcamentoController"
+      spacing="16" styleClass="content-area">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT">
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Orçamentos" styleClass="page-title"/>
+            <Label text="Emissão e gestão de orçamentos comerciais" styleClass="page-subtitle"/>
+        </VBox>
+        <Button fx:id="btnNovoOrcamento" text="+ Novo Orçamento" onAction="#abrirNovo"
+                styleClass="btn-primary"/>
+    </HBox>
+
+    <!-- Métricas -->
+    <HBox spacing="12">
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="ABERTOS" styleClass="metric-card-label"/>
+            <Label fx:id="cardAbertos" text="0" styleClass="metric-card-value"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="A VENCER (HOJE/AMANHÃ)" styleClass="metric-card-label"/>
+            <Label fx:id="cardAVencer" text="0" styleClass="metric-card-value"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="CONVERTIDOS (MÊS)" styleClass="metric-card-label"/>
+            <Label fx:id="cardConvertidosMes" text="R$ 0,00" styleClass="metric-card-value-accent"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="TAXA DE CONVERSÃO (MÊS)" styleClass="metric-card-label"/>
+            <Label fx:id="cardTaxaConversao" text="0%" styleClass="metric-card-value"/>
+        </VBox>
+    </HBox>
+
+    <!-- Toolbar de filtros e ações -->
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <TextField fx:id="txtBusca"
+                   promptText="Buscar por número ou cliente..."
+                   prefWidth="280"/>
+        <ComboBox fx:id="cmbFiltroStatus" prefWidth="150"/>
+        <CheckBox fx:id="chkApenasDosMeus" text="Apenas os meus"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnEditar" text="Editar" onAction="#editarSelecionado"
+                styleClass="btn-secondary" disable="true"/>
+        <Button fx:id="btnConverter" text="Converter em Venda" onAction="#converterSelecionado"
+                styleClass="btn-primary" disable="true"/>
+        <Button fx:id="btnCancelarOrcamento" text="Cancelar" onAction="#cancelarSelecionado"
+                styleClass="btn-danger" disable="true"/>
+        <Button fx:id="btnImprimirPdf" text="Imprimir PDF" onAction="#imprimirPdfSelecionado"
+                styleClass="btn-outline" disable="true"/>
+    </HBox>
+
+    <!-- Tabela -->
+    <TableView fx:id="tabelaOrcamentos" VBox.vgrow="ALWAYS" styleClass="table-view">
+        <columns>
+            <TableColumn fx:id="colNumero"     text="NÚMERO"       prefWidth="140" minWidth="110"/>
+            <TableColumn fx:id="colCliente"    text="CLIENTE"      prefWidth="200" minWidth="140"/>
+            <TableColumn fx:id="colVendedor"   text="VENDEDOR"     prefWidth="160" minWidth="120"/>
+            <TableColumn fx:id="colEmissao"    text="EMISSÃO"      prefWidth="100" minWidth="90"/>
+            <TableColumn fx:id="colValidade"   text="VALIDADE"     prefWidth="100" minWidth="90"/>
+            <TableColumn fx:id="colValorTotal" text="VALOR TOTAL"  prefWidth="130" minWidth="110"/>
+            <TableColumn fx:id="colStatus"     text="STATUS"       prefWidth="110" minWidth="90"/>
+        </columns>
+        <placeholder>
+            <Label text="Nenhum orçamento encontrado" styleClass="content-placeholder"/>
+        </placeholder>
+    </TableView>
+
+</VBox>
