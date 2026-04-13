@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.OrcamentoConversaoController"
+      spacing="16" style="-fx-padding: 20; -fx-min-width: 460;">
+
+    <!-- Resumo do orçamento -->
+    <VBox styleClass="card" spacing="6">
+        <Label text="Resumo do Orçamento" styleClass="card-title"/>
+        <Label fx:id="lblResumoOrcamento" text="" wrapText="true"
+               style="-fx-font-size: 13px; -fx-line-spacing: 4;"/>
+    </VBox>
+
+    <!-- Forma de Pagamento -->
+    <GridPane hgap="16" vgap="10">
+        <columnConstraints>
+            <ColumnConstraints minWidth="140" prefWidth="160"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+
+        <Label text="Forma de Pagamento *" styleClass="form-label"
+               GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="cmbFormaPagamento" maxWidth="Infinity"
+                  GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label fx:id="lblParcelasRow" text="Nº de Parcelas" styleClass="form-label"
+               GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <Spinner fx:id="spnParcelas" min="1" max="12" initialValue="1"
+                 editable="true" prefWidth="100"
+                 GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Observações da Venda" styleClass="form-label"
+               GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextArea fx:id="txtObservacoesVenda" prefRowCount="2" wrapText="true"
+                  GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <!-- Indicador de carregamento -->
+    <ProgressIndicator fx:id="progressIndicator" prefWidth="32" prefHeight="32"
+                       visible="false" managed="false"
+                       style="-fx-alignment: center;"/>
+
+    <!-- Botões -->
+    <HBox spacing="8" alignment="CENTER_RIGHT">
+        <Button fx:id="btnCancelar" text="Cancelar" onAction="#cancelar" styleClass="btn-outline"/>
+        <Button fx:id="btnConfirmarConversao" text="Confirmar Conversão"
+                onAction="#confirmarConversao" styleClass="btn-primary"/>
+    </HBox>
+
+</VBox>

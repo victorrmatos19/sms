@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.OrcamentoFormController"
+      spacing="0" styleClass="content-area">
+
+    <!-- Header fixo com voltar + título -->
+    <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-padding: 0 0 12 0;">
+        <Button text="← Voltar" onAction="#voltar" styleClass="btn-outline"/>
+        <VBox spacing="2" HBox.hgrow="ALWAYS">
+            <Label text="Orçamento" styleClass="page-title"/>
+            <HBox spacing="6" alignment="CENTER_LEFT">
+                <Label text="Nº:" styleClass="form-label"/>
+                <Label fx:id="lblNumero" text="(gerado automaticamente)"
+                       style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
+            </HBox>
+        </VBox>
+    </HBox>
+
+    <!-- Banner de status (somente leitura) -->
+    <Label fx:id="bannerStatus" text=""
+           maxWidth="Infinity" wrapText="true"
+           style="-fx-padding: 8 16 8 16; -fx-font-size: 13px;"
+           visible="false" managed="false"/>
+
+    <!-- Conteúdo com scroll -->
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" hbarPolicy="NEVER"
+                style="-fx-background-color: transparent; -fx-border-color: transparent;">
+        <VBox spacing="20" style="-fx-padding: 0 4 16 0;">
+
+            <!-- CABEÇALHO DO ORÇAMENTO -->
+            <VBox spacing="8">
+                <Label text="Dados do Orçamento" styleClass="card-title"/>
+                <GridPane hgap="16" vgap="10">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="120" prefWidth="140"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                        <ColumnConstraints minWidth="120" prefWidth="140"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <!-- Cliente (span 3) -->
+                    <Label text="Cliente" styleClass="form-label"
+                           GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="cmbCliente" maxWidth="Infinity"
+                              promptText="Selecione ou pesquise o cliente (opcional)"
+                              GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
+
+                    <!-- Vendedor -->
+                    <Label text="Vendedor *" styleClass="form-label"
+                           GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="cmbVendedor" maxWidth="Infinity"
+                              promptText="Selecione o vendedor"
+                              GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <!-- Data de Emissão -->
+                    <Label text="Data Emissão *" styleClass="form-label"
+                           GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                    <DatePicker fx:id="dpEmissao" maxWidth="Infinity"
+                                GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+                    <!-- Data de Validade -->
+                    <Label text="Validade *" styleClass="form-label"
+                           GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <DatePicker fx:id="dpValidade" maxWidth="Infinity"
+                                GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <!-- Observações -->
+                    <Label text="Observações" styleClass="form-label"
+                           GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <TextArea fx:id="txtObservacoes" prefRowCount="2" wrapText="true"
+                              GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
+                </GridPane>
+            </VBox>
+
+            <!-- GRADE DE ITENS -->
+            <VBox spacing="8">
+                <Label text="Itens do Orçamento" styleClass="card-title"/>
+
+                <!-- Cabeçalho da grade -->
+                <HBox spacing="6" style="-fx-padding: 0 0 4 0;">
+                    <Label text="Produto"         prefWidth="250" styleClass="form-label"/>
+                    <Label text="Descrição"       prefWidth="200" styleClass="form-label"/>
+                    <Label text="Qtd"             prefWidth="70"  styleClass="form-label"/>
+                    <Label text="Preço Unit. R$"  prefWidth="100" styleClass="form-label"/>
+                    <Label text="Desconto R$"     prefWidth="90"  styleClass="form-label"/>
+                    <Label text="Total R$"        prefWidth="110" styleClass="form-label"/>
+                </HBox>
+
+                <!-- Linhas adicionadas dinamicamente -->
+                <VBox fx:id="vboxItens" spacing="2"/>
+
+                <!-- Botão adicionar -->
+                <Button fx:id="btnAdicionarItem" text="+ Adicionar Item"
+                        onAction="#adicionarItem" styleClass="btn-secondary"/>
+            </VBox>
+
+            <!-- TOTAIS -->
+            <VBox spacing="0" styleClass="card">
+                <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
+                    <Label text="Subtotal dos Produtos:" styleClass="form-label"/>
+                    <Label fx:id="lblSubtotal" text="R$ 0,00" prefWidth="150"
+                           style="-fx-alignment: CENTER-RIGHT;"/>
+                </HBox>
+                <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
+                    <Label text="Desconto Global R$:" styleClass="form-label"/>
+                    <TextField fx:id="txtDescontoGlobal" text="0" prefWidth="150"
+                               style="-fx-alignment: CENTER-RIGHT;"/>
+                </HBox>
+                <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
+                    <Label text="Desconto:" styleClass="form-label"/>
+                    <Label fx:id="lblDesconto" text="R$ 0,00" prefWidth="150"
+                           style="-fx-alignment: CENTER-RIGHT;"/>
+                </HBox>
+                <Separator style="-fx-padding: 4 0;"/>
+                <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 8 0 4 0;">
+                    <Label text="VALOR TOTAL:"
+                           style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <Label fx:id="lblTotal" text="R$ 0,00" prefWidth="150"
+                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-alignment: CENTER-RIGHT;"/>
+                </HBox>
+            </VBox>
+
+        </VBox>
+    </ScrollPane>
+
+    <!-- Botões de ação fixos no rodapé -->
+    <HBox fx:id="hboxBotoes" spacing="8" alignment="CENTER_RIGHT" styleClass="content-footer">
+        <Button fx:id="btnVoltar" text="Cancelar" onAction="#voltar" styleClass="btn-outline"/>
+        <Button fx:id="btnSalvar" text="Salvar" onAction="#salvar" styleClass="btn-secondary"/>
+        <Button fx:id="btnSalvarImprimir" text="Salvar e Imprimir PDF" onAction="#salvarEImprimir"
+                styleClass="btn-primary"/>
+    </HBox>
+
+</VBox>
