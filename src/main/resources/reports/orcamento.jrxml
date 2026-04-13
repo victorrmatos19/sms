@@ -47,9 +47,6 @@
                 <graphicElement>
                     <pen lineWidth="0.0"/>
                 </graphicElement>
-                <box>
-                    <pen lineWidth="0.0"/>
-                </box>
             </rectangle>
 
             <!-- Nome da empresa -->
