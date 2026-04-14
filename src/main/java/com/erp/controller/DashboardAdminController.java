@@ -87,9 +87,10 @@ public class DashboardAdminController implements Initializable {
         chartCompras.setLegendVisible(false);
         chartCompras.setAnimated(false);
 
-        aplicarEstilosCards();
         preencherCabecalho();
         carregarDados();
+        // Após o CSS engine do JavaFX rodar, forçar background dos cards via inline style
+        Platform.runLater(this::aplicarEstilosCards);
 
         autoRefresh = new Timeline(new KeyFrame(Duration.minutes(5), e -> carregarDados()));
         autoRefresh.setCycleCount(Timeline.INDEFINITE);
@@ -98,8 +99,8 @@ public class DashboardAdminController implements Initializable {
 
     private void aplicarEstilosCards() {
         boolean dark = stageManager.isDarkMode();
-        String bgCard    = dark ? "#1e2d45" : "#ffffff";
-        String bgSection = dark ? "#1e2d45" : "#ffffff";
+        String bgCard    = dark ? "#1f2937" : "#ffffff";
+        String bgSection = dark ? "#1f2937" : "#ffffff";
         String styleCard    = "-fx-background-color: " + bgCard    + "; -fx-background-radius: 8; -fx-padding: 16 20 16 20;";
         String styleSection = "-fx-background-color: " + bgSection + "; -fx-background-radius: 8; -fx-padding: 20;";
 

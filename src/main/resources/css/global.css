@@ -1821,7 +1821,7 @@
 
 .theme-dark .dash-card,
 .theme-dark .vbox.dash-card {
-    -fx-background-color: #1e2d45;
+    -fx-background-color: #1f2937;
 }
 
 .theme-dark .dash-card-label {
@@ -1838,7 +1838,7 @@
 
 .theme-dark .dash-section-card,
 .theme-dark .vbox.dash-section-card {
-    -fx-background-color: #1e2d45;
+    -fx-background-color: #1f2937;
 }
 
 .theme-dark .dash-section-title {
