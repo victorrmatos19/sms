@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
@@ -32,11 +31,10 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
            "AND p.estoqueAtual < p.estoqueMinimo")
     List<Produto> findByEmpresaIdAndEstoqueAbaixoMinimo(@Param("empresaId") Integer empresaId);
 
-    /** Produtos ativos com estoque zerado (crítico). */
     @Query("SELECT p FROM Produto p " +
            "WHERE p.empresa.id = :empresaId " +
            "AND p.ativo = true " +
-           "AND p.estoqueAtual <= 0")
+           "AND p.estoqueAtual = 0")
     List<Produto> findByEmpresaIdAndEstoqueZerado(@Param("empresaId") Integer empresaId);
 
     @Query("SELECT DISTINCT p FROM Produto p " +
