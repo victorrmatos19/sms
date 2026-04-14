@@ -76,7 +76,7 @@
         <HBox spacing="12">
 
             <!-- Gráfico -->
-            <VBox styleClass="dash-section-card" HBox.hgrow="ALWAYS" spacing="10">
+            <VBox fx:id="cardGrafico" styleClass="dash-section-card" HBox.hgrow="ALWAYS" spacing="10">
                 <Label text="VENDAS — ÚLTIMOS 7 DIAS" styleClass="dash-section-title"/>
                 <BarChart fx:id="chartCompras" VBox.vgrow="ALWAYS"
                           minHeight="240" maxHeight="280"
@@ -88,7 +88,7 @@
             </VBox>
 
             <!-- Requer Atenção -->
-            <VBox styleClass="dash-section-card" prefWidth="340" minWidth="280" spacing="12">
+            <VBox fx:id="cardAlertas" styleClass="dash-section-card" prefWidth="340" minWidth="280" spacing="12">
                 <Label text="⚡  REQUER ATENÇÃO" styleClass="dash-section-title"/>
                 <VBox fx:id="alertasPane" spacing="8"/>
             </VBox>
@@ -101,13 +101,13 @@
         <HBox spacing="12">
 
             <!-- Top 5 Produtos -->
-            <VBox styleClass="dash-section-card" HBox.hgrow="ALWAYS" spacing="12">
+            <VBox fx:id="cardTopProdutos" styleClass="dash-section-card" HBox.hgrow="ALWAYS" spacing="12">
                 <Label text="TOP 5 PRODUTOS DO MÊS" styleClass="dash-section-title"/>
                 <VBox fx:id="topProdutosPane" spacing="8"/>
             </VBox>
 
             <!-- Top Clientes — placeholder -->
-            <VBox styleClass="dash-section-card" HBox.hgrow="ALWAYS" spacing="12">
+            <VBox fx:id="cardTopClientes" styleClass="dash-section-card" HBox.hgrow="ALWAYS" spacing="12">
                 <Label text="TOP CLIENTES DO MÊS" styleClass="dash-section-title"/>
                 <VBox VBox.vgrow="ALWAYS" alignment="CENTER">
                     <padding><Insets top="20" bottom="20"/></padding>

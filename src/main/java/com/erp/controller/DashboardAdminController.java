@@ -1,5 +1,6 @@
 package com.erp.controller;
 
+import com.erp.StageManager;
 import com.erp.model.dto.dashboard.AlertaDTO;
 import com.erp.model.dto.dashboard.DashboardAdminDTO;
 import com.erp.model.dto.dashboard.TopProdutoDTO;
@@ -40,13 +41,27 @@ public class DashboardAdminController implements Initializable {
 
     private final DashboardService dashboardService;
     private final AuthService authService;
+    private final StageManager stageManager;
 
     // Cabeçalho
     @FXML private Label lblSaudacao;
     @FXML private Label lblData;
     @FXML private Label lblBadgePerfil;
 
-    // Cards — apenas os dinâmicos (os demais são placeholders estáticos no FXML)
+    // Cards de métrica
+    @FXML private VBox cardVendasHoje;
+    @FXML private VBox cardReceberHoje;
+    @FXML private VBox cardPagarHoje;
+    @FXML private VBox cardCaixa;
+    @FXML private VBox cardTicketMedio;
+
+    // Cards de seção
+    @FXML private VBox cardGrafico;
+    @FXML private VBox cardAlertas;
+    @FXML private VBox cardTopProdutos;
+    @FXML private VBox cardTopClientes;
+
+    // Labels dinâmicos
     @FXML private Label lblVendasHoje;
     @FXML private Label lblSubVendasHoje;
     @FXML private Label lblValorAPagarHoje;
@@ -72,12 +87,28 @@ public class DashboardAdminController implements Initializable {
         chartCompras.setLegendVisible(false);
         chartCompras.setAnimated(false);
 
+        aplicarEstilosCards();
         preencherCabecalho();
         carregarDados();
 
         autoRefresh = new Timeline(new KeyFrame(Duration.minutes(5), e -> carregarDados()));
         autoRefresh.setCycleCount(Timeline.INDEFINITE);
         autoRefresh.play();
+    }
+
+    private void aplicarEstilosCards() {
+        boolean dark = stageManager.isDarkMode();
+        String bgCard    = dark ? "#1e2d45" : "#ffffff";
+        String bgSection = dark ? "#1e2d45" : "#ffffff";
+        String styleCard    = "-fx-background-color: " + bgCard    + "; -fx-background-radius: 8; -fx-padding: 16 20 16 20;";
+        String styleSection = "-fx-background-color: " + bgSection + "; -fx-background-radius: 8; -fx-padding: 20;";
+
+        for (VBox c : new VBox[]{cardVendasHoje, cardReceberHoje, cardPagarHoje, cardCaixa, cardTicketMedio}) {
+            if (c != null) c.setStyle(styleCard);
+        }
+        for (VBox c : new VBox[]{cardGrafico, cardAlertas, cardTopProdutos, cardTopClientes}) {
+            if (c != null) c.setStyle(styleSection);
+        }
     }
 
     public void parar() {
