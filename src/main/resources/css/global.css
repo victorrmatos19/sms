@@ -1647,7 +1647,8 @@
 }
 
 /* Cards de métrica */
-.dash-card {
+.dash-card,
+.vbox.dash-card {
     -fx-background-color: white;
     -fx-background-radius: 8;
     -fx-padding: 16 20 16 20;
@@ -1696,7 +1697,8 @@
 }
 
 /* Cards de seção (gráfico, alertas, tops) */
-.dash-section-card {
+.dash-section-card,
+.vbox.dash-section-card {
     -fx-background-color: white;
     -fx-background-radius: 8;
     -fx-padding: 20;
@@ -1711,7 +1713,8 @@
 }
 
 /* Alertas */
-.dash-alerta-row {
+.dash-alerta-row,
+.hbox.dash-alerta-row {
     -fx-padding: 8 12 8 12;
     -fx-background-color: #f9fafb;
     -fx-background-radius: 6;
@@ -1816,7 +1819,8 @@
     -fx-text-fill: #9ca3af;
 }
 
-.theme-dark .dash-card {
+.theme-dark .dash-card,
+.theme-dark .vbox.dash-card {
     -fx-background-color: #1e2d45;
 }
 
@@ -1832,7 +1836,8 @@
     -fx-text-fill: #e5e7eb;
 }
 
-.theme-dark .dash-section-card {
+.theme-dark .dash-section-card,
+.theme-dark .vbox.dash-section-card {
     -fx-background-color: #1e2d45;
 }
 
