@@ -120,6 +120,10 @@ public class StageManager {
                     && authService.getUsuarioLogado().getEmpresa() != null) {
                 Integer empresaId = authService.getEmpresaIdLogado();
                 configuracaoService.salvarTema(empresaId, darkMode ? "DARK" : "LIGHT");
+
+                new javafx.animation.Timeline(
+                        new javafx.animation.KeyFrame(javafx.util.Duration.millis(200), e -> aplicarEstilosCards())
+                ).play();
             }
         } catch (Exception e) {
             log.warn("Não foi possível persistir tema: {}", e.getMessage());
