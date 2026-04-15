@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="rootPane"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.VendaController"
+      spacing="16" styleClass="content-area">
+
+    <HBox alignment="CENTER_LEFT">
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Vendas" styleClass="page-title"/>
+            <Label text="Registro de vendas diretas, pagamentos e baixa automática de estoque" styleClass="page-subtitle"/>
+        </VBox>
+        <Button text="+ Nova Venda" onAction="#abrirNovaVenda" styleClass="btn-primary"/>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="VENDAS NO MÊS" styleClass="metric-card-label"/>
+            <Label fx:id="lblTotalMes" text="0" styleClass="metric-card-value"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="VALOR VENDIDO (MÊS)" styleClass="metric-card-label"/>
+            <Label fx:id="lblValorMes" text="R$ 0,00" styleClass="metric-card-value-accent"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="VENDAS FINALIZADAS" styleClass="metric-card-label"/>
+            <Label fx:id="lblFinalizadas" text="0" styleClass="metric-card-value"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <TextField fx:id="txtBusca"
+                   promptText="Buscar por número, cliente ou vendedor..."
+                   prefWidth="340"/>
+        <ComboBox fx:id="cmbFiltroStatus" prefWidth="160"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnVisualizar" text="Visualizar" onAction="#visualizarSelecionada"
+                styleClass="btn-outline" disable="true"/>
+    </HBox>
+
+    <TableView fx:id="tblVendas" VBox.vgrow="ALWAYS" styleClass="table-view">
+        <columns>
+            <TableColumn fx:id="colNumero" text="NÚMERO" prefWidth="130" minWidth="100"/>
+            <TableColumn fx:id="colCliente" text="CLIENTE" prefWidth="220" minWidth="150"/>
+            <TableColumn fx:id="colDataVenda" text="DATA" prefWidth="140" minWidth="120"/>
+            <TableColumn fx:id="colVendedor" text="VENDEDOR" prefWidth="180" minWidth="130"/>
+            <TableColumn fx:id="colValorTotal" text="VALOR TOTAL" prefWidth="130" minWidth="110"/>
+            <TableColumn fx:id="colFormaPagamento" text="PAGAMENTO" prefWidth="140" minWidth="110"/>
+            <TableColumn fx:id="colStatus" text="STATUS" prefWidth="110" minWidth="90"/>
+        </columns>
+        <placeholder>
+            <Label text="Nenhuma venda encontrada" styleClass="content-placeholder"/>
+        </placeholder>
+    </TableView>
+
+</VBox>

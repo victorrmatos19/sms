@@ -102,7 +102,18 @@ class RegressaoGeralUITest extends BaseUITest {
         assertThat(lookup("#tblCompras").tryQuery()).isPresent();
     }
 
-    // ---- 8. Dashboard Admin carrega após login ----
+    // ---- 8. Módulo Vendas ----
+
+    @Test
+    void smoke_modulo_vendas_carrega() {
+        fazerLogin();
+        clickOn("Vendas");
+        sleep(600);
+
+        assertThat(lookup("#tblVendas").tryQuery()).isPresent();
+    }
+
+    // ---- 9. Dashboard Admin carrega após login ----
 
     @Test
     void smoke_dashboard_admin_carrega() {
