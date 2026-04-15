@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
@@ -58,21 +59,54 @@ public class OrcamentoPdfService {
             File arquivo = new File(tmpDir, nomeArquivo);
             java.nio.file.Files.write(arquivo.toPath(), pdf);
 
-            if (Desktop.isDesktopSupported()
-                    && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
-                Desktop.getDesktop().open(arquivo);
-            } else {
-                log.warn("Desktop.OPEN não suportado. PDF salvo em: {}", arquivo.getAbsolutePath());
-                throw new RuntimeException(
-                        "Visualizador de PDF não suportado.\nArquivo salvo em: "
-                        + arquivo.getAbsolutePath());
-            }
-        } catch (RuntimeException e) {
-            throw e;
+            abrirArquivo(arquivo);
         } catch (Exception e) {
             log.error("Erro ao abrir PDF do orçamento {}", orcamentoId, e);
-            throw new RuntimeException("Erro ao abrir PDF: " + e.getMessage(), e);
+            throw new RuntimeException(
+                    "PDF gerado, mas não foi possível abrir automaticamente.\nArquivo salvo em: "
+                    + new File(System.getProperty("java.io.tmpdir"),
+                            "sms_orc_" + orc.getNumero().replace("/", "-").replace(":", "-") + ".pdf")
+                            .getAbsolutePath()
+                    + "\nMotivo: " + e.getMessage(), e);
         }
+    }
+
+    private void abrirArquivo(File arquivo) throws IOException {
+        if (Desktop.isDesktopSupported()
+                && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+            try {
+                Desktop.getDesktop().open(arquivo);
+                return;
+            } catch (IOException e) {
+                log.warn("Desktop.OPEN falhou para {}. Tentando comando nativo.",
+                        arquivo.getAbsolutePath(), e);
+            }
+        }
+
+        Optional<List<String>> comandoNativo = comandoAberturaNativo(arquivo);
+        if (comandoNativo.isPresent()) {
+            new ProcessBuilder(comandoNativo.get()).start();
+            return;
+        }
+
+        log.warn("Nenhum visualizador de PDF disponível. PDF salvo em: {}", arquivo.getAbsolutePath());
+        throw new UnsupportedOperationException("Visualizador de PDF não suportado.");
+    }
+
+    private Optional<List<String>> comandoAberturaNativo(File arquivo) {
+        String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+        String path = arquivo.getAbsolutePath();
+
+        if (os.contains("mac")) {
+            return Optional.of(List.of("open", path));
+        }
+        if (os.contains("win")) {
+            return Optional.of(List.of("rundll32", "url.dll,FileProtocolHandler", path));
+        }
+        if (os.contains("nux") || os.contains("nix")) {
+            return Optional.of(List.of("xdg-open", path));
+        }
+        return Optional.empty();
     }
 
     private Map<String, Object> montarParametros(Orcamento orc) {

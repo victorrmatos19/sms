@@ -5,6 +5,7 @@
               http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
               name="orcamento"
               pageWidth="595" pageHeight="842"
+              columnWidth="535"
               leftMargin="30" rightMargin="30"
               topMargin="20" bottomMargin="20"
               whenNoDataType="NoDataSection">
@@ -392,7 +393,7 @@
                 <textFieldExpression><![CDATA[$P{ORC_TOTAL}]]></textFieldExpression>
             </textField>
 
-            <textField isBlankWhenNull="true" isStretchWithOverflow="true">
+            <textField isBlankWhenNull="true" textAdjust="StretchHeight">
                 <reportElement x="0" y="82" width="340" height="40"/>
                 <textElement>
                     <font size="8"/>

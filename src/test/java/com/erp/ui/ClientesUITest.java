@@ -80,7 +80,8 @@ class ClientesUITest extends BaseUITest {
         TableView<Object> tabela = (TableView<Object>) lookup("#tblClientes").query();
         if (tabela.getItems().isEmpty()) return; // sem dados, pula
 
-        clickOn(tabela.getItems().get(0).toString()); // clique na linha (por texto)
+        interact(() -> tabela.getSelectionModel().select(0));
+        sleep(200);
 
         // O botão muda de texto quando há seleção — usa clickOn pelo lookup
         assertThat(lookup("#btnToggleAtivo").tryQuery()).isPresent();

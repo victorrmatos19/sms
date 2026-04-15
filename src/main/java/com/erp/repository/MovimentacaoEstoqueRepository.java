@@ -12,12 +12,14 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
 
     @Query("SELECT m FROM MovimentacaoEstoque m " +
            "LEFT JOIN FETCH m.produto " +
+           "LEFT JOIN FETCH m.usuario " +
            "WHERE m.empresa.id = :empresaId " +
            "ORDER BY m.criadoEm DESC")
     List<MovimentacaoEstoque> findByEmpresaIdOrderByCriadoEmDesc(@Param("empresaId") Integer empresaId);
 
     @Query("SELECT m FROM MovimentacaoEstoque m " +
            "LEFT JOIN FETCH m.produto " +
+           "LEFT JOIN FETCH m.usuario " +
            "WHERE m.empresa.id = :empresaId " +
            "AND m.criadoEm BETWEEN :inicio AND :fim " +
            "ORDER BY m.criadoEm DESC")
@@ -31,6 +33,7 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
 
     @Query("SELECT m FROM MovimentacaoEstoque m " +
            "LEFT JOIN FETCH m.produto " +
+           "LEFT JOIN FETCH m.usuario " +
            "WHERE m.empresa.id = :empresaId AND m.produto.id = :produtoId " +
            "ORDER BY m.criadoEm DESC")
     List<MovimentacaoEstoque> findByEmpresaIdAndProdutoIdOrderByCriadoEmDesc(
