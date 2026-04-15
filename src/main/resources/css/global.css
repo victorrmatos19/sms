@@ -1821,7 +1821,7 @@
 
 .theme-dark .dash-card,
 .theme-dark .vbox.dash-card {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #1e1e1e;
 }
 
 .theme-dark .dash-card-label {
@@ -1838,7 +1838,7 @@
 
 .theme-dark .dash-section-card,
 .theme-dark .vbox.dash-section-card {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #1e1e1e;
 }
 
 .theme-dark .dash-section-title {
@@ -1846,7 +1846,7 @@
 }
 
 .theme-dark .dash-alerta-row {
-    -fx-background-color: #162033;
+    -fx-background-color: #2a2a2a;
 }
 
 .theme-dark .dash-alerta-texto {

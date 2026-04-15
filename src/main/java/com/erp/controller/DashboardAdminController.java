@@ -89,8 +89,10 @@ public class DashboardAdminController implements Initializable {
 
         preencherCabecalho();
         carregarDados();
-        // Após o CSS engine do JavaFX rodar, forçar background dos cards via inline style
-        Platform.runLater(this::aplicarEstilosCards);
+        // Aguarda 200ms para garantir que o CSS engine terminou todas as passagens
+        new javafx.animation.Timeline(
+            new javafx.animation.KeyFrame(javafx.util.Duration.millis(200), e -> aplicarEstilosCards())
+        ).play();
 
         autoRefresh = new Timeline(new KeyFrame(Duration.minutes(5), e -> carregarDados()));
         autoRefresh.setCycleCount(Timeline.INDEFINITE);
@@ -99,16 +101,27 @@ public class DashboardAdminController implements Initializable {
 
     private void aplicarEstilosCards() {
         boolean dark = stageManager.isDarkMode();
-        String bgCard    = dark ? "#1f2937" : "#ffffff";
-        String bgSection = dark ? "#1f2937" : "#ffffff";
+        String bgCard    = dark ? "#1e1e1e" : "#ffffff";
+        String bgSection = dark ? "#1e1e1e" : "#ffffff";
         String styleCard    = "-fx-background-color: " + bgCard    + "; -fx-background-radius: 8; -fx-padding: 16 20 16 20;";
         String styleSection = "-fx-background-color: " + bgSection + "; -fx-background-radius: 8; -fx-padding: 20;";
 
+        log.info("aplicarEstilosCards dark={} cards: cVH={} cRH={} cPH={} cC={} cTM={} cG={} cA={} cTP={} cTC={}",
+            dark, cardVendasHoje, cardReceberHoje, cardPagarHoje, cardCaixa, cardTicketMedio,
+            cardGrafico, cardAlertas, cardTopProdutos, cardTopClientes);
+
         for (VBox c : new VBox[]{cardVendasHoje, cardReceberHoje, cardPagarHoje, cardCaixa, cardTicketMedio}) {
-            if (c != null) c.setStyle(styleCard);
+            if (c != null) {
+                c.getStyleClass().removeIf(s -> s.startsWith("dash-card"));
+                c.setStyle(styleCard);
+                log.info("  -> setStyle({}) em {}", styleCard, c.getId());
+            }
         }
         for (VBox c : new VBox[]{cardGrafico, cardAlertas, cardTopProdutos, cardTopClientes}) {
-            if (c != null) c.setStyle(styleSection);
+            if (c != null) {
+                c.getStyleClass().removeIf(s -> s.startsWith("dash-section"));
+                c.setStyle(styleSection);
+            }
         }
     }
 
