@@ -89,10 +89,17 @@ public class DashboardAdminController implements Initializable {
 
         preencherCabecalho();
         carregarDados();
-        // Aguarda 200ms para garantir que o CSS engine terminou todas as passagens
-        new javafx.animation.Timeline(
-            new javafx.animation.KeyFrame(javafx.util.Duration.millis(200), e -> aplicarEstilosCards())
+
+        new Timeline(
+                new KeyFrame(Duration.millis(200), e -> aplicarEstilosCards())
         ).play();
+
+        stageManager.darkModeProperty().addListener((obs, oldVal, newVal) -> {
+            Platform.runLater(() -> {
+                aplicarEstilosCards();
+                // se houver outros elementos com cor programática, atualizar aqui também
+            });
+        });
 
         autoRefresh = new Timeline(new KeyFrame(Duration.minutes(5), e -> carregarDados()));
         autoRefresh.setCycleCount(Timeline.INDEFINITE);

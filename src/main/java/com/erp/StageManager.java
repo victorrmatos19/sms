@@ -3,6 +3,9 @@ package com.erp;
 import atlantafx.base.theme.PrimerLight;
 import com.erp.service.AuthService;
 import com.erp.service.ConfiguracaoService;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -26,7 +29,9 @@ public class StageManager {
     private final AuthService authService;
 
     private Stage primaryStage;
-    private boolean darkMode = true; // padrão dark
+
+    // substitui o boolean simples
+    private final BooleanProperty darkMode = new SimpleBooleanProperty(true);
 
     public StageManager(ApplicationContext springContext,
                         ConfiguracaoService configuracaoService,
@@ -74,9 +79,7 @@ public class StageManager {
             Scene scene = new Scene(root);
 
             scene.getStylesheets().add(
-                    Objects.requireNonNull(
-                            getClass().getResource("/css/global.css")
-                    ).toExternalForm()
+                    Objects.requireNonNull(getClass().getResource("/css/global.css")).toExternalForm()
             );
 
             applyTheme(root);
@@ -93,37 +96,29 @@ public class StageManager {
         }
     }
 
-    /**
-     * Lê o tema salvo no banco para a empresa do usuário logado e aplica na UI.
-     * Deve ser chamado após o login, antes de showMainScreen().
-     */
     public void carregarTemaDoUsuario(Integer empresaId) {
         try {
-            darkMode = configuracaoService.isModoEscuro(empresaId);
-            log.info("Tema carregado: {}", darkMode ? "DARK" : "LIGHT");
+            darkMode.set(configuracaoService.isModoEscuro(empresaId));
+            log.info("Tema carregado: {}", darkMode.get() ? "DARK" : "LIGHT");
         } catch (Exception e) {
             log.warn("Não foi possível carregar tema do banco, usando padrão DARK: {}", e.getMessage());
-            darkMode = true;
+            darkMode.set(true);
         }
     }
 
-    /**
-     * Alterna o tema visualmente e persiste a preferência no banco.
-     */
     public void toggleDarkMode() {
-        darkMode = !darkMode;
+        darkMode.set(!darkMode.get());
+
         if (primaryStage.getScene() != null) {
             applyTheme(primaryStage.getScene().getRoot());
+            applySceneFill(primaryStage.getScene());
         }
+
         try {
             if (authService.getUsuarioLogado() != null
                     && authService.getUsuarioLogado().getEmpresa() != null) {
                 Integer empresaId = authService.getEmpresaIdLogado();
-                configuracaoService.salvarTema(empresaId, darkMode ? "DARK" : "LIGHT");
-
-                new javafx.animation.Timeline(
-                        new javafx.animation.KeyFrame(javafx.util.Duration.millis(200), e -> aplicarEstilosCards())
-                ).play();
+                configuracaoService.salvarTema(empresaId, darkMode.get() ? "DARK" : "LIGHT");
             }
         } catch (Exception e) {
             log.warn("Não foi possível persistir tema: {}", e.getMessage());
@@ -131,30 +126,26 @@ public class StageManager {
     }
 
     public boolean isDarkMode() {
+        return darkMode.get();
+    }
+
+    public ReadOnlyBooleanProperty darkModeProperty() {
         return darkMode;
     }
 
     public void applyTheme(Parent root) {
         root.getStyleClass().removeAll("theme-light", "theme-dark");
-        root.getStyleClass().add(darkMode ? "theme-dark" : "theme-light");
+        root.getStyleClass().add(darkMode.get() ? "theme-dark" : "theme-light");
     }
 
-    /**
-     * Aplica o fill correto na Scene para eliminar bordas brancas em modais.
-     * Deve ser chamado após criar a Scene e antes de exibi-la.
-     */
     public void applySceneFill(Scene scene) {
-        scene.setFill(darkMode ? Color.web("#000000") : Color.web("#f5f5f5"));
+        scene.setFill(darkMode.get() ? Color.web("#000000") : Color.web("#f5f5f5"));
     }
 
     public Stage getPrimaryStage() {
         return primaryStage;
     }
 
-    /**
-     * Registra o stage sem aplicar maximize nem ícone.
-     * Usado pelos testes de UI para evitar conflitos com o Monocle headless.
-     */
     public void setPrimaryStage(Stage stage) {
         this.primaryStage = stage;
     }
