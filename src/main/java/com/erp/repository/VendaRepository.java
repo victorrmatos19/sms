@@ -1,6 +1,7 @@
 package com.erp.repository;
 
 import com.erp.model.Venda;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -75,4 +76,37 @@ public interface VendaRepository extends JpaRepository<Venda, Integer> {
             @Param("status") String status,
             @Param("inicio") LocalDateTime inicio,
             @Param("fim") LocalDateTime fim);
+
+    @Query("""
+            SELECT DISTINCT v FROM Venda v
+            LEFT JOIN FETCH v.cliente
+            LEFT JOIN FETCH v.vendedor
+            LEFT JOIN FETCH v.pagamentos
+            WHERE v.empresa.id = :empresaId
+              AND v.status = :status
+              AND v.dataVenda BETWEEN :inicio AND :fim
+            ORDER BY v.dataVenda DESC, v.id DESC
+            """)
+    List<Venda> findByEmpresaIdAndStatusAndPeriodoComRelacionamentos(
+            @Param("empresaId") Integer empresaId,
+            @Param("status") String status,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim);
+
+    @Query("""
+            SELECT p.descricao, SUM(vi.valorTotal) AS total
+            FROM VendaItem vi
+            JOIN vi.venda v
+            JOIN vi.produto p
+            WHERE v.empresa.id = :empresaId
+              AND v.status = 'FINALIZADA'
+              AND v.dataVenda BETWEEN :inicio AND :fim
+            GROUP BY p.id, p.descricao
+            ORDER BY SUM(vi.valorTotal) DESC
+            """)
+    List<Object[]> findTopProdutosVendidosPeriodo(
+            @Param("empresaId") Integer empresaId,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim,
+            Pageable pageable);
 }

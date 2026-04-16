@@ -64,8 +64,8 @@
             <!-- 5. TICKET MÉDIO (branco) -->
             <VBox fx:id="cardTicketMedio" styleClass="dash-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="5">
                 <Label text="TICKET MÉDIO" styleClass="dash-card-label"/>
-                <Label text="—" styleClass="dash-val-white"/>
-                <Label text="Últimos 7 dias" styleClass="dash-card-sub"/>
+                <Label fx:id="lblTicketMedio" text="R$ 0,00" styleClass="dash-val-white"/>
+                <Label fx:id="lblSubTicketMedio" text="Últimos 7 dias" styleClass="dash-card-sub"/>
             </VBox>
 
         </HBox>

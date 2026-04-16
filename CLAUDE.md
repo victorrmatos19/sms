@@ -1,17 +1,19 @@
 # CLAUDE.md — SMS Desktop (Simple Manage System)
 
-Arquivo lido automaticamente pelo Claude Code ao iniciar sessões neste projeto.
+Arquivo de contexto para agentes de código trabalharem neste projeto.
 
 ---
 
-## Visão Geral do Projeto
+## Visão Geral
 
-ERP desktop para Windows voltado a pequenas empresas brasileiras.
-Desenvolvido por um único desenvolvedor com suporte do Claude Code.
-Distribuição via assinatura mensal (SaaS local), offline-first.
+O projeto é um ERP desktop offline-first para pequenas empresas brasileiras.
+O produto usa PostgreSQL embarcado local, UI JavaFX e Spring Boot sem servidor web.
 
 **Nome do produto:** SMS — Simple Manage System
-**Documento de contexto completo:** `ERP_-_Descrição` (na raiz do projeto)
+**Tipo:** aplicativo desktop local com distribuição planejada por assinatura
+**Estado atual:** Fase 1 implementada até Vendas, com dashboards e relatórios básicos em evolução
+
+O foco de negócio atual é transformar o núcleo cadastral/estoque/compras/orçamentos/vendas em um fluxo comercial confiável: cadastrar produtos e clientes, comprar, movimentar estoque, emitir orçamento, converter em venda, registrar venda direta e refletir isso nos dashboards.
 
 ---
 
@@ -20,71 +22,197 @@ Distribuição via assinatura mensal (SaaS local), offline-first.
 | Camada | Tecnologia |
 |---|---|
 | Linguagem | Java 21 LTS |
-| Interface | JavaFX + AtlantaFX (PrimerLight como base) |
-| Banco local | PostgreSQL embarcado (io.zonky) |
+| Interface | JavaFX 21 + AtlantaFX |
+| Banco local | PostgreSQL embarcado via `io.zonky.test.db.postgres.embedded` |
 | ORM | Hibernate + Spring Data JPA |
-| DI / Core | Spring Boot 3.2.5 (sem web) |
+| DI / Core | Spring Boot 3.2.5 sem web |
 | Migrations | Flyway |
-| Relatórios | JasperReports |
-| Build | Maven + jpackage |
-| Ícones | Ikonli (Material Design 2 + Font Awesome 5) |
-| Componentes UI | ControlsFX |
+| Relatórios | JasperReports 6.21.4 |
+| Build | Maven Wrapper (`./mvnw`) |
+| Ícones | Ikonli |
+| Testes | JUnit 5, Mockito, AssertJ, TestFX |
 
 ---
 
-## Estrutura de Pacotes
+## Estrutura
 
-```
+```text
 src/main/java/com/erp/
-├── config/       # Spring Boot config (EmbeddedPostgresConfig, JpaConfig, SecurityConfig)
-├── model/        # Entidades JPA
+├── config/       # EmbeddedPostgresConfig, JpaConfig, SecurityConfig
+├── controller/   # Controllers JavaFX
+├── model/        # Entidades JPA e DTOs
 ├── repository/   # Spring Data repositories
 ├── service/      # Regras de negócio
-├── controller/   # Controllers JavaFX (um por tela)
-├── view/         # Utilitários de tela (StageManager está na raiz do pacote)
-└── util/         # Helpers (GerarHash, etc.)
+└── util/         # Helpers compartilhados, incluindo MoneyUtils
 
 src/main/resources/
-├── fxml/         # Layouts das telas JavaFX
-├── css/          # global.css — design system completo
-├── images/       # logo-light.svg, logo-dark.svg, icon.svg, icon.png
-├── reports/      # Templates JasperReports (.jrxml)
-└── db/migration/ # Scripts Flyway — V1__schema_fase1.sql (único arquivo ativo)
+├── css/          # global.css
+├── db/migration/ # Flyway migrations V1..V5
+├── fxml/         # Telas JavaFX
+├── images/       # Logo e ícones
+└── reports/      # Templates JasperReports
 ```
+
+FXMLs principais existentes:
+
+- Login e shell: `login.fxml`, `main.fxml`
+- Dashboards: `dashboard-admin.fxml`, `dashboard-vendas.fxml`, `dashboard-financeiro.fxml`, `dashboard-estoque.fxml`
+- Cadastros: `produtos.fxml`, `clientes.fxml`, `fornecedores.fxml`, `funcionarios.fxml`
+- Formulários: `produto-form.fxml`, `cliente-form.fxml`, `fornecedor-form.fxml`, `funcionario-form.fxml`
+- Auxiliares: `grupo-produto-form.fxml`, `unidade-medida-form.fxml`
+- Estoque: `estoque.fxml`, `movimentacao-form.fxml`
+- Compras: `compras.fxml`, `compra-form.fxml`
+- Orçamentos: `orcamentos.fxml`, `orcamento-form.fxml`, `orcamento-conversao.fxml`
+- Vendas: `vendas.fxml`, `venda-form.fxml`
 
 ---
 
-## Design System
+## Estado Funcional Atual
 
-Tema: **Navy & Dourado** com suporte a dark mode.
+### Autenticação e Shell
 
-Cores principais:
-- Navy primário: `#1a2744`
-- Dourado acento: `#c9a84c`
-- Dark mode base: `#0d1420`
+- Login com `AuthService`.
+- Perfis usados para direcionar dashboard inicial: administrador, vendas, financeiro e estoque.
+- `MainController` carrega módulos dentro do `StackPane#conteudoPane`.
+- `StageManager` centraliza tema, CSS global e dark mode.
 
-**Regras críticas do CSS JavaFX:**
-- JavaFX NÃO suporta variáveis CSS (`--minha-var`, `var()`, `:root`) — usar apenas propriedades `-fx-*`
-- Dark mode via classes `.theme-light` e `.theme-dark` aplicadas na raiz pelo `StageManager`
-- O `StageManager` aplica o tema e carrega o CSS global em toda troca de tela
+### Cadastros
 
-Classes CSS disponíveis em `global.css`:
-- Botões: `.btn-primary`, `.btn-secondary`, `.btn-outline`, `.btn-danger`, `.btn-topbar`, `.btn-login`
-- Badges: `.badge-success`, `.badge-danger`, `.badge-warning`, `.badge-info`, `.badge-neutral`
-- Cards: `.card`, `.card-title`, `.metric-card`, `.metric-card-value`, `.metric-card-value-accent`
-- Formulários: `.form-label`, `.form-hint`, `.form-error`
-- Sidebar: `.sidebar-btn`, `.sidebar-btn-active`, `.sidebar-section`, `.sidebar-divider`
-- Página: `.page-title`, `.page-subtitle`
+- Produtos com grupo, categoria, unidade, preços, estoque mínimo/máximo, lote/validade e status ativo.
+- Clientes PF/PJ com endereço, contato e limite de crédito.
+- Fornecedores PF/PJ com dados bancários e PIX.
+- Funcionários com perfil, cargo, contato e status.
+- Grupos de produto e unidades de medida em modais auxiliares.
+
+### Estoque
+
+- Posição de estoque e histórico de movimentações.
+- Entrada manual, saída manual, ajuste de inventário.
+- Suporte a lote/validade quando o produto exige.
+- Alertas de estoque zerado e abaixo do mínimo.
+- Histórico foi ajustado para evitar `LazyInitializationException` ao exibir dados relacionados.
+
+### Compras
+
+- Listagem e formulário de compra.
+- Compra em rascunho/confirmada/cancelada.
+- Itens com custo unitário, desconto, lote e validade.
+- Confirmação de compra atualiza estoque e gera contas a pagar.
+- Busca de produtos em combo editável.
+
+### Orçamentos
+
+- Listagem, formulário e itens de orçamento.
+- Validade, vendedor, cliente e desconto global.
+- Validação de preço mínimo do produto.
+- Conversão de orçamento em venda.
+- Geração de PDF com JasperReports em `reports/orcamento.jrxml`.
+- PDF abre via `Desktop.open` quando suportado e cai para comandos nativos (`open`, `xdg-open`, `rundll32`) quando necessário.
+- Jasper recebe `REPORT_LOCALE` `pt-BR` para formatação brasileira.
+
+### Vendas
+
+- Listagem de vendas com métricas de mês, valor e finalizadas.
+- Venda direta com cliente opcional, vendedor obrigatório, itens, desconto global, forma de pagamento e parcelas.
+- Formas suportadas: dinheiro, PIX, cartão débito, cartão crédito, prazo e crediário.
+- Vendas a prazo/crediário exigem cliente e geram contas a receber.
+- Venda baixa estoque e registra movimentação de origem `VENDA`.
+- Produto na linha da venda é pesquisável por descrição, código interno e código de barras.
+- Respeita configuração de permitir ou bloquear venda com estoque insuficiente.
+
+### Dashboards
+
+- Dashboard admin exibe cards de vendas hoje, contas a pagar hoje, ticket médio, gráfico de vendas dos últimos 7 dias, alertas e top produtos vendidos no mês.
+- O card `VENDAS HOJE` está implementado: mostra valor/quantidade de vendas finalizadas no dia e abre modal com horário, número, cliente, vendedor, forma de pagamento e valor.
+- Dashboard de vendas exibe orçamentos, vendas e compras do mês.
+- Dashboard financeiro exibe contas a pagar abertas/vencidas e compras do mês.
+- Dashboard estoque exibe produtos, abaixo do mínimo, entradas e saídas do mês.
+
+### Relatórios
+
+- Orçamento em PDF via JasperReports.
+- Template atual: `src/main/resources/reports/orcamento.jrxml`.
+- Dados do PDF são montados em `OrcamentoPdfService` com DTO interno para itens.
+
+---
+
+## Mudanças Recentes Importantes
+
+### Formatação Monetária
+
+Foi criado `com.erp.util.MoneyUtils` como ponto único para moeda.
+
+Regras:
+
+- Exibição monetária: `MoneyUtils.formatCurrency(BigDecimal)` retorna padrão brasileiro com `R$` e duas casas.
+- Campos editáveis de dinheiro: `MoneyUtils.formatInput(BigDecimal)` retorna `#,##0.00` em `pt-BR`.
+- Parsing: `MoneyUtils.parse(String)` aceita `24,90`, `24.90`, `R$ 1.234,56`, `1.234` e evita transformar `24.90` em `2490`.
+
+Usar `MoneyUtils` em qualquer novo campo monetário. Não reintroduzir parsers locais como:
+
+```java
+text.replace(".", "").replace(",", ".")
+```
+
+Esse padrão antigo causava cálculo incorreto quando o usuário digitava ponto decimal.
+
+Quantidade e estoque não são moeda. Para quantidade, manter `NumberFormat` próprio com até 4 casas quando necessário.
+
+### Dashboard Admin / Vendas Hoje
+
+Foram adicionados dados reais de venda ao dashboard admin:
+
+- `DashboardAdminDTO` agora inclui `vendasHoje`, `valorVendasHoje`, `ticketMedioUltimos7Dias`, `vendasSemana` e `vendasHojeDetalhes`.
+- `VendaResumoDTO` representa linhas do modal de vendas do dia.
+- `VendaRepository` possui queries para vendas finalizadas por período e top produtos vendidos.
+- `DashboardService` calcula vendas de hoje, gráfico semanal, ticket médio e ranking por vendas.
+- `DashboardAdminController` abre modal ao clicar no card `VENDAS HOJE`.
+
+### PDF de Orçamento
+
+- JasperReports está em versão 6.21.4.
+- O template `orcamento.jrxml` foi mantido em formato compatível com Jasper 6.
+- `OrcamentoPdfService` compila o `.jrxml`, preenche parâmetros, exporta bytes e tenta abrir o PDF.
+- Para macOS, há fallback para comando nativo `open`.
+
+### Visualizador de PDF
+
+Em ambientes onde `Desktop.Action.OPEN` não é suportado, o serviço tenta comandos nativos por sistema operacional.
+Se ainda assim falhar, o PDF permanece salvo no diretório temporário e a exceção informa o caminho.
+
+### PostgreSQL Embarcado
+
+O log abaixo pode aparecer sem quebrar a aplicação:
+
+```text
+FileAlreadyExistsException: .../T/embedded-pg/.../fix-CVE-2024-4317.sql
+```
+
+Isso vem do cache de extração dos binários do PostgreSQL embarcado em `/var/folders/.../T/embedded-pg`.
+Normalmente é ruído da lib Zonky tentando descompactar arquivo já existente. Não é o banco persistente do ERP.
+
+Para limpar com a aplicação fechada:
+
+```bash
+rm -rf /var/folders/vb/s6_m_53s1315y206glb3xdwc0000gn/T/embedded-pg
+```
+
+Os dados reais ficam em `~/erp-desktop/data`, não nessa pasta temporária.
 
 ---
 
 ## Convenções de Código
 
 ### Controllers JavaFX
-- Sempre `@Component` (bean Spring, não instanciado pelo FXMLLoader)
-- Sempre `@RequiredArgsConstructor` para injeção via construtor
-- Injeção de telas via `StageManager.showScene()`
-- Campos FXML anotados com `@FXML`
+
+- Controllers devem ser beans Spring com `@Component`.
+- Preferir `@RequiredArgsConstructor` para dependências.
+- Campos de tela com `@FXML`.
+- FXML deve usar `fx:controller` e o carregamento deve passar por `FXMLLoader` com `springContext::getBean`.
+- Telas de módulo entram no `StackPane#conteudoPane`.
+- Formulários longos podem substituir o conteúdo do `StackPane`; modais auxiliares usam `Stage`/`Dialog`.
+
+Exemplo:
 
 ```java
 @Slf4j
@@ -92,102 +220,113 @@ Classes CSS disponíveis em `global.css`:
 @RequiredArgsConstructor
 public class MeuController implements Initializable {
     private final MeuService meuService;
-    private final StageManager stageManager;
 
     @FXML private TextField txtCampo;
 
     @Override
-    public void initialize(URL url, ResourceBundle rb) { }
+    public void initialize(URL url, ResourceBundle rb) {
+        // configurar tela
+    }
 }
 ```
 
 ### Entidades JPA
-- Sempre `@Builder`, `@Getter`, `@Setter`, `@NoArgsConstructor`, `@AllArgsConstructor`
-- `@PrePersist` para setar `criadoEm` e `atualizadoEm`
-- `@UpdateTimestamp` em `atualizadoEm`
-- Campos monetários: `NUMERIC(15,2)` no banco, `BigDecimal` no Java
-- Campos de preço/quantidade: `NUMERIC(15,4)` para 4 casas decimais
+
+- Usar `@Builder`, `@Getter`, `@Setter`, `@NoArgsConstructor`, `@AllArgsConstructor` quando seguir o padrão existente.
+- `criadoEm` com `@PrePersist`.
+- `atualizadoEm` com `@UpdateTimestamp`.
+- Monetários: `NUMERIC(15,2)` no banco e `BigDecimal` no Java.
+- Preço unitário/custo unitário/quantidade: `NUMERIC(15,4)` quando há necessidade de 4 casas.
+- Evitar acessar entidades lazy diretamente na UI fora de transação; criar queries com `JOIN FETCH` quando necessário.
 
 ### Repositories
-- Sempre interface extendendo `JpaRepository<Entidade, Integer>`
-- Usar `@Query` com JPQL apenas quando os métodos derivados não forem suficientes
+
+- Interface extendendo `JpaRepository<Entidade, Integer>`.
+- Métodos derivados quando bastarem.
+- JPQL com `@Query` para telas que precisam carregar relacionamentos ou agregados.
+- Para tabelas JavaFX, prefira query que já traga relacionamentos usados nas colunas.
 
 ### Services
-- `@Service` + `@RequiredArgsConstructor`
-- Transações: `@Transactional` apenas nos métodos que escrevem no banco
-- Leitura: `@Transactional(readOnly = true)`
 
-### FXML
-- Um arquivo `.fxml` por tela/módulo
-- Sempre declarar `fx:controller` apontando para o pacote correto
-- Usar `styleClass` com as classes do `global.css`, nunca `style` inline
+- `@Service` + `@RequiredArgsConstructor`.
+- Escrita: `@Transactional`.
+- Leitura: `@Transactional(readOnly = true)`.
+- Regras de negócio ficam no service, não no controller.
+- Controllers devem montar tela, validar UX básica e chamar service.
+
+### FXML e CSS
+
+- Preferir classes do `global.css`.
+- JavaFX não suporta variáveis CSS (`--var`, `var()`, `:root`).
+- Dark mode usa `.theme-light` e `.theme-dark` aplicadas pelo `StageManager`.
+- Evitar refatoração ampla de CSS/FXML sem necessidade; algumas telas antigas ainda têm estilos inline pontuais.
+
+Classes úteis:
+
+- Botões: `.btn-primary`, `.btn-secondary`, `.btn-outline`, `.btn-danger`, `.btn-topbar`, `.btn-login`
+- Badges: `.badge-success`, `.badge-danger`, `.badge-warning`, `.badge-info`, `.badge-neutral`
+- Cards: `.card`, `.metric-card`, `.dash-card`, `.dash-section-card`
+- Formulários: `.form-label`, `.form-hint`, `.form-error`
+- Dashboard: `.dash-val-green`, `.dash-val-blue`, `.dash-val-red`, `.dash-top-row`, `.dash-empty-msg`
 
 ---
 
 ## Banco de Dados
 
-**PostgreSQL embarcado** sobe automaticamente com a aplicação.
-Dados persistidos em: `~/erp-desktop/data/`
+PostgreSQL embarcado sobe automaticamente com a aplicação.
 
-**Para recriar o banco do zero:**
-```bash
-rm -rf ~/erp-desktop/data
-mvn javafx:run
+Dados persistidos em:
+
+```text
+~/erp-desktop/data
 ```
 
-**Migrations Flyway** em `src/main/resources/db/migration/`:
-- `V1__schema_fase1.sql` — schema completo da Fase 1 + dados iniciais
-- Novas migrations sempre no formato `V2__descricao.sql`, `V3__descricao.sql`, etc.
-- **Nunca alterar** um arquivo de migration já executado — sempre criar um novo
+Para recriar banco do zero:
 
-**Usuário padrão:**
+```bash
+rm -rf ~/erp-desktop/data
+./mvnw javafx:run
+```
+
+Migrations atuais:
+
+- `V1__schema_fase1.sql`
+- `V2__unidades_medida_iniciais.sql`
+- `V3__unidades_adicionais.sql`
+- `V4__add_tema_configuracao.sql`
+- `V5__mock_dados_cadastrais.sql`
+
+Nunca alterar migration já executada. Criar sempre nova `V6__descricao.sql`, `V7__descricao.sql`, etc.
+
+Usuário padrão:
+
 - Login: `admin`
 - Senha: `admin123`
 
 ---
 
-## Plano de Fases
+## Testes e Verificações
 
-### Fase 1 — Core Comercial (EM DESENVOLVIMENTO)
-Cadastros, Estoque, Compras, Orçamentos, Vendas, Caixa, Contas a Pagar/Receber, Relatórios básicos
+Comandos mais usados:
 
-### Fase 2 — Fiscal Básico
-NFC-e, NF-e via API Focus NFe ou WebMania, código de barras, tabela de preços, recibos
+```bash
+# Compilar sem testes
+./mvnw -q -DskipTests compile
 
-### Fase 3 — Financeiro Avançado
-Fluxo de caixa, Boletos (Efi Bank), PIX QR Code, e-mail de cobrança, comissões
+# Rodar testes unitários
+./mvnw test -q
 
-### Fase 4 — Fiscal Avançado e PDV
-CF-e SAT, balança integrada, XML, TEF
+# Rodar teste específico
+./mvnw -q -Dtest=DashboardServiceTest test
 
-### Fase 5 — Gestão e Relatórios
-Relatórios analíticos, atendimento, recados, funcionários completo
+# Rodar smoke UI headless
+./mvnw -q -P ui-tests -Dtest=RegressaoGeralUITest#smoke_dashboard_admin_carrega test
 
----
+# Verificar whitespace/diff
+git diff --check
+```
 
-## Próximos Módulos a Implementar (Fase 1)
-
-Ordem sugerida:
-1. **Cadastro de Produtos** — listagem, formulário, busca por código de barras
-2. **Cadastro de Clientes** — listagem, formulário PF/PJ, busca
-3. **Cadastro de Fornecedores** — listagem, formulário, dados bancários
-4. **Controle de Estoque** — movimentações, alertas de mínimo
-5. **Orçamentos** — emissão, itens, conversão em venda
-6. **Vendas** — PDV simples, múltiplas formas de pagamento
-7. **Caixa** — abertura, fechamento, sangria, suprimento
-8. **Contas a Pagar/Receber** — lançamentos, baixas, alertas
-
----
-
-## Padrão de Tela para Módulos
-
-Cada módulo segue o padrão:
-1. **Listagem** com TableView, busca e botão "Novo"
-2. **Formulário** em dialog ou painel lateral para CRUD
-3. **Métricas** com cards de resumo no topo quando aplicável
-
-O conteúdo é carregado no `StackPane#conteudoPane` do `main.fxml`.
-Usar `FXMLLoader` dentro do `MainController` para carregar os sub-módulos.
+Testes de UI usam TestFX/Monocle e podem emitir logs longos do PostgreSQL embarcado. O importante é o exit code do Maven.
 
 ---
 
@@ -195,26 +334,38 @@ Usar `FXMLLoader` dentro do `MainController` para carregar os sub-módulos.
 
 ```bash
 # Rodar em desenvolvimento
-mvn javafx:run
+./mvnw javafx:run
 
 # Gerar hash bcrypt para senha
-mvn compile exec:java -Dexec.mainClass="com.erp.util.GerarHash"
-
-# Limpar cache Maven se houver JARs corrompidos
-rm -rf ~/.m2/repository/xml-apis
-mvn javafx:run
+./mvnw compile exec:java -Dexec.mainClass="com.erp.util.GerarHash"
 
 # Recriar banco do zero
-rm -rf ~/erp-desktop/data && mvn javafx:run
+rm -rf ~/erp-desktop/data && ./mvnw javafx:run
+
+# Limpar cache de extração do Postgres embarcado no macOS
+rm -rf /var/folders/vb/s6_m_53s1315y206glb3xdwc0000gn/T/embedded-pg
 ```
 
 ---
 
-## Problemas Conhecidos e Soluções
+## Próximas Prioridades Prováveis
+
+A Fase 1 já tem o caminho comercial principal até vendas. Próximas prioridades de negócio sugeridas:
+
+1. Caixa: abertura, fechamento, sangria, suprimento e vínculo com vendas.
+2. Contas a Receber: tela de consulta, baixa e vencimentos gerados por vendas a prazo/crediário.
+3. Contas a Pagar: tela operacional para contas geradas por compras.
+4. Relatórios gerenciais: vendas por período, produtos vendidos, compras, estoque e financeiro.
+5. Melhorias no dashboard: top clientes do mês, caixa atual e contas a receber hoje.
+
+---
+
+## Problemas Conhecidos
 
 | Problema | Causa | Solução |
 |---|---|---|
-| CSS Error: Expected RBRACE | JavaFX não suporta variáveis CSS | Usar apenas `-fx-*`, sem `var()` ou `:root` |
-| Missing postgres binaries (arm_64) | Falta binário para Mac Apple Silicon | Adicionar `embedded-postgres-binaries-darwin-arm64v8` no pom.xml |
-| Logo SVG não renderiza no JavaFX | JavaFX tem suporte limitado a SVG | Converter para PNG com Batik ou carregar via WebView |
-| BCryptPasswordEncoder not found | spring-security-crypto não declarado | Adicionar `spring-security-crypto` no pom.xml explicitamente |
+| `FileAlreadyExistsException` em `/T/embedded-pg/.../fix-CVE-2024-4317.sql` | Cache temporário da extração dos binários do Postgres embarcado | Fechar app e remover pasta `embedded-pg` temporária |
+| CSS error por `var()` ou `:root` | JavaFX CSS não suporta variáveis CSS web | Usar somente propriedades `-fx-*` |
+| `LazyInitializationException` em tabelas JavaFX | Coluna acessando entidade lazy fora da sessão Hibernate | Repositório com `JOIN FETCH` ou DTO pronto para tela |
+| PDF não abre automaticamente | `Desktop.open` pode não ser suportado no ambiente | Usar fallback nativo ou informar caminho do arquivo salvo |
+| Valor monetário calculado errado após digitar `24.90` | Parser antigo removia pontos como milhar | Usar sempre `MoneyUtils.parse` |

@@ -11,6 +11,10 @@ public record DashboardAdminDTO(
         long comprasMes,
         BigDecimal valorComprasMes,
         long rascunhos,
+        // Vendas
+        long vendasHoje,
+        BigDecimal valorVendasHoje,
+        BigDecimal ticketMedioUltimos7Dias,
         // Contas a pagar
         long contasPagarHoje,
         BigDecimal valorContasPagarHoje,
@@ -22,8 +26,9 @@ public record DashboardAdminDTO(
         long produtosEstoqueZerado,
         long totalProdutosAtivos,
         // Gráfico
-        List<VendaDiariaDTO> comprasSemana,
+        List<VendaDiariaDTO> vendasSemana,
         // Painéis
         List<AlertaDTO> alertas,
-        List<TopProdutoDTO> topProdutos
+        List<TopProdutoDTO> topProdutos,
+        List<VendaResumoDTO> vendasHojeDetalhes
 ) {}

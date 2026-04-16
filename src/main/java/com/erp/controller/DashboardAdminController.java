@@ -5,18 +5,27 @@ import com.erp.model.dto.dashboard.AlertaDTO;
 import com.erp.model.dto.dashboard.DashboardAdminDTO;
 import com.erp.model.dto.dashboard.TopProdutoDTO;
 import com.erp.model.dto.dashboard.VendaDiariaDTO;
+import com.erp.model.dto.dashboard.VendaResumoDTO;
 import com.erp.service.AuthService;
 import com.erp.service.DashboardService;
 import com.erp.util.MoneyUtils;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
 import javafx.geometry.Pos;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -66,6 +75,8 @@ public class DashboardAdminController implements Initializable {
     @FXML private Label lblSubVendasHoje;
     @FXML private Label lblValorAPagarHoje;
     @FXML private Label lblQtdAPagarHoje;
+    @FXML private Label lblTicketMedio;
+    @FXML private Label lblSubTicketMedio;
 
     // Gráfico
     @FXML private BarChart<String, Number> chartCompras;
@@ -75,11 +86,14 @@ public class DashboardAdminController implements Initializable {
     @FXML private VBox topProdutosPane;
 
     private Timeline autoRefresh;
+    private DashboardAdminDTO dashboardAtual;
 
     private static final DateTimeFormatter DIA_SEMANA =
             DateTimeFormatter.ofPattern("EEE", new Locale("pt", "BR"));
     private static final DateTimeFormatter DATA_EXTENSO =
             DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM 'de' yyyy", new Locale("pt", "BR"));
+    private static final DateTimeFormatter HORA =
+            DateTimeFormatter.ofPattern("HH:mm");
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -87,6 +101,7 @@ public class DashboardAdminController implements Initializable {
         chartCompras.setAnimated(false);
 
         preencherCabecalho();
+        configurarCardVendasHoje();
         carregarDados();
 
         new Timeline(
@@ -173,9 +188,13 @@ public class DashboardAdminController implements Initializable {
     }
 
     private void preencherUI(DashboardAdminDTO dto) {
-        // Card VENDAS HOJE — placeholder (módulo não implementado)
-        lblVendasHoje.setText("—");
-        lblSubVendasHoje.setText("módulo em breve");
+        dashboardAtual = dto;
+
+        // Card VENDAS HOJE
+        lblVendasHoje.setText(MoneyUtils.formatCurrency(dto.valorVendasHoje()));
+        lblSubVendasHoje.setText(dto.vendasHoje() == 0
+                ? "nenhuma venda hoje"
+                : dto.vendasHoje() + (dto.vendasHoje() == 1 ? " venda hoje" : " vendas hoje"));
 
         // Card A PAGAR HOJE — dados reais
         lblValorAPagarHoje.setText(dto.contasPagarHoje() > 0
@@ -184,12 +203,96 @@ public class DashboardAdminController implements Initializable {
                 ? "nenhuma hoje"
                 : dto.contasPagarHoje() + (dto.contasPagarHoje() == 1 ? " conta" : " contas"));
 
+        lblTicketMedio.setText(MoneyUtils.formatCurrency(dto.ticketMedioUltimos7Dias()));
+        lblSubTicketMedio.setText("Últimos 7 dias");
+
         // Gráfico
-        renderizarGrafico(dto.comprasSemana());
+        renderizarGrafico(dto.vendasSemana());
 
         // Painéis
         montarAlertasPane(dto.alertas());
         montarTopProdutos(dto.topProdutos());
+    }
+
+    private void configurarCardVendasHoje() {
+        cardVendasHoje.setCursor(Cursor.HAND);
+        Tooltip.install(cardVendasHoje, new Tooltip("Ver vendas finalizadas hoje"));
+        cardVendasHoje.setOnMouseClicked(e -> abrirModalVendasHoje());
+    }
+
+    @FXML
+    private void abrirModalVendasHoje() {
+        List<VendaResumoDTO> vendas = dashboardAtual != null
+                ? dashboardAtual.vendasHojeDetalhes()
+                : List.of();
+        long quantidade = dashboardAtual != null ? dashboardAtual.vendasHoje() : 0L;
+        String valorTotal = dashboardAtual != null
+                ? MoneyUtils.formatCurrency(dashboardAtual.valorVendasHoje())
+                : "R$ 0,00";
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Vendas Hoje");
+        dialog.setHeaderText(null);
+        if (cardVendasHoje.getScene() != null && cardVendasHoje.getScene().getWindow() != null) {
+            dialog.initOwner(cardVendasHoje.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().addAll(cardVendasHoje.getScene().getStylesheets());
+        }
+        dialog.getDialogPane().getStyleClass().add(stageManager.isDarkMode() ? "theme-dark" : "theme-light");
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        VBox content = new VBox(12);
+        content.setPrefWidth(760);
+
+        Label titulo = new Label("Vendas finalizadas hoje");
+        titulo.getStyleClass().add("dash-section-title");
+
+        Label resumo = new Label(valorTotal + " em " + quantidade
+                + (quantidade == 1 ? " venda" : " vendas"));
+        resumo.getStyleClass().add("dash-val-green");
+
+        TableView<VendaResumoDTO> tabela = criarTabelaVendasHoje(vendas);
+        VBox.setVgrow(tabela, Priority.ALWAYS);
+
+        content.getChildren().addAll(titulo, resumo, tabela);
+        dialog.getDialogPane().setContent(content);
+        dialog.showAndWait();
+    }
+
+    private TableView<VendaResumoDTO> criarTabelaVendasHoje(List<VendaResumoDTO> vendas) {
+        TableView<VendaResumoDTO> tabela = new TableView<>();
+        tabela.setPrefHeight(360);
+        tabela.setPlaceholder(new Label("Nenhuma venda finalizada hoje."));
+        tabela.setItems(FXCollections.observableArrayList(vendas));
+
+        TableColumn<VendaResumoDTO, String> colHora = new TableColumn<>("HORA");
+        colHora.setPrefWidth(70);
+        colHora.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue().dataVenda() != null ? c.getValue().dataVenda().format(HORA) : "—"));
+
+        TableColumn<VendaResumoDTO, String> colNumero = new TableColumn<>("NÚMERO");
+        colNumero.setPrefWidth(115);
+        colNumero.setCellValueFactory(c -> new SimpleStringProperty(nvl(c.getValue().numero())));
+
+        TableColumn<VendaResumoDTO, String> colCliente = new TableColumn<>("CLIENTE");
+        colCliente.setPrefWidth(185);
+        colCliente.setCellValueFactory(c -> new SimpleStringProperty(nvl(c.getValue().cliente())));
+
+        TableColumn<VendaResumoDTO, String> colVendedor = new TableColumn<>("VENDEDOR");
+        colVendedor.setPrefWidth(150);
+        colVendedor.setCellValueFactory(c -> new SimpleStringProperty(nvl(c.getValue().vendedor())));
+
+        TableColumn<VendaResumoDTO, String> colForma = new TableColumn<>("FORMA");
+        colForma.setPrefWidth(120);
+        colForma.setCellValueFactory(c -> new SimpleStringProperty(
+                formatarFormaPagamento(c.getValue().formaPagamento())));
+
+        TableColumn<VendaResumoDTO, String> colValor = new TableColumn<>("VALOR");
+        colValor.setPrefWidth(110);
+        colValor.setCellValueFactory(c -> new SimpleStringProperty(
+                MoneyUtils.formatCurrency(c.getValue().valorTotal())));
+
+        tabela.getColumns().setAll(colHora, colNumero, colCliente, colVendedor, colForma, colValor);
+        return tabela;
     }
 
     // -----------------------------------------------------------------------
@@ -306,5 +409,22 @@ public class DashboardAdminController implements Initializable {
     private String capitalize(String s) {
         if (s == null || s.isEmpty()) return s;
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    private String formatarFormaPagamento(String forma) {
+        if (forma == null || forma.isBlank()) return "—";
+        return switch (forma) {
+            case "DINHEIRO" -> "Dinheiro";
+            case "PIX" -> "PIX";
+            case "CARTAO_CREDITO" -> "Cartão Crédito";
+            case "CARTAO_DEBITO" -> "Cartão Débito";
+            case "PRAZO" -> "Prazo";
+            case "CREDIARIO" -> "Crediário";
+            default -> forma;
+        };
+    }
+
+    private String nvl(String valor) {
+        return valor != null && !valor.isBlank() ? valor : "—";
     }
 }

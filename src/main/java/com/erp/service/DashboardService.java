@@ -1,17 +1,21 @@
 package com.erp.service;
 
-import com.erp.model.Compra;
 import com.erp.model.Produto;
+import com.erp.model.Venda;
+import com.erp.model.VendaPagamento;
 import com.erp.model.dto.dashboard.*;
 import com.erp.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +30,9 @@ public class DashboardService {
     private final ContaPagarRepository contaPagarRepository;
     private final ProdutoRepository produtoRepository;
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
+    private final VendaRepository vendaRepository;
+
+    private static final String STATUS_VENDA_FINALIZADA = "FINALIZADA";
 
     // -----------------------------------------------------------------------
     // ADMINISTRADOR
@@ -36,6 +43,10 @@ public class DashboardService {
         LocalDate hoje = LocalDate.now();
         LocalDate inicioMes = hoje.withDayOfMonth(1);
         LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
+        LocalDateTime inicioHoje = hoje.atStartOfDay();
+        LocalDateTime fimHoje = hoje.atTime(LocalTime.MAX);
+        LocalDateTime inicioMesVenda = inicioMes.atStartOfDay();
+        LocalDateTime fimMesVenda = fimMes.atTime(LocalTime.MAX);
 
         // ---- Compras ----
         long comprasMes = compraRepository.countByEmpresaIdAndStatusAndDataEmissaoBetween(
@@ -51,6 +62,15 @@ public class DashboardService {
 
         long rascunhos = compraRepository.countByEmpresaIdAndStatus(empresaId, "RASCUNHO");
 
+        // ---- Vendas ----
+        List<Venda> vendasHojeLista = vendaRepository.findByEmpresaIdAndStatusAndPeriodoComRelacionamentos(
+                empresaId, STATUS_VENDA_FINALIZADA, inicioHoje, fimHoje);
+        long vendasHoje = vendasHojeLista.size();
+        BigDecimal valorVendasHoje = somarVendas(vendasHojeLista);
+        List<VendaResumoDTO> vendasHojeDetalhes = mapearVendas(vendasHojeLista);
+        List<VendaDiariaDTO> vendasSemana = calcularVendasSemana(empresaId, hoje);
+        BigDecimal ticketMedioUltimos7Dias = calcularTicketMedio(vendasSemana);
+
         // ---- Contas a pagar ----
         long contasPagarHoje = contaPagarRepository.countVencendoHoje(empresaId, hoje);
         BigDecimal valorContasPagarHoje = contaPagarRepository.sumValorVencendoHoje(empresaId, hoje);
@@ -64,21 +84,19 @@ public class DashboardService {
         List<Produto> abaixoMinimo = produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(empresaId);
         long totalProdutosAtivos = produtoRepository.countByEmpresaIdAndAtivoTrue(empresaId);
 
-        // ---- Gráfico ----
-        List<VendaDiariaDTO> comprasSemana = calcularComprasSemana(empresaId, hoje);
-
         // ---- Alertas ----
         List<AlertaDTO> alertas = montarAlertas(zerados, abaixoMinimo, contasPagarVencidas, rascunhos);
 
         // ---- Top Produtos ----
-        List<TopProdutoDTO> topProdutos = carregarTopProdutos(empresaId, inicioMes);
+        List<TopProdutoDTO> topProdutos = carregarTopProdutosVendidos(empresaId, inicioMesVenda, fimMesVenda);
 
         return new DashboardAdminDTO(
                 comprasMes, valorComprasMes, rascunhos,
+                vendasHoje, valorVendasHoje, ticketMedioUltimos7Dias,
                 contasPagarHoje, valorContasPagarHoje,
                 contasPagarVencidas, contasPagarAbertas, totalContasPagarAbertas,
                 (long) abaixoMinimo.size(), (long) zerados.size(), totalProdutosAtivos,
-                comprasSemana, alertas, topProdutos
+                vendasSemana, alertas, topProdutos, vendasHojeDetalhes
         );
     }
 
@@ -160,28 +178,71 @@ public class DashboardService {
     // Auxiliares
     // -----------------------------------------------------------------------
 
-    private List<VendaDiariaDTO> calcularComprasSemana(Integer empresaId, LocalDate hoje) {
+    private List<VendaDiariaDTO> calcularVendasSemana(Integer empresaId, LocalDate hoje) {
         LocalDate inicio = hoje.minusDays(6);
-        List<Compra> confirmadas = compraRepository
-                .findByEmpresaIdAndStatus(empresaId, "CONFIRMADA")
-                .stream()
-                .filter(c -> !c.getDataEmissao().isBefore(inicio)
-                          && !c.getDataEmissao().isAfter(hoje))
-                .collect(Collectors.toList());
+        LocalDateTime inicioPeriodo = inicio.atStartOfDay();
+        LocalDateTime fimPeriodo = hoje.atTime(LocalTime.MAX);
+        List<Venda> finalizadas = vendaRepository.findByEmpresaIdAndStatusAndPeriodoComRelacionamentos(
+                empresaId, STATUS_VENDA_FINALIZADA, inicioPeriodo, fimPeriodo);
 
-        Map<LocalDate, List<Compra>> porDia = confirmadas.stream()
-                .collect(Collectors.groupingBy(Compra::getDataEmissao));
+        Map<LocalDate, List<Venda>> porDia = finalizadas.stream()
+                .collect(Collectors.groupingBy(v -> v.getDataVenda().toLocalDate()));
 
         List<VendaDiariaDTO> resultado = new ArrayList<>();
         for (int i = 6; i >= 0; i--) {
             LocalDate dia = hoje.minusDays(i);
-            List<Compra> doDia = porDia.getOrDefault(dia, List.of());
-            BigDecimal total = doDia.stream()
-                    .map(c -> c.getValorTotal() != null ? c.getValorTotal() : BigDecimal.ZERO)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            resultado.add(new VendaDiariaDTO(dia, total, doDia.size()));
+            List<Venda> doDia = porDia.getOrDefault(dia, List.of());
+            resultado.add(new VendaDiariaDTO(dia, somarVendas(doDia), doDia.size()));
         }
         return resultado;
+    }
+
+    private BigDecimal calcularTicketMedio(List<VendaDiariaDTO> vendasSemana) {
+        long quantidade = vendasSemana.stream().mapToLong(VendaDiariaDTO::quantidade).sum();
+        if (quantidade == 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal total = vendasSemana.stream()
+                .map(v -> v.total() != null ? v.total() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return total.divide(BigDecimal.valueOf(quantidade), 2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal somarVendas(List<Venda> vendas) {
+        return vendas.stream()
+                .map(v -> v.getValorTotal() != null ? v.getValorTotal() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private List<VendaResumoDTO> mapearVendas(List<Venda> vendas) {
+        return vendas.stream()
+                .map(v -> new VendaResumoDTO(
+                        nvl(v.getNumero()),
+                        nomeCliente(v),
+                        v.getVendedor() != null ? nvl(v.getVendedor().getNome()) : "—",
+                        v.getDataVenda(),
+                        v.getValorTotal() != null ? v.getValorTotal() : BigDecimal.ZERO,
+                        formaPagamento(v)
+                ))
+                .toList();
+    }
+
+    private String nomeCliente(Venda venda) {
+        if (venda.getCliente() == null) {
+            return "Consumidor final";
+        }
+        if ("PJ".equals(venda.getCliente().getTipoPessoa()) && venda.getCliente().getRazaoSocial() != null) {
+            return venda.getCliente().getRazaoSocial();
+        }
+        return nvl(venda.getCliente().getNome());
+    }
+
+    private String formaPagamento(Venda venda) {
+        if (venda.getPagamentos() == null || venda.getPagamentos().isEmpty()) {
+            return "—";
+        }
+        VendaPagamento pagamento = venda.getPagamentos().get(0);
+        return nvl(pagamento.getFormaPagamento());
     }
 
     private List<AlertaDTO> montarAlertas(List<Produto> zerados, List<Produto> abaixoMinimo,
@@ -225,8 +286,11 @@ public class DashboardService {
     }
 
     @SuppressWarnings("unchecked")
-    private List<TopProdutoDTO> carregarTopProdutos(Integer empresaId, LocalDate inicioMes) {
-        List<Object[]> rows = compraRepository.findTopProdutosMes(empresaId, inicioMes);
+    private List<TopProdutoDTO> carregarTopProdutosVendidos(Integer empresaId,
+                                                            LocalDateTime inicioMes,
+                                                            LocalDateTime fimMes) {
+        List<Object[]> rows = vendaRepository.findTopProdutosVendidosPeriodo(
+                empresaId, inicioMes, fimMes, PageRequest.of(0, 5));
         List<TopProdutoDTO> result = new ArrayList<>();
         for (Object[] row : rows) {
             String nome = (String) row[0];
@@ -234,5 +298,9 @@ public class DashboardService {
             result.add(new TopProdutoDTO(nome, valor));
         }
         return result;
+    }
+
+    private String nvl(String value) {
+        return value != null ? value : "";
     }
 }
