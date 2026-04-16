@@ -47,11 +47,20 @@ src/main/java/com/erp/
 
 src/main/resources/
 ├── css/          # global.css
-├── db/migration/ # Flyway migrations V1..V5
+├── db/migration/ # Flyway migrations V1..V6
 ├── fxml/         # Telas JavaFX
 ├── images/       # Logo e ícones
 └── reports/      # Templates JasperReports
 ```
+
+Novos arquivos adicionados no módulo Contas a Receber:
+
+- `src/main/java/com/erp/repository/ContaReceberRepository.java` (reescrito com JOIN FETCH e queries de resumo)
+- `src/main/java/com/erp/model/dto/financeiro/ContasReceberResumoDTO.java`
+- `src/main/java/com/erp/service/ContaReceberService.java`
+- `src/main/java/com/erp/controller/ContasReceberController.java`
+- `src/main/resources/fxml/contas-receber.fxml`
+- `src/main/resources/db/migration/V6__mock_contas_receber.sql`
 
 FXMLs principais existentes:
 
@@ -143,6 +152,20 @@ FXMLs principais existentes:
 - Cancelamento de contas abertas.
 - Baixas registram saída no caixa aberto como movimentação `PAGAMENTO`.
 
+### Contas a Receber
+
+- Tela operacional para recebíveis gerados por vendas a prazo/crediário e receitas avulsas.
+- Listagem com cliente, descrição, parcela, vencimento, valor, valor recebido, forma e status.
+- Filtros por todas, abertas, vencidas, vencendo hoje, recebidas e canceladas.
+- Busca por cliente, descrição ou número da venda.
+- Métricas de abertas, vencidas, vencendo hoje e recebidas no mês.
+- Baixa (recebimento) com valor recebido, juros, multa, desconto, data, forma e observações.
+- Cadastro avulso de receitas não vinculadas a vendas (cliente opcional).
+- Cancelamento de contas abertas.
+- Status da conta: ABERTA, RECEBIDA, VENCIDA (calculada na UI), CANCELADA.
+- Baixas registram entrada no caixa aberto como movimentação `RECEBIMENTO` via `CaixaService`.
+- `TODO`: incrementar `credito_disponivel` do cliente ao receber (aguarda método no `ClienteService`).
+
 ### Dashboards
 
 - Dashboard admin exibe cards de vendas hoje, contas a pagar hoje, caixa atual, ticket médio, gráfico de vendas dos últimos 7 dias, alertas e top produtos vendidos no mês.
@@ -208,6 +231,16 @@ Foram adicionados dados reais de venda ao dashboard admin:
 - `ContaPagarRepository` possui consultas com `JOIN FETCH` para evitar lazy loading na UI.
 - `MainController#abrirContasPagar` agora carrega a tela real do módulo.
 - A tabela `conta_pagar` já existia na migration inicial e é alimentada por compras confirmadas.
+
+### Módulo Contas a Receber
+
+- `ContaReceberService` centraliza listagem, resumo, baixa, cancelamento e cadastro avulso.
+- `ContasReceberController` e `contas-receber.fxml` implementam a tela financeira de contas a receber.
+- `ContaReceberRepository` reescrito com `JOIN FETCH` para cliente, venda e usuário, além de queries de contagem e soma por status/período.
+- `CaixaService` ganhou o método `registrarRecebimentoContaReceberSeCaixaAberto` para integrar recebimentos ao caixa aberto.
+- `MainController#abrirContasReceber` agora carrega a tela real do módulo.
+- `V6__mock_contas_receber.sql` inseriu 14 contas mock: abertas, vencidas, vencendo hoje, recebidas e cancelada.
+- A tabela `conta_receber` já existia na migration V1 e é alimentada por vendas a prazo/crediário via `VendaService`.
 
 ### PDF de Orçamento
 
@@ -336,6 +369,7 @@ Migrations atuais:
 - `V3__unidades_adicionais.sql`
 - `V4__add_tema_configuracao.sql`
 - `V5__mock_dados_cadastrais.sql`
+- `V6__mock_contas_receber.sql`
 
 Nunca alterar migration já executada. Criar sempre nova `V6__descricao.sql`, `V7__descricao.sql`, etc.
 
@@ -393,11 +427,11 @@ rm -rf /var/folders/vb/s6_m_53s1315y206glb3xdwc0000gn/T/embedded-pg
 
 A Fase 1 já tem o caminho comercial principal até vendas. Próximas prioridades de negócio sugeridas:
 
-1. Contas a Receber: tela de consulta, baixa e vencimentos gerados por vendas a prazo/crediário.
-2. Evoluir Caixa: relatório de sessões fechadas, reabertura controlada, conferência por forma de pagamento e filtros históricos.
-3. Evoluir Contas a Pagar: filtros por período, edição controlada de vencimento e baixa em lote.
+1. Evoluir Caixa: relatório de sessões fechadas, reabertura controlada, conferência por forma de pagamento e filtros históricos.
+2. Evoluir Contas a Pagar: filtros por período, edição controlada de vencimento e baixa em lote.
+3. Evoluir Contas a Receber: baixa parcial, filtros por período, crédito do cliente ao receber (`incrementar credito_disponivel`).
 4. Relatórios gerenciais: vendas por período, produtos vendidos, compras, estoque, caixa e financeiro.
-5. Melhorias no dashboard: top clientes do mês e contas a receber hoje.
+5. Melhorias no dashboard: top clientes do mês e contas a receber/pagar hoje.
 
 ---
 

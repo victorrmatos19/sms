@@ -117,7 +117,7 @@ public class MainController implements Initializable {
     @FXML private void abrirVendas()         { carregarModulo("/fxml/vendas.fxml", "Vendas"); }
     @FXML private void abrirCaixa()          { carregarModulo("/fxml/caixa.fxml", "Caixa"); }
     @FXML private void abrirContasPagar()    { carregarModulo("/fxml/contas-pagar.fxml", "Contas a Pagar"); }
-    @FXML private void abrirContasReceber()  { setStatus("Contas a Receber"); }
+    @FXML private void abrirContasReceber()  { carregarModulo("/fxml/contas-receber.fxml", "Contas a Receber"); }
     @FXML private void abrirRelatorios()     { setStatus("Relatórios"); }
     @FXML private void abrirConfiguracoes()  { setStatus("Configurações"); }
 

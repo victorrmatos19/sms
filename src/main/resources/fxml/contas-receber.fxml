@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.ContasReceberController"
+      spacing="16" styleClass="content-area">
+
+    <HBox alignment="CENTER_LEFT">
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Contas a Receber" styleClass="page-title"/>
+            <Label text="Baixa, vencimentos e acompanhamento dos recebíveis gerados nas vendas a prazo"
+                   styleClass="page-subtitle"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="ABERTAS" styleClass="metric-card-label"/>
+            <Label fx:id="lblAbertas" text="0" styleClass="metric-card-value"/>
+            <Label fx:id="lblTotalAberto" text="R$ 0,00" styleClass="metric-card-subtitle"/>
+        </VBox>
+        <VBox styleClass="metric-card-danger" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="VENCIDAS" styleClass="metric-card-label"/>
+            <Label fx:id="lblVencidas" text="0" styleClass="metric-card-value-danger"/>
+            <Label fx:id="lblTotalVencido" text="R$ 0,00" styleClass="metric-card-subtitle"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="VENCEM HOJE" styleClass="metric-card-label"/>
+            <Label fx:id="lblHoje" text="0" styleClass="metric-card-value"/>
+            <Label fx:id="lblTotalHoje" text="R$ 0,00" styleClass="metric-card-subtitle"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="RECEBIDAS NO MÊS" styleClass="metric-card-label"/>
+            <Label fx:id="lblRecebidasMes" text="0" styleClass="metric-card-value-accent"/>
+            <Label fx:id="lblTotalRecebidoMes" text="R$ 0,00" styleClass="metric-card-subtitle"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <TextField fx:id="txtBusca"
+                   promptText="Buscar por cliente, descrição ou número da venda..."
+                   prefWidth="340"/>
+        <ComboBox fx:id="cmbFiltroStatus" prefWidth="170"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Atualizar"   onAction="#atualizar"          styleClass="btn-outline"/>
+        <Button text="Nova Conta"  onAction="#novaConta"           styleClass="btn-secondary"/>
+        <Button fx:id="btnBaixar"  text="Receber" onAction="#baixarSelecionada"
+                styleClass="btn-primary" disable="true"/>
+        <Button fx:id="btnCancelar" text="Cancelar" onAction="#cancelarSelecionada"
+                styleClass="btn-danger" disable="true"/>
+    </HBox>
+
+    <TableView fx:id="tblContas" VBox.vgrow="ALWAYS" styleClass="table-view">
+        <columns>
+            <TableColumn fx:id="colVencimento" text="VENCIMENTO"  prefWidth="110" minWidth="100"/>
+            <TableColumn fx:id="colCliente"    text="CLIENTE"     prefWidth="220" minWidth="150"/>
+            <TableColumn fx:id="colDescricao"  text="DESCRIÇÃO"   prefWidth="260" minWidth="180"/>
+            <TableColumn fx:id="colParcela"    text="PARC."       prefWidth="70"  minWidth="60"/>
+            <TableColumn fx:id="colValor"      text="VALOR"       prefWidth="120" minWidth="100"/>
+            <TableColumn fx:id="colValorPago"  text="RECEBIDO"    prefWidth="120" minWidth="100"/>
+            <TableColumn fx:id="colForma"      text="FORMA"       prefWidth="130" minWidth="100"/>
+            <TableColumn fx:id="colStatus"     text="STATUS"      prefWidth="110" minWidth="90"/>
+        </columns>
+        <placeholder>
+            <Label text="Nenhuma conta a receber encontrada" styleClass="content-placeholder"/>
+        </placeholder>
+    </TableView>
+</VBox>

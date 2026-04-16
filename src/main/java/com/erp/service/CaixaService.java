@@ -5,6 +5,7 @@ import com.erp.model.Caixa;
 import com.erp.model.CaixaMovimentacao;
 import com.erp.model.CaixaSessao;
 import com.erp.model.ContaPagar;
+import com.erp.model.ContaReceber;
 import com.erp.model.Empresa;
 import com.erp.model.Usuario;
 import com.erp.model.Venda;
@@ -163,6 +164,30 @@ public class CaixaService {
                         .valor(valor)
                         .formaPagamento(blankToNull(formaPagamento))
                         .origem("CONTA_PAGAR")
+                        .origemId(conta.getId())
+                        .usuario(conta.getUsuario() != null ? conta.getUsuario() : authService.getUsuarioLogado())
+                        .build()));
+    }
+
+    @Transactional
+    public void registrarRecebimentoContaReceberSeCaixaAberto(ContaReceber conta, BigDecimal valorRecebido,
+                                                              String formaRecebimento) {
+        if (conta == null || conta.getEmpresa() == null || conta.getEmpresa().getId() == null) {
+            return;
+        }
+        BigDecimal valor = nvl(valorRecebido);
+        if (valor.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+
+        buscarSessaoAberta(conta.getEmpresa().getId()).ifPresent(sessao ->
+                caixaMovimentacaoRepository.save(CaixaMovimentacao.builder()
+                        .sessao(sessao)
+                        .tipo("RECEBIMENTO")
+                        .descricao("Recebimento " + nvl(conta.getDescricao()))
+                        .valor(valor)
+                        .formaPagamento(blankToNull(formaRecebimento))
+                        .origem("CONTA_RECEBER")
                         .origemId(conta.getId())
                         .usuario(conta.getUsuario() != null ? conta.getUsuario() : authService.getUsuarioLogado())
                         .build()));
