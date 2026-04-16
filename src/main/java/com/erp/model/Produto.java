@@ -31,10 +31,6 @@ public class Produto {
     @JoinColumn(name = "grupo_id")
     private GrupoProduto grupo;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "categoria_id")
-    private CategoriaProduto categoria;
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "unidade_id")
     private UnidadeMedida unidade;

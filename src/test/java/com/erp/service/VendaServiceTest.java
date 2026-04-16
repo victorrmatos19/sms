@@ -46,6 +46,7 @@ class VendaServiceTest {
     @Mock private ConfiguracaoRepository configuracaoRepository;
     @Mock private AuthService authService;
     @Mock private CaixaService caixaService;
+    @Mock private ClienteService clienteService;
 
     @InjectMocks private VendaService vendaService;
 

@@ -11,7 +11,7 @@ O produto usa PostgreSQL embarcado local, UI JavaFX e Spring Boot sem servidor w
 
 **Nome do produto:** SMS — Simple Manage System
 **Tipo:** aplicativo desktop local com distribuição planejada por assinatura
-**Estado atual:** Fase 1 concluída: núcleo comercial, financeiro, configurações, usuários, múltiplos perfis e relatórios básicos implementados
+**Estado atual:** Fase 1 concluída e gaps residuais pré-Fase 2 resolvidos: núcleo comercial, financeiro, configurações, usuários, múltiplos perfis, relatórios básicos e refinamentos finais implementados
 
 O foco de negócio atual é evoluir do ERP operacional para a Fase 2 fiscal: emissão fiscal básica, documentos fiscais e impressão operacional, mantendo o núcleo cadastral/estoque/compras/orçamentos/vendas/financeiro já utilizável em fluxo ponta a ponta.
 
@@ -46,8 +46,8 @@ src/main/java/com/erp/
 └── util/         # Helpers compartilhados, incluindo MoneyUtils
 
 src/main/resources/
-├── css/          # global.css
-├── db/migration/ # Flyway migrations V1..V7
+├── css/          # global.css com design system Preto & Verde
+├── db/migration/ # Flyway migrations V1..V9
 ├── fxml/         # Telas JavaFX
 ├── images/       # Logo e ícones
 └── reports/      # Templates JasperReports
@@ -104,6 +104,11 @@ Novos arquivos adicionados no módulo Relatórios Básicos:
 - `src/main/resources/reports/relatorio-financeiro.jrxml`
 - `src/main/resources/reports/relatorio-caixa.jrxml`
 
+Migrations recentes de limpeza pré-Fase 2:
+
+- `src/main/resources/db/migration/V8__remove_perfil_id_legado.sql`
+- `src/main/resources/db/migration/V9__remove_categoria_produto.sql`
+
 FXMLs principais existentes:
 
 - Login e shell: `login.fxml`, `main.fxml`
@@ -129,6 +134,7 @@ FXMLs principais existentes:
 - `AuthService` expõe `temPerfil`, `temQualquerPerfil` e `getPerfilPrincipal`.
 - `MainController` carrega módulos dentro do `StackPane#conteudoPane`.
 - Sidebar exibe dinamicamente apenas os módulos permitidos para os perfis do usuário logado.
+- Topbar sem busca global; cada módulo mantém sua própria busca local. Busca global fica para versão futura.
 - `StageManager` centraliza tema, CSS global e dark mode.
 
 ### Módulo de Usuários
@@ -147,7 +153,7 @@ FXMLs principais existentes:
 
 ### Cadastros
 
-- Produtos com grupo, categoria, unidade, preços, estoque mínimo/máximo, lote/validade e status ativo.
+- Produtos com grupo, unidade, preços, estoque mínimo/máximo, lote/validade e status ativo.
 - Clientes PF/PJ com endereço, contato e limite de crédito.
 - Fornecedores PF/PJ com dados bancários e PIX.
 - Funcionários com perfil, cargo, contato e status.
@@ -176,6 +182,7 @@ FXMLs principais existentes:
 - Validação de preço mínimo do produto.
 - Conversão de orçamento em venda.
 - Geração de PDF com JasperReports em `reports/orcamento.jrxml`.
+- Reimpressão/PDF fica disponível para qualquer status selecionado (`ABERTO`, `CONVERTIDO`, `EXPIRADO`, `CANCELADO`); editar, converter e cancelar continuam restritos a `ABERTO`.
 - PDF abre via `Desktop.open` quando suportado e cai para comandos nativos (`open`, `xdg-open`, `rundll32`) quando necessário.
 - Jasper recebe `REPORT_LOCALE` `pt-BR` para formatação brasileira.
 
@@ -382,6 +389,7 @@ Três correções funcionais aplicadas após conclusão da Fase 1 comercial:
 
 - `Usuario` deixou de depender de um único `ManyToOne perfil` como regra funcional e passou a usar `ManyToMany perfis`.
 - `V7__multiplos_perfis_usuario.sql` criou a tabela `usuario_perfil`, migrou os dados legados de `usuario.perfil_id` e tornou a coluna antiga nullable.
+- `V8__remove_perfil_id_legado.sql` removeu a coluna antiga `usuario.perfil_id`; `usuario_perfil` agora é a única fonte de verdade.
 - `Usuario#getPerfilPrincipal()` escolhe o perfil de maior hierarquia para seleção do dashboard: Administrador, Gerente, Vendas, Financeiro e Estoque.
 - `AuthService#temQualquerPerfil()` centraliza checagens de acesso quando um módulo aceita mais de um perfil.
 - Sidebar do `MainController` agora oculta botões e seções sem acesso para o usuário logado.
@@ -397,6 +405,16 @@ Três correções funcionais aplicadas após conclusão da Fase 1 comercial:
 - Caixa lista sessões por período, caixa, operador e status, exibindo movimentações da sessão selecionada.
 - `RelatorioPdfService` compila os quatro templates JasperReports novos e usa cabeçalho padrão com empresa/logotipo.
 - `MainController#abrirRelatorios` agora carrega a tela real do módulo.
+- Templates de relatórios foram ajustados para a ordem de bandas compatível com JasperReports 6.21.4 (`pageFooter` antes de `summary`).
+
+### Refinamentos Pré-Fase 2
+
+- Busca global decorativa removida do topbar; buscas permanecem locais em cada módulo.
+- `V8__remove_perfil_id_legado.sql` remove a coluna `usuario.perfil_id`; `usuario_perfil` é a única fonte de verdade para perfis.
+- `Usuario` permanece apenas com `Set<PerfilAcesso> perfis`, `temPerfil`, `getPerfilPrincipal` e `getPerfisOrdenados`.
+- `V9__remove_categoria_produto.sql` remove `produto.categoria_id` e a tabela `categoria_produto`.
+- Cadastro de produto não exibe nem persiste categoria; classificação usa apenas Grupo.
+- `global.css` foi alinhado ao design system Preto & Verde, com dark mode padrão, light mode alternativo e remoção de sobras Navy/Dourado.
 
 ### PDF de Orçamento
 
@@ -445,6 +463,9 @@ Os dados reais ficam em `~/erp-desktop/data`, não nessa pasta temporária.
 - Perfis continuam departamentais e sem matriz granular de permissões por ação nesta fase.
 - Usuários nunca são excluídos fisicamente; desativação lógica preserva histórico operacional.
 - Dados reais da empresa são editáveis em Configurações e são a fonte para PDFs e parâmetros operacionais.
+- Categoria de produto removida do escopo; classificação de produtos usa apenas Grupos.
+- Busca global removida do topbar; cada módulo tem busca própria. Busca global planejada para versão futura.
+- Design system oficial é Preto & Verde: dark mode padrão com acento verde e light mode alternativo.
 
 ---
 
@@ -507,6 +528,8 @@ public class MeuController implements Initializable {
 - Preferir classes do `global.css`.
 - JavaFX não suporta variáveis CSS (`--var`, `var()`, `:root`).
 - Dark mode usa `.theme-light` e `.theme-dark` aplicadas pelo `StageManager`.
+- `global.css` deve manter as classes existentes e usar valores hardcoded `-fx-*`.
+- Paleta atual: dark `#000000`/`#121212`/`#1a1a1a` com acento `#1db954`; light `#f0f0f0`/`#fafafa`/`#ffffff` com acento `#16a34a`.
 - Evitar refatoração ampla de CSS/FXML sem necessidade; algumas telas antigas ainda têm estilos inline pontuais.
 
 Classes úteis:
@@ -545,8 +568,10 @@ Migrations atuais:
 - `V5__mock_dados_cadastrais.sql`
 - `V6__mock_contas_receber.sql`
 - `V7__multiplos_perfis_usuario.sql`
+- `V8__remove_perfil_id_legado.sql`
+- `V9__remove_categoria_produto.sql`
 
-Nunca alterar migration já executada. Criar sempre nova `V8__descricao.sql`, `V9__descricao.sql`, etc.
+Nunca alterar migration já executada. Criar sempre nova `V10__descricao.sql`, `V11__descricao.sql`, etc.
 
 Usuário padrão:
 
@@ -600,11 +625,11 @@ rm -rf /var/folders/vb/s6_m_53s1315y206glb3xdwc0000gn/T/embedded-pg
 
 ## Próximas Prioridades Prováveis
 
-A Fase 1 está concluída. Próximas prioridades de negócio sugeridas para a Fase 2:
+A Fase 1 está concluída e os gaps residuais pré-Fase 2 foram resolvidos. Próximas prioridades de negócio sugeridas para a Fase 2:
 
-1. Fiscal básico: NFC-e via API externa, como Focus NF-e ou WebMania.
-2. NF-e para vendas e operações que exigirem documento fiscal.
-3. Impressão de tabela de preços e materiais operacionais de balcão.
+1. Recibos/romaneios/impressões operacionais simples e impressão de tabela de preços.
+2. Fiscal básico: NFC-e via API externa, como Focus NF-e ou WebMania.
+3. NF-e para vendas e operações que exigirem documento fiscal.
 
 ---
 
@@ -617,4 +642,3 @@ A Fase 1 está concluída. Próximas prioridades de negócio sugeridas para a Fa
 | `LazyInitializationException` em tabelas JavaFX | Coluna acessando entidade lazy fora da sessão Hibernate | Repositório com `JOIN FETCH` ou DTO pronto para tela |
 | PDF não abre automaticamente | `Desktop.open` pode não ser suportado no ambiente | Usar fallback nativo ou informar caminho do arquivo salvo |
 | Valor monetário calculado errado após digitar `24.90` | Parser antigo removia pontos como milhar | Usar sempre `MoneyUtils.parse` |
-| Campo `perfil_id` em `usuario` ainda existe | Coluna legada, nullable após V7; a fonte de verdade são os registros em `usuario_perfil` | Remover `perfil_id` em versão futura quando houver compatibilidade total |

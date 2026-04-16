@@ -57,22 +57,17 @@
                     <ComboBox fx:id="cmbGrupo" maxWidth="Infinity"
                               GridPane.rowIndex="4" GridPane.columnIndex="1"/>
 
-                    <!-- Categoria -->
-                    <Label text="Categoria" styleClass="form-label" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-                    <ComboBox fx:id="cmbCategoria" maxWidth="Infinity"
-                              GridPane.rowIndex="5" GridPane.columnIndex="1"/>
-
                     <!-- Unidade de Medida* -->
-                    <Label text="Unidade *" styleClass="form-label" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
-                    <VBox GridPane.rowIndex="6" GridPane.columnIndex="1" spacing="2">
+                    <Label text="Unidade *" styleClass="form-label" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                    <VBox GridPane.rowIndex="5" GridPane.columnIndex="1" spacing="2">
                         <ComboBox fx:id="cmbUnidade" maxWidth="Infinity"/>
                         <Label fx:id="lblErrUnidade" styleClass="form-error" visible="false" managed="false"/>
                     </VBox>
 
                     <!-- Status -->
-                    <Label text="Status" styleClass="form-label" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+                    <Label text="Status" styleClass="form-label" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
                     <ToggleButton fx:id="btnStatus" text="Ativo" selected="true"
-                                  GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+                                  GridPane.rowIndex="6" GridPane.columnIndex="1"/>
 
                 </GridPane>
             </ScrollPane>

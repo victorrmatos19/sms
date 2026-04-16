@@ -31,29 +31,44 @@ class DashboardUITest extends BaseUITest {
 
                 // Usuário com perfil VENDAS — senha: admin123
                 stmt.execute(
-                    "INSERT INTO usuario (empresa_id, perfil_id, nome, login, senha_hash, ativo) " +
-                    "SELECT 1, (SELECT id FROM perfil_acesso WHERE nome='VENDAS'), " +
-                    "'Pedro Vendas', 'pedro.vendas', " +
+                    "INSERT INTO usuario (empresa_id, nome, login, senha_hash, ativo) " +
+                    "VALUES (1, 'Pedro Vendas', 'pedro.vendas', " +
                     "'$2a$10$Vn0lZc73XD9DHdsPQ2zJOOIqQ.EUdFjZZGfqeP.j8y7m1OsFRAZO6', true " +
-                    "ON CONFLICT (empresa_id, login) DO NOTHING"
+                    ") ON CONFLICT (empresa_id, login) DO NOTHING"
+                );
+                stmt.execute(
+                    "INSERT INTO usuario_perfil (usuario_id, perfil_id) " +
+                    "SELECT u.id, p.id FROM usuario u, perfil_acesso p " +
+                    "WHERE u.empresa_id = 1 AND u.login = 'pedro.vendas' AND p.nome = 'VENDAS' " +
+                    "ON CONFLICT (usuario_id, perfil_id) DO NOTHING"
                 );
 
                 // Usuário com perfil FINANCEIRO — senha: admin123
                 stmt.execute(
-                    "INSERT INTO usuario (empresa_id, perfil_id, nome, login, senha_hash, ativo) " +
-                    "SELECT 1, (SELECT id FROM perfil_acesso WHERE nome='FINANCEIRO'), " +
-                    "'Maria Financeiro', 'maria.financeiro', " +
+                    "INSERT INTO usuario (empresa_id, nome, login, senha_hash, ativo) " +
+                    "VALUES (1, 'Maria Financeiro', 'maria.financeiro', " +
                     "'$2a$10$Vn0lZc73XD9DHdsPQ2zJOOIqQ.EUdFjZZGfqeP.j8y7m1OsFRAZO6', true " +
-                    "ON CONFLICT (empresa_id, login) DO NOTHING"
+                    ") ON CONFLICT (empresa_id, login) DO NOTHING"
+                );
+                stmt.execute(
+                    "INSERT INTO usuario_perfil (usuario_id, perfil_id) " +
+                    "SELECT u.id, p.id FROM usuario u, perfil_acesso p " +
+                    "WHERE u.empresa_id = 1 AND u.login = 'maria.financeiro' AND p.nome = 'FINANCEIRO' " +
+                    "ON CONFLICT (usuario_id, perfil_id) DO NOTHING"
                 );
 
                 // Usuário com perfil ESTOQUE — senha: admin123
                 stmt.execute(
-                    "INSERT INTO usuario (empresa_id, perfil_id, nome, login, senha_hash, ativo) " +
-                    "SELECT 1, (SELECT id FROM perfil_acesso WHERE nome='ESTOQUE'), " +
-                    "'Joao Estoque', 'joao.estoque', " +
+                    "INSERT INTO usuario (empresa_id, nome, login, senha_hash, ativo) " +
+                    "VALUES (1, 'Joao Estoque', 'joao.estoque', " +
                     "'$2a$10$Vn0lZc73XD9DHdsPQ2zJOOIqQ.EUdFjZZGfqeP.j8y7m1OsFRAZO6', true " +
-                    "ON CONFLICT (empresa_id, login) DO NOTHING"
+                    ") ON CONFLICT (empresa_id, login) DO NOTHING"
+                );
+                stmt.execute(
+                    "INSERT INTO usuario_perfil (usuario_id, perfil_id) " +
+                    "SELECT u.id, p.id FROM usuario u, perfil_acesso p " +
+                    "WHERE u.empresa_id = 1 AND u.login = 'joao.estoque' AND p.nome = 'ESTOQUE' " +
+                    "ON CONFLICT (usuario_id, perfil_id) DO NOTHING"
                 );
             }
         } catch (Exception e) {

@@ -54,9 +54,8 @@ class CaixaServiceTest {
 
     @Test
     void dado_sem_caixa_aberto_quando_abrir_entao_cria_sessao() {
-        when(caixaSessaoRepository.findFirstByCaixaEmpresaIdAndStatusOrderByDataAberturaDesc(1, "ABERTO"))
-                .thenReturn(Optional.empty());
         when(caixaRepository.findFirstByEmpresaIdAndAtivoTrueOrderByIdAsc(1)).thenReturn(Optional.of(caixa));
+        when(caixaSessaoRepository.existsByCaixaIdAndStatus(1, "ABERTO")).thenReturn(false);
         when(authService.getUsuarioLogado()).thenReturn(usuario);
         when(caixaSessaoRepository.save(any(CaixaSessao.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -70,13 +69,12 @@ class CaixaServiceTest {
 
     @Test
     void dado_caixa_aberto_quando_abrir_novo_entao_bloqueia() {
-        CaixaSessao aberta = CaixaSessao.builder().id(10).caixa(caixa).usuario(usuario).status("ABERTO").build();
-        when(caixaSessaoRepository.findFirstByCaixaEmpresaIdAndStatusOrderByDataAberturaDesc(1, "ABERTO"))
-                .thenReturn(Optional.of(aberta));
+        when(caixaRepository.findFirstByEmpresaIdAndAtivoTrueOrderByIdAsc(1)).thenReturn(Optional.of(caixa));
+        when(caixaSessaoRepository.existsByCaixaIdAndStatus(1, "ABERTO")).thenReturn(true);
 
         assertThatThrownBy(() -> caixaService.abrirCaixa(1, BigDecimal.ZERO, null))
                 .isInstanceOf(NegocioException.class)
-                .hasMessageContaining("Já existe");
+                .hasMessageContaining("já está aberto");
 
         verify(caixaSessaoRepository, never()).save(any());
     }
@@ -90,8 +88,8 @@ class CaixaServiceTest {
                 .status("ABERTO")
                 .saldoInicial(new BigDecimal("100.00"))
                 .build();
-        when(caixaSessaoRepository.findFirstByCaixaEmpresaIdAndStatusOrderByDataAberturaDesc(1, "ABERTO"))
-                .thenReturn(Optional.of(aberta));
+        when(authService.getUsuarioLogado()).thenReturn(usuario);
+        when(caixaSessaoRepository.findByUsuarioIdAndStatus(1, "ABERTO")).thenReturn(Optional.of(aberta));
         when(caixaMovimentacaoRepository.sumValorBySessaoIdAndTipoIn(eq(10), eq(List.of("SUPRIMENTO", "VENDA", "RECEBIMENTO"))))
                 .thenReturn(new BigDecimal("50.00"));
         when(caixaMovimentacaoRepository.sumValorBySessaoIdAndTipoIn(eq(10), eq(List.of("SANGRIA", "PAGAMENTO"))))
@@ -116,8 +114,8 @@ class CaixaServiceTest {
                 .valorTotal(new BigDecimal("80.00"))
                 .usuario(usuario)
                 .build();
-        when(caixaSessaoRepository.findFirstByCaixaEmpresaIdAndStatusOrderByDataAberturaDesc(1, "ABERTO"))
-                .thenReturn(Optional.of(aberta));
+        when(authService.getUsuarioLogado()).thenReturn(usuario);
+        when(caixaSessaoRepository.findByUsuarioIdAndStatus(1, "ABERTO")).thenReturn(Optional.of(aberta));
         when(caixaMovimentacaoRepository.save(any(CaixaMovimentacao.class))).thenAnswer(inv -> inv.getArgument(0));
 
         caixaService.registrarVendaSeCaixaAberto(venda, "PIX");
@@ -140,8 +138,8 @@ class CaixaServiceTest {
                 .descricao("Compra C2026-00001 - Parcela 1/1")
                 .usuario(usuario)
                 .build();
-        when(caixaSessaoRepository.findFirstByCaixaEmpresaIdAndStatusOrderByDataAberturaDesc(1, "ABERTO"))
-                .thenReturn(Optional.of(aberta));
+        when(authService.getUsuarioLogado()).thenReturn(usuario);
+        when(caixaSessaoRepository.findByUsuarioIdAndStatus(1, "ABERTO")).thenReturn(Optional.of(aberta));
         when(caixaMovimentacaoRepository.save(any(CaixaMovimentacao.class))).thenAnswer(inv -> inv.getArgument(0));
 
         caixaService.registrarPagamentoContaPagarSeCaixaAberto(conta, new BigDecimal("45.50"), "BOLETO");

@@ -1,7 +1,6 @@
 package com.erp.controller;
 
 import com.erp.model.*;
-import com.erp.repository.CategoriaProdutoRepository;
 import com.erp.repository.GrupoProdutoRepository;
 import com.erp.repository.UnidadeMedidaRepository;
 import com.erp.service.AuthService;
@@ -33,7 +32,6 @@ public class ProdutoFormController implements Initializable {
 
     private final ProdutoService produtoService;
     private final GrupoProdutoRepository grupoProdutoRepository;
-    private final CategoriaProdutoRepository categoriaProdutoRepository;
     private final UnidadeMedidaRepository unidadeMedidaRepository;
     private final AuthService authService;
 
@@ -47,7 +45,6 @@ public class ProdutoFormController implements Initializable {
     @FXML private TextField txtCodigoInterno;
     @FXML private TextField txtCodigoBarras;
     @FXML private ComboBox<GrupoProduto>     cmbGrupo;
-    @FXML private ComboBox<CategoriaProduto> cmbCategoria;
     @FXML private ComboBox<UnidadeMedida>    cmbUnidade;
     @FXML private Label                      lblErrUnidade;
     @FXML private ToggleButton               btnStatus;
@@ -122,16 +119,6 @@ public class ProdutoFormController implements Initializable {
             }
         });
 
-        // Categorias — populadas quando grupo é selecionado
-        cmbCategoria.getItems().add(null);
-        cmbCategoria.setButtonCell(new ListCell<>() {
-            @Override
-            protected void updateItem(CategoriaProduto item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? "Selecione uma categoria..." : item.getNome());
-            }
-        });
-
         // Unidades
         List<UnidadeMedida> unidades = unidadeMedidaRepository.findByEmpresaIdOrderBySigla(empresaId);
         cmbUnidade.getItems().addAll(unidades);
@@ -152,23 +139,6 @@ public class ProdutoFormController implements Initializable {
     }
 
     private void configurarListeners() {
-        // Ao mudar grupo, filtra categorias e desabilita se não houver nenhuma
-        cmbGrupo.valueProperty().addListener((obs, old, grupo) -> {
-            cmbCategoria.getItems().clear();
-            cmbCategoria.getItems().add(null);
-            if (grupo != null) {
-                Integer empresaId = authService.getEmpresaIdLogado();
-                List<CategoriaProduto> cats = categoriaProdutoRepository
-                    .findByEmpresaIdAndGrupoIdAndAtivoTrueOrderByNome(empresaId, grupo.getId());
-                cmbCategoria.getItems().addAll(cats);
-                cmbCategoria.setDisable(cats.isEmpty());
-            } else {
-                cmbCategoria.setDisable(true);
-            }
-            cmbCategoria.setValue(null);
-        });
-        cmbCategoria.setDisable(true); // desabilitada até um grupo ser selecionado
-
         // Recalcula margem ao mudar preço de custo ou venda
         txtPrecoCusto.textProperty().addListener((obs, old, val) -> atualizarMargem());
         txtPrecoVenda.textProperty().addListener((obs, old, val) -> atualizarMargem());
@@ -196,16 +166,6 @@ public class ProdutoFormController implements Initializable {
 
         selecionarNoComboPorId(cmbGrupo, produtoAtual.getGrupo() != null
             ? produtoAtual.getGrupo().getId() : null);
-
-        // Categoria é preenchida após grupo ser setado (listener atualiza os itens)
-        if (produtoAtual.getCategoria() != null) {
-            final Integer catId = produtoAtual.getCategoria().getId();
-            javafx.application.Platform.runLater(() ->
-                cmbCategoria.getItems().stream()
-                    .filter(c -> c != null && c.getId().equals(catId))
-                    .findFirst()
-                    .ifPresent(cmbCategoria::setValue));
-        }
 
         selecionarNoComboPorId(cmbUnidade, produtoAtual.getUnidade() != null
             ? produtoAtual.getUnidade().getId() : null);
@@ -271,7 +231,6 @@ public class ProdutoFormController implements Initializable {
         produto.setCodigoInterno(emptyToNull(txtCodigoInterno.getText()));
         produto.setCodigoBarras(emptyToNull(txtCodigoBarras.getText()));
         produto.setGrupo(cmbGrupo.getValue());
-        produto.setCategoria(cmbCategoria.getValue());
         produto.setUnidade(cmbUnidade.getValue());
         produto.setAtivo(btnStatus.isSelected());
 
