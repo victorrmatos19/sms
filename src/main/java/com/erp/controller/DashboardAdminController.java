@@ -168,8 +168,8 @@ public class DashboardAdminController implements Initializable {
         lblSaudacao.setText(saudacao + ", " + primeiro + emoji);
         lblData.setText(capitalize(LocalDate.now().format(DATA_EXTENSO)));
 
-        String perfil = (usuario != null && usuario.getPerfil() != null)
-                ? usuario.getPerfil().getNome() : "";
+        String perfil = (usuario != null && usuario.getPerfilPrincipal() != null)
+                ? usuario.getPerfilPrincipal().getNome() : "";
         lblBadgePerfil.setText(perfil);
         lblBadgePerfil.setVisible(!perfil.isEmpty());
         lblBadgePerfil.setManaged(!perfil.isEmpty());

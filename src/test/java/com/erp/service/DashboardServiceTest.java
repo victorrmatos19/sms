@@ -7,6 +7,7 @@ import com.erp.model.VendaPagamento;
 import com.erp.model.dto.caixa.CaixaResumoDTO;
 import com.erp.model.dto.dashboard.DashboardAdminDTO;
 import com.erp.model.dto.dashboard.DashboardEstoqueDTO;
+import com.erp.model.dto.dashboard.VendaDiariaDTO;
 import com.erp.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -167,7 +168,8 @@ class DashboardServiceTest {
         when(produtoRepository.findByEmpresaIdAndEstoqueZerado(1)).thenReturn(List.of());
         when(produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(1)).thenReturn(List.of());
         when(produtoRepository.countByEmpresaIdAndAtivoTrue(1)).thenReturn(0L);
-        stubVendasDashboard(hoje, List.of(venda1, venda2), List.of(venda1, venda2),
+        stubVendasDashboard(hoje, List.of(venda1, venda2),
+                List.of(new VendaDiariaDTO(hoje, new BigDecimal("100.00"), 2L)),
                 List.<Object[]>of(new Object[]{"Produto A", new BigDecimal("100.00")}));
         when(caixaService.obterResumoAtual(1)).thenReturn(new CaixaResumoDTO(
                 true, 20, "Caixa Principal", "Admin", hoje.atStartOfDay(), null,
@@ -186,6 +188,56 @@ class DashboardServiceTest {
         assertThat(dto.saldoCaixaAtual()).isEqualByComparingTo("120.00");
         assertThat(dto.entradasCaixaAtual()).isEqualByComparingTo("100.00");
         assertThat(dto.saidasCaixaAtual()).isEqualByComparingTo("30.00");
+    }
+
+    @Test
+    void dado_vendas_hoje_e_ontem_quando_carregar_admin_entao_grafico_inclui_os_dois_dias() {
+        LocalDate hoje = LocalDate.now();
+        LocalDate ontem = hoje.minusDays(1);
+        LocalDate inicioMes = hoje.withDayOfMonth(1);
+        LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
+
+        Venda vendaHoje = Venda.builder()
+                .numero("V2026-00003")
+                .dataVenda(hoje.atTime(10, 0))
+                .status("FINALIZADA")
+                .valorTotal(new BigDecimal("120.00"))
+                .pagamentos(List.of(VendaPagamento.builder().formaPagamento("PIX").build()))
+                .build();
+
+        when(compraRepository.countByEmpresaIdAndStatusAndDataEmissaoBetween(
+                eq(1), eq("CONFIRMADA"), eq(inicioMes), eq(fimMes)))
+                .thenReturn(0L);
+        when(compraRepository.findByEmpresaIdAndStatus(1, "CONFIRMADA")).thenReturn(List.of());
+        when(compraRepository.countByEmpresaIdAndStatus(1, "RASCUNHO")).thenReturn(0L);
+        when(contaPagarRepository.countVencendoHoje(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.sumValorVencendoHoje(1, hoje)).thenReturn(BigDecimal.ZERO);
+        when(contaPagarRepository.countVencidas(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.countByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(0L);
+        when(contaPagarRepository.sumValorByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(BigDecimal.ZERO);
+        when(produtoRepository.findByEmpresaIdAndEstoqueZerado(1)).thenReturn(List.of());
+        when(produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(1)).thenReturn(List.of());
+        when(produtoRepository.countByEmpresaIdAndAtivoTrue(1)).thenReturn(0L);
+        stubVendasDashboard(hoje, List.of(vendaHoje), List.of(
+                new VendaDiariaDTO(ontem, new BigDecimal("80.00"), 1L),
+                new VendaDiariaDTO(hoje, new BigDecimal("120.00"), 1L)
+        ), List.of());
+        stubCaixaFechado();
+
+        DashboardAdminDTO dto = dashboardService.carregarAdmin(1);
+
+        assertThat(dto.vendasSemana()).hasSize(7);
+        assertThat(dto.vendasSemana()).anySatisfy(dia -> {
+            assertThat(dia.data()).isEqualTo(ontem);
+            assertThat(dia.total()).isEqualByComparingTo("80.00");
+            assertThat(dia.quantidade()).isEqualTo(1L);
+        });
+        assertThat(dto.vendasSemana()).anySatisfy(dia -> {
+            assertThat(dia.data()).isEqualTo(hoje);
+            assertThat(dia.total()).isEqualByComparingTo("120.00");
+            assertThat(dia.quantidade()).isEqualTo(1L);
+        });
+        assertThat(dto.ticketMedioUltimos7Dias()).isEqualByComparingTo("100.00");
     }
 
     // ---- 3. carregarEstoque: calcula corretamente as contagens ----
@@ -221,16 +273,26 @@ class DashboardServiceTest {
 
     private void stubVendasDashboard(LocalDate hoje,
                                      List<Venda> vendasHoje,
-                                     List<Venda> vendasSemana,
+                                     List<VendaDiariaDTO> vendasSemana,
                                      List<Object[]> topProdutos) {
         LocalDate inicioMes = hoje.withDayOfMonth(1);
         LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
         when(vendaRepository.findByEmpresaIdAndStatusAndPeriodoComRelacionamentos(
                 eq(1), eq("FINALIZADA"), eq(hoje.atStartOfDay()), eq(hoje.atTime(LocalTime.MAX))))
                 .thenReturn(vendasHoje);
-        when(vendaRepository.findByEmpresaIdAndStatusAndPeriodoComRelacionamentos(
-                eq(1), eq("FINALIZADA"), eq(hoje.minusDays(6).atStartOfDay()), eq(hoje.atTime(LocalTime.MAX))))
-                .thenReturn(vendasSemana);
+        for (int i = 6; i >= 0; i--) {
+            LocalDate dia = hoje.minusDays(i);
+            VendaDiariaDTO vendaDia = vendasSemana.stream()
+                    .filter(v -> v.data().equals(dia))
+                    .findFirst()
+                    .orElse(new VendaDiariaDTO(dia, BigDecimal.ZERO, 0L));
+            when(vendaRepository.countByEmpresaIdAndStatusAndDataVendaBetween(
+                    eq(1), eq("FINALIZADA"), eq(dia.atStartOfDay()), eq(dia.atTime(LocalTime.MAX))))
+                    .thenReturn(vendaDia.quantidade());
+            when(vendaRepository.sumValorTotalByEmpresaIdAndStatusAndDataVendaBetween(
+                    eq(1), eq("FINALIZADA"), eq(dia.atStartOfDay()), eq(dia.atTime(LocalTime.MAX))))
+                    .thenReturn(vendaDia.total());
+        }
         when(vendaRepository.findTopProdutosVendidosPeriodo(
                 eq(1), eq(inicioMes.atStartOfDay()), eq(fimMes.atTime(LocalTime.MAX)), any()))
                 .thenReturn(topProdutos);

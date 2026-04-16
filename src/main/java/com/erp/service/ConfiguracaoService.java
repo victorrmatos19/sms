@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -19,8 +21,27 @@ public class ConfiguracaoService {
 
     @Transactional
     public Configuracao buscarPorEmpresa(Integer empresaId) {
+        return buscarConfiguracao(empresaId)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Configuração não encontrada para empresa: " + empresaId));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Empresa> buscarEmpresa(Integer empresaId) {
+        return empresaRepository.findById(empresaId);
+    }
+
+    @Transactional
+    public Empresa salvarEmpresa(Empresa empresa) {
+        Empresa salva = empresaRepository.save(empresa);
+        log.info("Empresa id={} atualizada", salva.getId());
+        return salva;
+    }
+
+    @Transactional
+    public Optional<Configuracao> buscarConfiguracao(Integer empresaId) {
         return configuracaoRepository.findByEmpresaId(empresaId)
-            .orElseGet(() -> {
+            .or(() -> {
                 Empresa empresa = empresaRepository.findById(empresaId)
                     .orElseThrow(() -> new IllegalArgumentException(
                         "Empresa não encontrada: " + empresaId));
@@ -28,8 +49,16 @@ public class ConfiguracaoService {
                     .empresa(empresa)
                     .build();
                 log.info("Criando configuração padrão para empresa id={}", empresaId);
-                return configuracaoRepository.save(nova);
+                return Optional.of(configuracaoRepository.save(nova));
             });
+    }
+
+    @Transactional
+    public Configuracao salvarConfiguracao(Configuracao config) {
+        Configuracao salva = configuracaoRepository.save(config);
+        Integer empresaId = salva.getEmpresa() != null ? salva.getEmpresa().getId() : null;
+        log.info("Configuração id={} salva para empresa id={}", salva.getId(), empresaId);
+        return salva;
     }
 
     @Transactional

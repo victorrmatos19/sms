@@ -1,6 +1,7 @@
 package com.erp.service;
 
 import com.erp.model.Empresa;
+import com.erp.model.PerfilAcesso;
 import com.erp.model.Usuario;
 import com.erp.repository.EmpresaRepository;
 import com.erp.repository.UsuarioRepository;
@@ -69,7 +70,9 @@ public class AuthService {
         this.usuarioLogado = usuario;
         this.empresaIdLogado = usuario.getEmpresa().getId(); // carrega dentro da transação
         this.empresaLogada   = empresaRepository.findById(this.empresaIdLogado).orElseThrow();
-        log.info("Usuário autenticado: {} ({})", usuario.getNome(), usuario.getPerfil().getNome());
+        PerfilAcesso perfilPrincipal = usuario.getPerfilPrincipal();
+        log.info("Usuário autenticado: {} ({})", usuario.getNome(),
+                perfilPrincipal != null ? perfilPrincipal.getNome() : "SEM_PERFIL");
 
         return Optional.of(usuario);
     }
@@ -104,7 +107,21 @@ public class AuthService {
      */
     public boolean temPerfil(String nomePerfil) {
         if (usuarioLogado == null) return false;
-        return usuarioLogado.getPerfil().getNome().equals(nomePerfil);
+        return usuarioLogado.temPerfil(nomePerfil);
+    }
+
+    public boolean temQualquerPerfil(String... perfis) {
+        if (usuarioLogado == null || perfis == null) return false;
+        for (String perfil : perfis) {
+            if (usuarioLogado.temPerfil(perfil)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public PerfilAcesso getPerfilPrincipal() {
+        return usuarioLogado != null ? usuarioLogado.getPerfilPrincipal() : null;
     }
 
     /**

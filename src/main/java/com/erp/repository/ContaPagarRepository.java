@@ -28,6 +28,36 @@ public interface ContaPagarRepository extends JpaRepository<ContaPagar, Integer>
 
     @Query("""
             SELECT cp FROM ContaPagar cp
+            LEFT JOIN FETCH cp.fornecedor
+            LEFT JOIN FETCH cp.compra
+            WHERE cp.empresa.id = :empresaId
+              AND (:status IS NULL OR cp.status = :status)
+              AND cp.dataVencimento BETWEEN :dataInicio AND :dataFim
+            ORDER BY cp.dataVencimento ASC, cp.id ASC
+            """)
+    List<ContaPagar> findByEmpresaIdAndStatusAndVencimentoBetween(
+            @Param("empresaId") Integer empresaId,
+            @Param("status") String status,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim);
+
+    @Query("""
+            SELECT cp FROM ContaPagar cp
+            LEFT JOIN FETCH cp.fornecedor
+            LEFT JOIN FETCH cp.compra
+            WHERE cp.empresa.id = :empresaId
+              AND (:status IS NULL OR cp.status = :status)
+              AND cp.dataEmissao BETWEEN :dataInicio AND :dataFim
+            ORDER BY cp.dataVencimento ASC, cp.id ASC
+            """)
+    List<ContaPagar> findByEmpresaIdAndStatusAndEmissaoBetween(
+            @Param("empresaId") Integer empresaId,
+            @Param("status") String status,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim);
+
+    @Query("""
+            SELECT cp FROM ContaPagar cp
             LEFT JOIN FETCH cp.empresa
             LEFT JOIN FETCH cp.fornecedor
             LEFT JOIN FETCH cp.compra

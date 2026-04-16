@@ -76,8 +76,8 @@ public class Empresa {
     @Column(length = 120)
     private String site;
 
-    // Logotipo armazenado como blob
-    @Lob
+    // Logotipo armazenado diretamente em BYTEA.
+    // Não usar @Lob aqui: no PostgreSQL/Hibernate ele tenta persistir como OID.
     @Column(columnDefinition = "BYTEA")
     private byte[] logotipo;
 

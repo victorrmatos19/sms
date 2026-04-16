@@ -11,9 +11,9 @@ O produto usa PostgreSQL embarcado local, UI JavaFX e Spring Boot sem servidor w
 
 **Nome do produto:** SMS — Simple Manage System
 **Tipo:** aplicativo desktop local com distribuição planejada por assinatura
-**Estado atual:** Fase 1 comercial implementada até Vendas, com financeiro iniciado por Caixa e Contas a Pagar
+**Estado atual:** Fase 1 comercial implementada até Vendas, financeiro iniciado por Caixa, Contas a Pagar e Contas a Receber, Configurações da Empresa e Usuários operacionais para administradores, com controle de acesso por múltiplos perfis
 
-O foco de negócio atual é transformar o núcleo cadastral/estoque/compras/orçamentos/vendas/financeiro em um fluxo comercial confiável: cadastrar produtos e clientes, comprar, movimentar estoque, emitir orçamento, converter em venda, registrar venda direta, movimentar o caixa, baixar obrigações e refletir isso nos dashboards.
+O foco de negócio atual é transformar o núcleo cadastral/estoque/compras/orçamentos/vendas/financeiro em um fluxo comercial confiável: cadastrar produtos e clientes, comprar, movimentar estoque, emitir orçamento, converter em venda, registrar venda direta, movimentar o caixa, baixar obrigações/recebíveis, configurar dados reais da empresa e refletir isso nos dashboards e documentos.
 
 ---
 
@@ -47,7 +47,7 @@ src/main/java/com/erp/
 
 src/main/resources/
 ├── css/          # global.css
-├── db/migration/ # Flyway migrations V1..V6
+├── db/migration/ # Flyway migrations V1..V7
 ├── fxml/         # Telas JavaFX
 ├── images/       # Logo e ícones
 └── reports/      # Templates JasperReports
@@ -62,6 +62,33 @@ Novos arquivos adicionados no módulo Contas a Receber:
 - `src/main/resources/fxml/contas-receber.fxml`
 - `src/main/resources/db/migration/V6__mock_contas_receber.sql`
 
+Arquivos expandidos no módulo Contas a Pagar:
+
+- `src/main/java/com/erp/repository/ContaPagarRepository.java` (filtros por período combinados com status)
+- `src/main/java/com/erp/service/ContaPagarService.java` (edição de vencimento, baixa em lote e despesa avulsa)
+- `src/main/java/com/erp/controller/ContasPagarController.java` (filtros por período, seleção múltipla e dialogs novos)
+- `src/main/resources/fxml/contas-pagar.fxml` (novos filtros e botões operacionais)
+
+Novos arquivos adicionados no módulo Configurações da Empresa:
+
+- `src/main/java/com/erp/controller/ConfiguracoesController.java`
+- `src/main/resources/fxml/configuracoes.fxml`
+
+Arquivos expandidos para Configurações:
+
+- `src/main/java/com/erp/service/ConfiguracaoService.java` (empresa, defaults de configuração e persistência de parâmetros)
+- `src/main/java/com/erp/controller/MainController.java` (carregamento da tela e restrição ADMINISTRADOR)
+- `src/main/java/com/erp/service/OrcamentoPdfService.java` (dados reais da empresa e logotipo configurável no PDF)
+- `src/main/resources/reports/orcamento.jrxml` (parâmetros de endereço e logotipo)
+
+Novos arquivos adicionados no módulo Usuários:
+
+- `src/main/java/com/erp/repository/PerfilAcessoRepository.java`
+- `src/main/java/com/erp/service/UsuarioService.java`
+- `src/main/java/com/erp/controller/UsuariosController.java`
+- `src/main/resources/fxml/usuarios.fxml`
+- `src/main/resources/db/migration/V7__multiplos_perfis_usuario.sql`
+
 FXMLs principais existentes:
 
 - Login e shell: `login.fxml`, `main.fxml`
@@ -73,7 +100,8 @@ FXMLs principais existentes:
 - Compras: `compras.fxml`, `compra-form.fxml`
 - Orçamentos: `orcamentos.fxml`, `orcamento-form.fxml`, `orcamento-conversao.fxml`
 - Vendas: `vendas.fxml`, `venda-form.fxml`
-- Financeiro: `caixa.fxml`, `contas-pagar.fxml`
+- Financeiro: `caixa.fxml`, `contas-pagar.fxml`, `contas-receber.fxml`
+- Sistema: `usuarios.fxml`, `configuracoes.fxml`
 
 ---
 
@@ -82,9 +110,25 @@ FXMLs principais existentes:
 ### Autenticação e Shell
 
 - Login com `AuthService`.
-- Perfis usados para direcionar dashboard inicial: administrador, vendas, financeiro e estoque.
+- Usuários podem acumular múltiplos perfis; o perfil principal, por hierarquia, direciona o dashboard inicial.
+- `AuthService` expõe `temPerfil`, `temQualquerPerfil` e `getPerfilPrincipal`.
 - `MainController` carrega módulos dentro do `StackPane#conteudoPane`.
+- Sidebar exibe dinamicamente apenas os módulos permitidos para os perfis do usuário logado.
 - `StageManager` centraliza tema, CSS global e dark mode.
+
+### Módulo de Usuários
+
+- Tela disponível no menu Sistema > Usuários apenas para perfil `ADMINISTRADOR`.
+- `MainController` oculta o botão para perfis não administradores e também bloqueia acesso direto com Alert.
+- `UsuarioService` centraliza criação, edição, alteração de senha e ativação/desativação lógica de usuários.
+- Criação valida login (`[a-zA-Z0-9_]`, mínimo 3 caracteres), senha mínima de 6 caracteres, duplicidade por empresa e criptografa senha com `BCryptPasswordEncoder`.
+- Listagem e busca usam query com `JOIN FETCH u.perfis` para evitar `LazyInitializationException` na coluna Perfil.
+- `UsuariosController` implementa listagem, busca por nome/login, formulário de novo/editar em `Dialog`, alteração de senha e toggle ativo/inativo.
+- Formulário de usuário usa CheckBoxes para múltiplos perfis, exige pelo menos um perfil marcado e impede conceder `ADMINISTRADOR` quando o usuário logado não é administrador.
+- Coluna Perfil exibe todos os perfis do usuário separados por vírgula e ordenados por hierarquia.
+- Login é imutável após criação: edição exibe login como texto somente leitura.
+- Não há exclusão física de usuário; o fluxo usa apenas `ativo = false`.
+- Proteção de segurança impede desativar o próprio usuário logado e impede desativar o único administrador ativo da empresa.
 
 ### Cadastros
 
@@ -143,12 +187,16 @@ FXMLs principais existentes:
 
 ### Contas a Pagar
 
-- Tela operacional para títulos gerados pela confirmação de compras.
+- Tela operacional para títulos gerados pela confirmação de compras e despesas avulsas.
 - Listagem com fornecedor, descrição, parcela, vencimento, valor, valor pago, forma e status.
 - Filtros por todas, abertas, vencidas, vencendo hoje, pagas e canceladas.
+- Filtros por período de vencimento ou emissão combinam com status e busca textual.
 - Busca por fornecedor, descrição ou número da compra.
 - Métricas de abertas, vencidas, vencendo hoje e pagas no mês.
 - Baixa com valor pago, juros, multa, desconto, data de pagamento, forma e observações.
+- Baixa em lote permite selecionar múltiplas contas abertas e baixa cada título de forma independente, sem abortar o lote por erro individual.
+- Edição controlada de vencimento permitida apenas para contas `ABERTA`.
+- Cadastro de despesa avulsa cria conta a pagar sem vínculo com compra (`compra_id` nulo), com fornecedor opcional.
 - Cancelamento de contas abertas.
 - Baixas registram saída no caixa aberto como movimentação `PAGAMENTO`.
 
@@ -165,6 +213,17 @@ FXMLs principais existentes:
 - Status da conta: ABERTA, RECEBIDA, VENCIDA (calculada na UI), CANCELADA.
 - Baixas registram entrada no caixa aberto como movimentação `RECEBIMENTO` via `CaixaService`.
 - `TODO`: incrementar `credito_disponivel` do cliente ao receber (aguarda método no `ClienteService`).
+
+### Configurações da Empresa
+
+- Tela disponível no menu Sistema > Configurações apenas para perfil `ADMINISTRADOR`.
+- `MainController` oculta o botão para perfis não administradores e também bloqueia acesso direto com Alert.
+- Aba Dados da Empresa permite editar razão social, nome fantasia, CNPJ, inscrições, regime tributário, endereço, contato e logotipo.
+- Busca de CEP reutiliza `ViaCepService`, seguindo o padrão dos formulários de cliente/fornecedor.
+- Logotipo é selecionado via `FileChooser`, preview em `ImageView` e persistido como `BYTEA` em `Empresa.logotipo`.
+- Aba Parâmetros do Sistema edita `Configuracao`: lote/validade, alerta de estoque mínimo, venda com estoque zero, validade do orçamento, juros, multa, impressora padrão e exibição de logotipo.
+- `ConfiguracaoService` centraliza busca/salvamento de `Empresa` e `Configuracao`, mantendo criação automática de defaults quando a configuração da empresa ainda não existe.
+- PDFs de orçamento usam dados reais da tabela `empresa` e respeitam `exibir_logotipo_impressao` para mostrar ou ocultar o logotipo.
 
 ### Dashboards
 
@@ -211,6 +270,7 @@ Foram adicionados dados reais de venda ao dashboard admin:
 - `DashboardAdminDTO` agora inclui `vendasHoje`, `valorVendasHoje`, `ticketMedioUltimos7Dias`, `vendasSemana` e `vendasHojeDetalhes`.
 - `VendaResumoDTO` representa linhas do modal de vendas do dia.
 - `VendaRepository` possui queries para vendas finalizadas por período e top produtos vendidos.
+- O gráfico `VENDAS — ÚLTIMOS 7 DIAS` usa as queries simples de soma/contagem por dia (`countBy...DataVendaBetween` e `sumValorTotalBy...DataVendaBetween`), evitando depender de listas com `JOIN FETCH` para montar a série diária.
 - `DashboardService` calcula vendas de hoje, gráfico semanal, ticket médio e ranking por vendas.
 - `DashboardAdminController` abre modal ao clicar no card `VENDAS HOJE`.
 - O card `CAIXA ATUAL` usa o resumo real do `CaixaService`, mostrando saldo atual e, quando aberto, entradas e saídas do caixa.
@@ -232,6 +292,15 @@ Foram adicionados dados reais de venda ao dashboard admin:
 - `MainController#abrirContasPagar` agora carrega a tela real do módulo.
 - A tabela `conta_pagar` já existia na migration inicial e é alimentada por compras confirmadas.
 
+### Gaps de Contas a Pagar
+
+- `ContaPagarRepository` passou a ter queries de período por vencimento e emissão, combinadas com status.
+- `ContaPagarService` ganhou filtro por período, edição controlada de vencimento, baixa em lote e cadastro de despesa avulsa.
+- `ContasPagarController` agora usa seleção múltipla na tabela para baixa em lote, mantendo ações individuais habilitadas apenas com uma linha selecionada.
+- `contas-pagar.fxml` recebeu filtros de período, botão de nova despesa, edição de vencimento e baixa em lote.
+- Campos monetários novos usam `MoneyUtils.parse`/`MoneyUtils.formatCurrency`; DatePickers novos usam conversor `dd/MM/yyyy`.
+- Não foi necessária nova migration: `conta_pagar.compra_id` já permite `null`.
+
 ### Módulo Contas a Receber
 
 - `ContaReceberService` centraliza listagem, resumo, baixa, cancelamento e cadastro avulso.
@@ -242,11 +311,38 @@ Foram adicionados dados reais de venda ao dashboard admin:
 - `V6__mock_contas_receber.sql` inseriu 14 contas mock: abertas, vencidas, vencendo hoje, recebidas e cancelada.
 - A tabela `conta_receber` já existia na migration V1 e é alimentada por vendas a prazo/crediário via `VendaService`.
 
+### Módulo Configurações da Empresa
+
+- `ConfiguracaoService` foi expandido para centralizar empresa e parâmetros operacionais sem criar service novo.
+- `ConfiguracoesController` e `configuracoes.fxml` implementam edição de dados reais da empresa, logotipo e parâmetros do sistema.
+- `MainController#abrirConfiguracoes` agora carrega a tela real, oculta o item para perfis não administradores e mantém bloqueio com Alert.
+- `OrcamentoPdfService` passou a buscar a empresa pelo `ConfiguracaoService`, montar endereço real, passar logotipo como `java.awt.Image` e respeitar `exibir_logotipo_impressao`.
+- `reports/orcamento.jrxml` recebeu parâmetros de endereço e logotipo no cabeçalho do relatório.
+
+### Módulo de Usuários
+
+- `PerfilAcessoRepository` expõe busca por nome e listagem ordenada dos perfis.
+- `UsuarioRepository` ganhou consultas com `JOIN FETCH u.perfis`, busca por termo e verificação de login duplicado por empresa.
+- `UsuarioService` cria usuários com BCrypt, edita dados sem alterar login, altera senha e protege o último administrador ativo.
+- `UsuariosController` e `usuarios.fxml` implementam gestão de usuários em tela de módulo, com dialogs para novo/editar, múltiplos perfis por CheckBox e alteração de senha.
+- `MainController#abrirUsuarios` carrega a tela real somente para administradores.
+
+### Controle de Acesso e Múltiplos Perfis
+
+- `Usuario` deixou de depender de um único `ManyToOne perfil` como regra funcional e passou a usar `ManyToMany perfis`.
+- `V7__multiplos_perfis_usuario.sql` criou a tabela `usuario_perfil`, migrou os dados legados de `usuario.perfil_id` e tornou a coluna antiga nullable.
+- `Usuario#getPerfilPrincipal()` escolhe o perfil de maior hierarquia para seleção do dashboard: Administrador, Gerente, Vendas, Financeiro e Estoque.
+- `AuthService#temQualquerPerfil()` centraliza checagens de acesso quando um módulo aceita mais de um perfil.
+- Sidebar do `MainController` agora oculta botões e seções sem acesso para o usuário logado.
+- Formulário de usuários usa CheckBoxes de perfil, permitindo acumular departamentos no mesmo login.
+
 ### PDF de Orçamento
 
 - JasperReports está em versão 6.21.4.
 - O template `orcamento.jrxml` foi mantido em formato compatível com Jasper 6.
 - `OrcamentoPdfService` compila o `.jrxml`, preenche parâmetros, exporta bytes e tenta abrir o PDF.
+- Dados da empresa vêm da tabela `empresa`, não de strings hardcoded ou apenas do seed inicial.
+- O logotipo da empresa é exibido quando existir imagem cadastrada e a configuração `exibir_logotipo_impressao` estiver ativa.
 - Para macOS, há fallback para comando nativo `open`.
 
 ### Visualizador de PDF
@@ -272,6 +368,15 @@ rm -rf /var/folders/vb/s6_m_53s1315y206glb3xdwc0000gn/T/embedded-pg
 ```
 
 Os dados reais ficam em `~/erp-desktop/data`, não nessa pasta temporária.
+
+---
+
+## Decisões Funcionais Relevantes
+
+- Múltiplos perfis por usuário: um usuário pode acumular departamentos; dashboard e badge principal são determinados pelo perfil de maior hierarquia.
+- Perfis continuam departamentais e sem matriz granular de permissões por ação nesta fase.
+- Usuários nunca são excluídos fisicamente; desativação lógica preserva histórico operacional.
+- Dados reais da empresa são editáveis em Configurações e são a fonte para PDFs e parâmetros operacionais.
 
 ---
 
@@ -311,6 +416,7 @@ public class MeuController implements Initializable {
 - `atualizadoEm` com `@UpdateTimestamp`.
 - Monetários: `NUMERIC(15,2)` no banco e `BigDecimal` no Java.
 - Preço unitário/custo unitário/quantidade: `NUMERIC(15,4)` quando há necessidade de 4 casas.
+- Campos binários em PostgreSQL `BYTEA`, como `Empresa.logotipo`, devem usar `byte[]` sem `@Lob`; com Hibernate/PostgreSQL, `@Lob` tende a persistir como `oid`.
 - Evitar acessar entidades lazy diretamente na UI fora de transação; criar queries com `JOIN FETCH` quando necessário.
 
 ### Repositories
@@ -370,8 +476,9 @@ Migrations atuais:
 - `V4__add_tema_configuracao.sql`
 - `V5__mock_dados_cadastrais.sql`
 - `V6__mock_contas_receber.sql`
+- `V7__multiplos_perfis_usuario.sql`
 
-Nunca alterar migration já executada. Criar sempre nova `V6__descricao.sql`, `V7__descricao.sql`, etc.
+Nunca alterar migration já executada. Criar sempre nova `V8__descricao.sql`, `V9__descricao.sql`, etc.
 
 Usuário padrão:
 
@@ -427,11 +534,7 @@ rm -rf /var/folders/vb/s6_m_53s1315y206glb3xdwc0000gn/T/embedded-pg
 
 A Fase 1 já tem o caminho comercial principal até vendas. Próximas prioridades de negócio sugeridas:
 
-1. Evoluir Caixa: relatório de sessões fechadas, reabertura controlada, conferência por forma de pagamento e filtros históricos.
-2. Evoluir Contas a Pagar: filtros por período, edição controlada de vencimento e baixa em lote.
-3. Evoluir Contas a Receber: baixa parcial, filtros por período, crédito do cliente ao receber (`incrementar credito_disponivel`).
-4. Relatórios gerenciais: vendas por período, produtos vendidos, compras, estoque, caixa e financeiro.
-5. Melhorias no dashboard: top clientes do mês e contas a receber/pagar hoje.
+1. Relatórios básicos/gerenciais: vendas por período, produtos vendidos, compras, estoque, caixa e financeiro.
 
 ---
 
@@ -444,3 +547,4 @@ A Fase 1 já tem o caminho comercial principal até vendas. Próximas prioridade
 | `LazyInitializationException` em tabelas JavaFX | Coluna acessando entidade lazy fora da sessão Hibernate | Repositório com `JOIN FETCH` ou DTO pronto para tela |
 | PDF não abre automaticamente | `Desktop.open` pode não ser suportado no ambiente | Usar fallback nativo ou informar caminho do arquivo salvo |
 | Valor monetário calculado errado após digitar `24.90` | Parser antigo removia pontos como milhar | Usar sempre `MoneyUtils.parse` |
+| Campo `perfil_id` em `usuario` ainda existe | Coluna legada, nullable após V7; a fonte de verdade são os registros em `usuario_perfil` | Remover `perfil_id` em versão futura quando houver compatibilidade total |

@@ -19,8 +19,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -185,20 +183,16 @@ public class DashboardService {
     // -----------------------------------------------------------------------
 
     private List<VendaDiariaDTO> calcularVendasSemana(Integer empresaId, LocalDate hoje) {
-        LocalDate inicio = hoje.minusDays(6);
-        LocalDateTime inicioPeriodo = inicio.atStartOfDay();
-        LocalDateTime fimPeriodo = hoje.atTime(LocalTime.MAX);
-        List<Venda> finalizadas = vendaRepository.findByEmpresaIdAndStatusAndPeriodoComRelacionamentos(
-                empresaId, STATUS_VENDA_FINALIZADA, inicioPeriodo, fimPeriodo);
-
-        Map<LocalDate, List<Venda>> porDia = finalizadas.stream()
-                .collect(Collectors.groupingBy(v -> v.getDataVenda().toLocalDate()));
-
         List<VendaDiariaDTO> resultado = new ArrayList<>();
         for (int i = 6; i >= 0; i--) {
             LocalDate dia = hoje.minusDays(i);
-            List<Venda> doDia = porDia.getOrDefault(dia, List.of());
-            resultado.add(new VendaDiariaDTO(dia, somarVendas(doDia), doDia.size()));
+            LocalDateTime inicioDia = dia.atStartOfDay();
+            LocalDateTime fimDia = dia.atTime(LocalTime.MAX);
+            long quantidade = vendaRepository.countByEmpresaIdAndStatusAndDataVendaBetween(
+                    empresaId, STATUS_VENDA_FINALIZADA, inicioDia, fimDia);
+            BigDecimal total = vendaRepository.sumValorTotalByEmpresaIdAndStatusAndDataVendaBetween(
+                    empresaId, STATUS_VENDA_FINALIZADA, inicioDia, fimDia);
+            resultado.add(new VendaDiariaDTO(dia, total != null ? total : BigDecimal.ZERO, quantidade));
         }
         return resultado;
     }

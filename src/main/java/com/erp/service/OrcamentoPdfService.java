@@ -10,12 +10,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.Desktop;
+import java.awt.Image;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import javax.imageio.ImageIO;
 
 @Slf4j
 @Service
@@ -23,10 +26,11 @@ import java.util.*;
 public class OrcamentoPdfService {
 
     private final OrcamentoRepository orcamentoRepository;
+    private final ConfiguracaoService configuracaoService;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    @Transactional(readOnly = true)
+    @Transactional
     public byte[] gerarPdf(Integer orcamentoId) {
         Orcamento orc = orcamentoRepository.findByIdWithItens(orcamentoId)
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -113,12 +117,16 @@ public class OrcamentoPdfService {
         Map<String, Object> p = new HashMap<>();
         p.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
 
-        Empresa empresa = orc.getEmpresa();
+        Empresa empresa = buscarEmpresaReal(orc);
+        Configuracao config = empresa != null && empresa.getId() != null
+                ? configuracaoService.buscarConfiguracao(empresa.getId()).orElse(null)
+                : null;
         p.put("EMPRESA_NOME",      empresa != null ? nvl(empresa.getRazaoSocial()) : "");
         p.put("EMPRESA_CNPJ",      empresa != null ? nvl(empresa.getCnpj()) : "");
+        p.put("EMPRESA_ENDERECO",  empresa != null ? montarEnderecoEmpresa(empresa) : "");
         p.put("EMPRESA_TELEFONE",  empresa != null ? nvl(empresa.getTelefone()) : "");
         p.put("EMPRESA_EMAIL",     empresa != null ? nvl(empresa.getEmail()) : "");
-        p.put("EMPRESA_LOGOTIPO",  empresa != null ? empresa.getLogotipo() : null);
+        p.put("EMPRESA_LOGOTIPO",  montarLogotipo(empresa, config));
 
         p.put("ORC_NUMERO",        nvl(orc.getNumero()));
         p.put("ORC_DATA_EMISSAO",  orc.getDataEmissao() != null ? orc.getDataEmissao().format(DATE_FMT) : "");
@@ -153,6 +161,44 @@ public class OrcamentoPdfService {
         p.put("VENDEDOR_NOME", vendedor != null ? nvl(vendedor.getNome()) : "");
 
         return p;
+    }
+
+    private Empresa buscarEmpresaReal(Orcamento orc) {
+        Empresa empresaOrcamento = orc.getEmpresa();
+        if (empresaOrcamento == null || empresaOrcamento.getId() == null) {
+            return empresaOrcamento;
+        }
+        return configuracaoService.buscarEmpresa(empresaOrcamento.getId()).orElse(empresaOrcamento);
+    }
+
+    private String montarEnderecoEmpresa(Empresa empresa) {
+        StringBuilder end = new StringBuilder();
+        if (empresa.getLogradouro() != null) {
+            end.append(empresa.getLogradouro());
+            if (empresa.getNumero() != null) end.append(", ").append(empresa.getNumero());
+            if (empresa.getBairro() != null) end.append(" - ").append(empresa.getBairro());
+            if (empresa.getCidade() != null) end.append(", ").append(empresa.getCidade());
+            if (empresa.getUf() != null) end.append("/").append(empresa.getUf());
+            if (empresa.getCep() != null) end.append(" - CEP ").append(empresa.getCep());
+        }
+        return end.toString();
+    }
+
+    private Image montarLogotipo(Empresa empresa, Configuracao config) {
+        if (empresa == null || empresa.getLogotipo() == null || empresa.getLogotipo().length == 0) {
+            return null;
+        }
+        boolean deveExibir = config == null || !Boolean.FALSE.equals(config.getExibirLogotipoImpressao());
+        if (!deveExibir) {
+            return null;
+        }
+        try {
+            return ImageIO.read(new ByteArrayInputStream(empresa.getLogotipo()));
+        } catch (IOException e) {
+            log.warn("Logotipo da empresa id={} não pôde ser lido para impressão",
+                    empresa.getId(), e);
+            return null;
+        }
     }
 
     private List<OrcamentoItemReportDTO> montarItens(Orcamento orc) {

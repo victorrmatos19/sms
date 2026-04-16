@@ -1,6 +1,7 @@
 package com.erp.controller;
 
 import com.erp.StageManager;
+import com.erp.model.PerfilAcesso;
 import com.erp.service.AuthService;
 import com.erp.util.SvgImageLoader;
 import javafx.animation.KeyFrame;
@@ -9,9 +10,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +44,31 @@ public class MainController implements Initializable {
 
     @FXML private ImageView imgLogoTopbar;
     @FXML private Button btnTema;
+    @FXML private Button btnClientes;
+    @FXML private Button btnFornecedores;
+    @FXML private Button btnProdutos;
+    @FXML private Button btnFuncionarios;
+    @FXML private Button btnEstoque;
+    @FXML private Button btnCompras;
+    @FXML private Button btnOrcamentos;
+    @FXML private Button btnVendas;
+    @FXML private Button btnCaixa;
+    @FXML private Button btnContasPagar;
+    @FXML private Button btnContasReceber;
+    @FXML private Button btnRelatorios;
+    @FXML private Button btnUsuarios;
+    @FXML private Button btnConfiguracoes;
+    @FXML private Label lblSecaoCadastros;
+    @FXML private Label lblSecaoEstoque;
+    @FXML private Label lblSecaoComercial;
+    @FXML private Label lblSecaoFinanceiro;
+    @FXML private Label lblSecaoRelatorios;
+    @FXML private Label lblSecaoSistema;
+    @FXML private Region separadorCadastros;
+    @FXML private Region separadorEstoque;
+    @FXML private Region separadorComercial;
+    @FXML private Region separadorFinanceiro;
+    @FXML private Region separadorRelatorios;
     @FXML private Label lblStatus;
     @FXML private Label lblDataHora;
     @FXML private StackPane conteudoPane;
@@ -70,7 +99,8 @@ public class MainController implements Initializable {
                 : String.valueOf(partes[0].charAt(0));
             lblAvatarSidebar.setText(iniciais.toUpperCase());
             lblNomeSidebar.setText(nome);
-            lblPerfilSidebar.setText(usuario.getPerfil() != null ? usuario.getPerfil().getNome() : "");
+            PerfilAcesso perfilPrincipal = usuario.getPerfilPrincipal();
+            lblPerfilSidebar.setText(perfilPrincipal != null ? perfilPrincipal.getNome() : "");
         }
 
         // Relógio em tempo real
@@ -79,6 +109,8 @@ public class MainController implements Initializable {
         ));
         clock.setCycleCount(Timeline.INDEFINITE);
         clock.play();
+
+        configurarAcessoSidebar();
 
         // Sincronizar ícone do botão com tema atual
         atualizarIconeTema();
@@ -119,7 +151,31 @@ public class MainController implements Initializable {
     @FXML private void abrirContasPagar()    { carregarModulo("/fxml/contas-pagar.fxml", "Contas a Pagar"); }
     @FXML private void abrirContasReceber()  { carregarModulo("/fxml/contas-receber.fxml", "Contas a Receber"); }
     @FXML private void abrirRelatorios()     { setStatus("Relatórios"); }
-    @FXML private void abrirConfiguracoes()  { setStatus("Configurações"); }
+    @FXML
+    private void abrirUsuarios() {
+        if (!authService.temPerfil("ADMINISTRADOR")) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Acesso Restrito");
+            alert.setHeaderText(null);
+            alert.setContentText("Apenas administradores podem gerenciar usuários do sistema.");
+            alert.showAndWait();
+            return;
+        }
+        carregarModulo("/fxml/usuarios.fxml", "Usuários");
+    }
+
+    @FXML
+    private void abrirConfiguracoes() {
+        if (!authService.temPerfil("ADMINISTRADOR")) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Acesso restrito");
+            alert.setHeaderText(null);
+            alert.setContentText("Apenas administradores podem acessar as configurações do sistema.");
+            alert.showAndWait();
+            return;
+        }
+        carregarModulo("/fxml/configuracoes.fxml", "Configurações");
+    }
 
     @FXML
     private void abrirProdutos() {
@@ -138,9 +194,8 @@ public class MainController implements Initializable {
     }
 
     public void carregarDashboard() {
-        var usuario = authService.getUsuarioLogado();
-        String perfil = (usuario != null && usuario.getPerfil() != null)
-                ? usuario.getPerfil().getNome() : "ADMINISTRADOR";
+        PerfilAcesso perfilPrincipal = authService.getPerfilPrincipal();
+        String perfil = perfilPrincipal != null ? perfilPrincipal.getNome() : "ADMINISTRADOR";
 
         String fxmlPath = switch (perfil) {
             case "VENDAS"      -> "/fxml/dashboard-vendas.fxml";
@@ -150,6 +205,74 @@ public class MainController implements Initializable {
         };
 
         carregarModulo(fxmlPath, "Dashboard");
+    }
+
+    private void configurarAcessoSidebar() {
+        setVisibleAndManaged(btnClientes,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE", "VENDAS"));
+        setVisibleAndManaged(btnFornecedores,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE", "ESTOQUE"));
+        setVisibleAndManaged(btnProdutos,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE", "ESTOQUE", "VENDAS"));
+        setVisibleAndManaged(btnFuncionarios,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE"));
+        setVisibleAndManaged(btnEstoque,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE", "ESTOQUE"));
+        setVisibleAndManaged(btnCompras,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE", "ESTOQUE"));
+        setVisibleAndManaged(btnOrcamentos,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE", "VENDAS"));
+        setVisibleAndManaged(btnVendas,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE", "VENDAS"));
+        setVisibleAndManaged(btnCaixa,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE", "FINANCEIRO", "VENDAS"));
+        setVisibleAndManaged(btnContasPagar,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE", "FINANCEIRO"));
+        setVisibleAndManaged(btnContasReceber,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE", "FINANCEIRO"));
+        setVisibleAndManaged(btnRelatorios,
+                authService.temQualquerPerfil("ADMINISTRADOR", "GERENTE", "FINANCEIRO"));
+        setVisibleAndManaged(btnConfiguracoes, authService.temPerfil("ADMINISTRADOR"));
+        setVisibleAndManaged(btnUsuarios, authService.temPerfil("ADMINISTRADOR"));
+
+        atualizarVisibilidadeSecoes();
+    }
+
+    private void setVisibleAndManaged(Node node, boolean visible) {
+        if (node == null) {
+            return;
+        }
+        node.setVisible(visible);
+        node.setManaged(visible);
+    }
+
+    private void atualizarVisibilidadeSecoes() {
+        boolean temCadastros = authService.temQualquerPerfil(
+                "ADMINISTRADOR", "GERENTE", "VENDAS", "ESTOQUE");
+        setVisibleAndManaged(lblSecaoCadastros, temCadastros);
+        setVisibleAndManaged(separadorCadastros, temCadastros);
+
+        boolean temEstoque = authService.temQualquerPerfil(
+                "ADMINISTRADOR", "GERENTE", "ESTOQUE");
+        setVisibleAndManaged(lblSecaoEstoque, temEstoque);
+        setVisibleAndManaged(separadorEstoque, temEstoque);
+
+        boolean temComercial = authService.temQualquerPerfil(
+                "ADMINISTRADOR", "GERENTE", "VENDAS");
+        setVisibleAndManaged(lblSecaoComercial, temComercial);
+        setVisibleAndManaged(separadorComercial, temComercial);
+
+        boolean temFinanceiro = authService.temQualquerPerfil(
+                "ADMINISTRADOR", "GERENTE", "FINANCEIRO", "VENDAS");
+        setVisibleAndManaged(lblSecaoFinanceiro, temFinanceiro);
+        setVisibleAndManaged(separadorFinanceiro, temFinanceiro);
+
+        boolean temRelatorios = authService.temQualquerPerfil(
+                "ADMINISTRADOR", "GERENTE", "FINANCEIRO");
+        setVisibleAndManaged(lblSecaoRelatorios, temRelatorios);
+        setVisibleAndManaged(separadorRelatorios, temRelatorios);
+
+        setVisibleAndManaged(lblSecaoSistema, authService.temPerfil("ADMINISTRADOR"));
     }
 
     private void carregarModulo(String fxmlPath, String nomeModulo) {

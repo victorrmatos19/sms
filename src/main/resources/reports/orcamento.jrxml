@@ -12,8 +12,10 @@
 
     <parameter name="EMPRESA_NOME"      class="java.lang.String"/>
     <parameter name="EMPRESA_CNPJ"      class="java.lang.String"/>
+    <parameter name="EMPRESA_ENDERECO"  class="java.lang.String"/>
     <parameter name="EMPRESA_TELEFONE"  class="java.lang.String"/>
     <parameter name="EMPRESA_EMAIL"     class="java.lang.String"/>
+    <parameter name="EMPRESA_LOGOTIPO"  class="java.awt.Image"/>
     <parameter name="ORC_NUMERO"        class="java.lang.String"/>
     <parameter name="ORC_DATA_EMISSAO"  class="java.lang.String"/>
     <parameter name="ORC_DATA_VALIDADE" class="java.lang.String"/>
@@ -37,8 +39,15 @@
     <title>
         <band height="175" splitType="Stretch">
 
+            <image>
+                <reportElement x="0" y="0" width="85" height="55">
+                    <printWhenExpression><![CDATA[$P{EMPRESA_LOGOTIPO} != null]]></printWhenExpression>
+                </reportElement>
+                <imageExpression><![CDATA[$P{EMPRESA_LOGOTIPO}]]></imageExpression>
+            </image>
+
             <textField isBlankWhenNull="true">
-                <reportElement x="0" y="0" width="350" height="22"/>
+                <reportElement x="95" y="0" width="255" height="22"/>
                 <textElement>
                     <font size="14" isBold="true"/>
                 </textElement>
@@ -46,7 +55,7 @@
             </textField>
 
             <textField isBlankWhenNull="true">
-                <reportElement x="0" y="24" width="350" height="14"/>
+                <reportElement x="95" y="24" width="255" height="14"/>
                 <textElement>
                     <font size="9"/>
                 </textElement>
@@ -54,11 +63,19 @@
             </textField>
 
             <textField isBlankWhenNull="true">
-                <reportElement x="0" y="40" width="350" height="14"/>
+                <reportElement x="95" y="40" width="255" height="14"/>
                 <textElement>
                     <font size="9"/>
                 </textElement>
                 <textFieldExpression><![CDATA[($P{EMPRESA_TELEFONE} != null ? $P{EMPRESA_TELEFONE} : "") + "  |  " + ($P{EMPRESA_EMAIL} != null ? $P{EMPRESA_EMAIL} : "")]]></textFieldExpression>
+            </textField>
+
+            <textField isBlankWhenNull="true">
+                <reportElement x="95" y="56" width="255" height="28"/>
+                <textElement>
+                    <font size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{EMPRESA_ENDERECO}]]></textFieldExpression>
             </textField>
 
             <staticText>

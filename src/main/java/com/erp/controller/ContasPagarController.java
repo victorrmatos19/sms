@@ -6,9 +6,11 @@ import com.erp.model.Fornecedor;
 import com.erp.model.dto.financeiro.ContasPagarResumoDTO;
 import com.erp.service.AuthService;
 import com.erp.service.ContaPagarService;
+import com.erp.service.FornecedorService;
 import com.erp.util.MoneyUtils;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -17,6 +19,9 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
+import javafx.util.converter.LocalDateStringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,7 +30,10 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -35,6 +43,7 @@ public class ContasPagarController implements Initializable {
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final ContaPagarService contaPagarService;
+    private final FornecedorService fornecedorService;
     private final AuthService authService;
 
     @FXML private Label lblAbertas;
@@ -48,7 +57,15 @@ public class ContasPagarController implements Initializable {
 
     @FXML private TextField txtBusca;
     @FXML private ComboBox<String> cmbFiltroStatus;
+    @FXML private ComboBox<String> filtroPeriodoPor;
+    @FXML private DatePicker dpInicio;
+    @FXML private DatePicker dpFim;
+    @FXML private Button btnFiltrarPeriodo;
+    @FXML private Button btnLimparFiltro;
+    @FXML private Button btnNovasDespesa;
     @FXML private Button btnBaixar;
+    @FXML private Button btnEditarVencimento;
+    @FXML private Button btnBaixarLote;
     @FXML private Button btnCancelar;
 
     @FXML private TableView<ContaPagar> tblContas;
@@ -67,6 +84,7 @@ public class ContasPagarController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         configurarFiltroStatus();
+        configurarFiltrosPeriodo();
         configurarColunas();
         configurarFiltros();
         configurarSelecao();
@@ -77,6 +95,13 @@ public class ContasPagarController implements Initializable {
         cmbFiltroStatus.setItems(FXCollections.observableArrayList(
                 "Todas", "Abertas", "Vencidas", "Vencendo Hoje", "Pagas", "Canceladas"));
         cmbFiltroStatus.setValue("Abertas");
+    }
+
+    private void configurarFiltrosPeriodo() {
+        filtroPeriodoPor.setItems(FXCollections.observableArrayList("Vencimento", "Emissão"));
+        filtroPeriodoPor.setValue("Vencimento");
+        configurarDatePicker(dpInicio);
+        configurarDatePicker(dpFim);
     }
 
     private void configurarColunas() {
@@ -116,14 +141,18 @@ public class ContasPagarController implements Initializable {
         tblContas.setItems(sorted);
 
         txtBusca.textProperty().addListener((obs, old, val) -> aplicarFiltro());
-        cmbFiltroStatus.valueProperty().addListener((obs, old, val) -> aplicarFiltro());
+        cmbFiltroStatus.valueProperty().addListener((obs, old, val) -> carregarContas());
     }
 
     private void configurarSelecao() {
-        tblContas.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> atualizarBotoes(sel));
+        tblContas.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        tblContas.getSelectionModel().getSelectedItems()
+                .addListener((ListChangeListener<ContaPagar>) change -> atualizarBotoes());
         tblContas.setOnMouseClicked(e -> {
             ContaPagar selecionada = tblContas.getSelectionModel().getSelectedItem();
-            if (e.getClickCount() == 2 && selecionada != null && podeBaixar(selecionada)) {
+            if (e.getClickCount() == 2 && selecionada != null
+                    && tblContas.getSelectionModel().getSelectedItems().size() == 1
+                    && podeBaixar(selecionada)) {
                 baixarSelecionada();
             }
         });
@@ -134,12 +163,49 @@ public class ContasPagarController implements Initializable {
         carregarDados();
     }
 
+    @FXML
+    private void filtrarPorPeriodo() {
+        if (!periodoValido()) {
+            return;
+        }
+        carregarContas();
+    }
+
+    @FXML
+    private void limparFiltro() {
+        txtBusca.clear();
+        cmbFiltroStatus.setValue("Todas");
+        filtroPeriodoPor.setValue("Vencimento");
+        dpInicio.setValue(null);
+        dpFim.setValue(null);
+        carregarContas();
+    }
+
     private void carregarDados() {
         Integer empresaId = authService.getEmpresaIdLogado();
-        todasContas.setAll(contaPagarService.listarPorEmpresa(empresaId));
         preencherResumo(contaPagarService.obterResumo(empresaId));
+        carregarContas();
+    }
+
+    private void carregarContas() {
+        Integer empresaId = authService.getEmpresaIdLogado();
+        if (periodoPreenchido()) {
+            todasContas.setAll(buscarPorPeriodo(empresaId));
+        } else {
+            todasContas.setAll(contaPagarService.listarPorEmpresa(empresaId));
+        }
         aplicarFiltro();
-        atualizarBotoes(tblContas.getSelectionModel().getSelectedItem());
+        atualizarBotoes();
+    }
+
+    private List<ContaPagar> buscarPorPeriodo(Integer empresaId) {
+        String status = statusQueryPeriodo();
+        if ("Emissão".equals(filtroPeriodoPor.getValue())) {
+            return contaPagarService.listarPorPeriodoEmissao(
+                    empresaId, status, dpInicio.getValue(), dpFim.getValue());
+        }
+        return contaPagarService.listarPorPeriodoVencimento(
+                empresaId, status, dpInicio.getValue(), dpFim.getValue());
     }
 
     private void preencherResumo(ContasPagarResumoDTO resumo) {
@@ -186,15 +252,21 @@ public class ContasPagarController implements Initializable {
         };
     }
 
-    private void atualizarBotoes(ContaPagar conta) {
-        boolean podeBaixar = podeBaixar(conta);
-        btnBaixar.setDisable(!podeBaixar);
-        btnCancelar.setDisable(conta == null || "PAGA".equals(conta.getStatus()) || "CANCELADA".equals(conta.getStatus()));
+    private void atualizarBotoes() {
+        int selecionadas = tblContas.getSelectionModel().getSelectedItems().size();
+        ContaPagar conta = selecionadas == 1 ? tblContas.getSelectionModel().getSelectedItem() : null;
+        boolean umaContaAberta = selecionadas == 1 && podeBaixar(conta);
+
+        btnBaixar.setDisable(!umaContaAberta);
+        btnEditarVencimento.setDisable(!umaContaAberta);
+        btnCancelar.setDisable(selecionadas != 1 || conta == null
+                || "PAGA".equals(conta.getStatus()) || "CANCELADA".equals(conta.getStatus()));
+        btnBaixarLote.setDisable(selecionadas <= 1);
     }
 
     @FXML
     private void baixarSelecionada() {
-        ContaPagar conta = tblContas.getSelectionModel().getSelectedItem();
+        ContaPagar conta = contaSelecionadaUnica();
         if (conta == null) return;
 
         Dialog<ButtonType> dialog = new Dialog<>();
@@ -206,6 +278,7 @@ public class ContasPagarController implements Initializable {
         TextField txtMulta = new TextField("0,00");
         TextField txtDesconto = new TextField(MoneyUtils.formatInput(conta.getDesconto()));
         DatePicker dpPagamento = new DatePicker(LocalDate.now());
+        configurarDatePicker(dpPagamento);
         ComboBox<String> cmbForma = new ComboBox<>(FXCollections.observableArrayList(
                 "DINHEIRO", "PIX", "TRANSFERENCIA", "BOLETO", "CARTAO_DEBITO", "CARTAO_CREDITO"));
         cmbForma.setValue("PIX");
@@ -256,8 +329,185 @@ public class ContasPagarController implements Initializable {
     }
 
     @FXML
+    private void editarVencimento() {
+        ContaPagar selecionada = contaSelecionadaUnica();
+        if (selecionada == null) return;
+        if (!"ABERTA".equals(selecionada.getStatus())) {
+            mostrarAviso("Apenas contas ABERTAS podem ter o vencimento alterado.");
+            return;
+        }
+
+        Dialog<LocalDate> dialog = new Dialog<>();
+        dialog.setTitle("Alterar Vencimento");
+        dialog.setHeaderText("Conta: " + selecionada.getDescricao());
+
+        DatePicker dp = new DatePicker(selecionada.getDataVencimento());
+        configurarDatePicker(dp);
+        dp.setPromptText("Nova data de vencimento");
+
+        VBox content = new VBox(8, new Label("Nova data de vencimento:"), dp);
+        content.setPadding(new Insets(16));
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        dialog.setResultConverter(bt -> bt == ButtonType.OK ? dp.getValue() : null);
+
+        dialog.showAndWait().ifPresent(novaData -> {
+            try {
+                contaPagarService.editarVencimento(selecionada.getId(), novaData);
+                carregarDados();
+            } catch (Exception e) {
+                mostrarAviso(e.getMessage());
+            }
+        });
+    }
+
+    @FXML
+    private void baixarEmLote() {
+        List<ContaPagar> selecionadas = new ArrayList<>(tblContas.getSelectionModel().getSelectedItems());
+        List<ContaPagar> abertas = selecionadas.stream()
+                .filter(c -> "ABERTA".equals(c.getStatus()))
+                .toList();
+
+        if (abertas.isEmpty()) {
+            mostrarAviso("Nenhuma conta ABERTA selecionada.");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Baixa em Lote");
+        dialog.setHeaderText(abertas.size() + " conta(s) serão baixadas");
+
+        DatePicker dpData = new DatePicker(LocalDate.now());
+        configurarDatePicker(dpData);
+        ComboBox<String> cbForma = new ComboBox<>(FXCollections.observableArrayList(
+                "Dinheiro", "PIX", "Transferência", "Cartão Débito", "Cartão Crédito", "Cheque", "Boleto"));
+        cbForma.setValue("Transferência");
+
+        BigDecimal total = abertas.stream()
+                .map(ContaPagar::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        Label lblTotal = new Label("Total: " + MoneyUtils.formatCurrency(total));
+        lblTotal.setStyle("-fx-font-weight: bold;");
+
+        VBox content = new VBox(8,
+                new Label("Data de pagamento:"), dpData,
+                new Label("Forma de pagamento:"), cbForma,
+                lblTotal);
+        content.setPadding(new Insets(16));
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.showAndWait().ifPresent(bt -> {
+            if (bt == ButtonType.OK) {
+                List<Integer> ids = abertas.stream()
+                        .map(ContaPagar::getId)
+                        .collect(Collectors.toList());
+                contaPagarService.baixarEmLote(ids, dpData.getValue(), normalizarFormaPagamento(cbForma.getValue()));
+                carregarDados();
+                mostrarInfo(abertas.size() + " conta(s) baixada(s) com sucesso.");
+            }
+        });
+    }
+
+    @FXML
+    private void novaDespesa() {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Nova Despesa");
+        dialog.setHeaderText("Cadastrar conta a pagar avulsa");
+
+        ComboBox<Fornecedor> cbFornecedor = new ComboBox<>(
+                FXCollections.observableArrayList(fornecedorService.listarAtivos(authService.getEmpresaIdLogado())));
+        cbFornecedor.setPromptText("Fornecedor opcional");
+        cbFornecedor.setEditable(true);
+        cbFornecedor.setConverter(fornecedorConverter());
+
+        TextField txtDescricao = new TextField();
+        txtDescricao.setPromptText("Descrição da despesa");
+        TextField txtValor = new TextField();
+        txtValor.setPromptText("0,00");
+        DatePicker dpEmissao = new DatePicker(LocalDate.now());
+        DatePicker dpVencimento = new DatePicker(LocalDate.now().plusDays(30));
+        configurarDatePicker(dpEmissao);
+        configurarDatePicker(dpVencimento);
+        Spinner<Integer> spParcela = new Spinner<>(1, 999, 1);
+        Spinner<Integer> spTotalParcelas = new Spinner<>(1, 999, 1);
+        spParcela.setEditable(true);
+        spTotalParcelas.setEditable(true);
+        TextArea txtObs = new TextArea();
+        txtObs.setPrefRowCount(3);
+        txtObs.setPromptText("Observações");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(16));
+        grid.addRow(0, new Label("Fornecedor"), cbFornecedor);
+        grid.addRow(1, new Label("Descrição *"), txtDescricao);
+        grid.addRow(2, new Label("Valor *"), txtValor);
+        grid.addRow(3, new Label("Data de Emissão"), dpEmissao);
+        grid.addRow(4, new Label("Data de Vencimento *"), dpVencimento);
+        grid.addRow(5, new Label("Parcela Nº"), spParcela);
+        grid.addRow(6, new Label("Total Parcelas"), spTotalParcelas);
+        grid.add(new Label("Observações"), 0, 7);
+        grid.add(txtObs, 1, 7);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            try {
+                salvarDespesaAvulsa(cbFornecedor, txtDescricao, txtValor, dpEmissao,
+                        dpVencimento, spParcela, spTotalParcelas, txtObs);
+            } catch (Exception e) {
+                mostrarAviso(e.getMessage());
+                event.consume();
+            }
+        });
+
+        dialog.showAndWait();
+    }
+
+    private void salvarDespesaAvulsa(ComboBox<Fornecedor> cbFornecedor, TextField txtDescricao,
+                                     TextField txtValor, DatePicker dpEmissao, DatePicker dpVencimento,
+                                     Spinner<Integer> spParcela, Spinner<Integer> spTotalParcelas,
+                                     TextArea txtObs) {
+        String descricao = txtDescricao.getText();
+        BigDecimal valor = MoneyUtils.parse(txtValor.getText());
+        Integer numeroParcela = spParcela.getValue();
+        Integer totalParcelas = spTotalParcelas.getValue();
+
+        if (descricao == null || descricao.trim().isEmpty()) {
+            throw new NegocioException("Descrição é obrigatória.");
+        }
+        if (valor.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new NegocioException("Valor deve ser maior que zero.");
+        }
+        if (dpVencimento.getValue() == null) {
+            throw new NegocioException("Data de vencimento é obrigatória.");
+        }
+        if (numeroParcela > totalParcelas) {
+            throw new NegocioException("Número da parcela deve ser menor ou igual ao total de parcelas.");
+        }
+
+        Fornecedor fornecedor = cbFornecedor.getValue();
+        contaPagarService.cadastrarAvulsa(
+                authService.getEmpresaIdLogado(),
+                fornecedor != null ? fornecedor.getId() : null,
+                descricao,
+                valor,
+                dpEmissao.getValue(),
+                dpVencimento.getValue(),
+                numeroParcela,
+                totalParcelas,
+                txtObs.getText());
+        carregarDados();
+        mostrarInfo("Despesa cadastrada com sucesso.");
+    }
+
+    @FXML
     private void cancelarSelecionada() {
-        ContaPagar conta = tblContas.getSelectionModel().getSelectedItem();
+        ContaPagar conta = contaSelecionadaUnica();
         if (conta == null) return;
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
@@ -279,6 +529,37 @@ public class ContasPagarController implements Initializable {
             log.error("Erro ao cancelar conta a pagar", e);
             mostrarErro("Erro ao cancelar conta: " + e.getMessage());
         }
+    }
+
+    private boolean periodoPreenchido() {
+        return dpInicio.getValue() != null && dpFim.getValue() != null;
+    }
+
+    private boolean periodoValido() {
+        if (dpInicio.getValue() == null || dpFim.getValue() == null) {
+            mostrarAviso("Informe a data inicial e final do período.");
+            return false;
+        }
+        if (dpInicio.getValue().isAfter(dpFim.getValue())) {
+            mostrarAviso("A data inicial não pode ser maior que a data final.");
+            return false;
+        }
+        return true;
+    }
+
+    private String statusQueryPeriodo() {
+        return switch (cmbFiltroStatus.getValue() == null ? "Todas" : cmbFiltroStatus.getValue()) {
+            case "Abertas", "Vencidas", "Vencendo Hoje" -> "ABERTA";
+            case "Pagas" -> "PAGA";
+            case "Canceladas" -> "CANCELADA";
+            default -> null;
+        };
+    }
+
+    private ContaPagar contaSelecionadaUnica() {
+        return tblContas.getSelectionModel().getSelectedItems().size() == 1
+                ? tblContas.getSelectionModel().getSelectedItem()
+                : null;
     }
 
     private boolean podeBaixar(ContaPagar conta) {
@@ -329,12 +610,50 @@ public class ContasPagarController implements Initializable {
             case "BOLETO" -> "Boleto";
             case "CARTAO_DEBITO" -> "Cartão Débito";
             case "CARTAO_CREDITO" -> "Cartão Crédito";
+            case "CHEQUE" -> "Cheque";
+            default -> forma;
+        };
+    }
+
+    private String normalizarFormaPagamento(String forma) {
+        if (forma == null) return null;
+        return switch (forma) {
+            case "Dinheiro" -> "DINHEIRO";
+            case "Transferência" -> "TRANSFERENCIA";
+            case "Cartão Débito" -> "CARTAO_DEBITO";
+            case "Cartão Crédito" -> "CARTAO_CREDITO";
+            case "Cheque" -> "CHEQUE";
+            case "Boleto" -> "BOLETO";
             default -> forma;
         };
     }
 
     private String formatarData(LocalDate data) {
         return data != null ? data.format(DATE_FMT) : "—";
+    }
+
+    private void configurarDatePicker(DatePicker datePicker) {
+        datePicker.setConverter(new LocalDateStringConverter(DATE_FMT, DATE_FMT));
+    }
+
+    private StringConverter<Fornecedor> fornecedorConverter() {
+        return new StringConverter<>() {
+            @Override
+            public String toString(Fornecedor fornecedor) {
+                return fornecedor != null ? nomeFornecedor(fornecedor) : "";
+            }
+
+            @Override
+            public Fornecedor fromString(String string) {
+                if (string == null || string.isBlank()) {
+                    return null;
+                }
+                return fornecedorService.listarAtivos(authService.getEmpresaIdLogado()).stream()
+                        .filter(f -> nomeFornecedor(f).equalsIgnoreCase(string.trim()))
+                        .findFirst()
+                        .orElse(null);
+            }
+        };
     }
 
     private BigDecimal nvl(BigDecimal valor) {
@@ -347,6 +666,10 @@ public class ContasPagarController implements Initializable {
 
     private String nvl(String valor) {
         return valor != null ? valor : "";
+    }
+
+    private void mostrarInfo(String mensagem) {
+        new Alert(Alert.AlertType.INFORMATION, mensagem, ButtonType.OK).showAndWait();
     }
 
     private void mostrarAviso(String mensagem) {

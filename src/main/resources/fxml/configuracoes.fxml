@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.ConfiguracoesController"
+      spacing="16" styleClass="content-area">
+
+    <HBox alignment="CENTER_LEFT">
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Configurações" styleClass="page-title"/>
+            <Label text="Dados da empresa e parâmetros operacionais do sistema"
+                   styleClass="page-subtitle"/>
+        </VBox>
+    </HBox>
+
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <Tab text="Dados da Empresa">
+                <VBox spacing="16" styleClass="card">
+                    <padding>
+                        <Insets top="16" right="16" bottom="16" left="16"/>
+                    </padding>
+
+                    <GridPane hgap="16" vgap="10">
+                        <columnConstraints>
+                            <ColumnConstraints minWidth="130" prefWidth="160"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                            <ColumnConstraints minWidth="130" prefWidth="160"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Razão Social *" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtRazaoSocial" promptText="Razão social"
+                                   GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="3" maxWidth="Infinity"/>
+
+                        <Label text="Nome Fantasia" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtNomeFantasia" promptText="Nome fantasia"
+                                   GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="3" maxWidth="Infinity"/>
+
+                        <Label text="CNPJ *" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtCnpj" promptText="00.000.000/0001-00"
+                                   GridPane.rowIndex="2" GridPane.columnIndex="1" maxWidth="220"/>
+
+                        <Label text="Regime Tributário" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                        <ComboBox fx:id="cmbRegimeTributario"
+                                  GridPane.rowIndex="2" GridPane.columnIndex="3" maxWidth="Infinity"/>
+
+                        <Label text="Inscrição Estadual" styleClass="form-label" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtInscricaoEstadual" promptText="Inscrição estadual"
+                                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                        <Label text="Inscrição Municipal" styleClass="form-label" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+                        <TextField fx:id="txtInscricaoMunicipal" promptText="Inscrição municipal"
+                                   GridPane.rowIndex="3" GridPane.columnIndex="3"/>
+                    </GridPane>
+
+                    <Region prefHeight="1" maxWidth="Infinity" styleClass="sidebar-divider"/>
+                    <Label text="Endereço" styleClass="card-title"/>
+
+                    <GridPane hgap="16" vgap="10">
+                        <columnConstraints>
+                            <ColumnConstraints minWidth="130" prefWidth="160"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                            <ColumnConstraints minWidth="130" prefWidth="160"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="CEP" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <HBox spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                            <TextField fx:id="txtCep" promptText="00000-000" prefWidth="130"/>
+                            <Button text="Buscar" onAction="#buscarCep" styleClass="btn-secondary"/>
+                            <Label fx:id="lblBuscandoCep" text="Buscando..." styleClass="form-hint"
+                                   visible="false" managed="false"/>
+                        </HBox>
+
+                        <Label text="Logradouro" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtLogradouro" promptText="Rua, avenida..."
+                                   GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="3" maxWidth="Infinity"/>
+
+                        <Label text="Número" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtNumero" promptText="Nº"
+                                   GridPane.rowIndex="2" GridPane.columnIndex="1" maxWidth="120"/>
+
+                        <Label text="Complemento" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                        <TextField fx:id="txtComplemento" promptText="Apto, sala..."
+                                   GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+
+                        <Label text="Bairro" styleClass="form-label" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtBairro" promptText="Bairro"
+                                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                        <Label text="Cidade" styleClass="form-label" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+                        <TextField fx:id="txtCidade" promptText="Cidade"
+                                   GridPane.rowIndex="3" GridPane.columnIndex="3"/>
+
+                        <Label text="UF" styleClass="form-label" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                        <ComboBox fx:id="cmbUf" prefWidth="90"
+                                  GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                    </GridPane>
+
+                    <Region prefHeight="1" maxWidth="Infinity" styleClass="sidebar-divider"/>
+                    <Label text="Contato" styleClass="card-title"/>
+
+                    <GridPane hgap="16" vgap="10">
+                        <columnConstraints>
+                            <ColumnConstraints minWidth="130" prefWidth="160"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                            <ColumnConstraints minWidth="130" prefWidth="160"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Telefone" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtTelefone" promptText="(00) 0000-0000"
+                                   GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                        <Label text="E-mail" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                        <TextField fx:id="txtEmail" promptText="email@empresa.com.br"
+                                   GridPane.rowIndex="0" GridPane.columnIndex="3"/>
+
+                        <Label text="Site" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtSite" promptText="https://..."
+                                   GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="3" maxWidth="Infinity"/>
+
+                        <Label text="Logotipo" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <HBox spacing="12" alignment="CENTER_LEFT" GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.columnSpan="3">
+                            <Button text="Selecionar Imagem" onAction="#selecionarLogotipo" styleClass="btn-secondary"/>
+                            <ImageView fx:id="imgLogotipo" fitWidth="120" fitHeight="60" preserveRatio="true"/>
+                            <Label fx:id="lblLogotipo" text="Nenhuma imagem selecionada" styleClass="form-hint"/>
+                        </HBox>
+                    </GridPane>
+                </VBox>
+            </Tab>
+
+            <Tab text="Parâmetros do Sistema">
+                <VBox spacing="16" styleClass="card">
+                    <padding>
+                        <Insets top="16" right="16" bottom="16" left="16"/>
+                    </padding>
+
+                    <GridPane hgap="16" vgap="12">
+                        <columnConstraints>
+                            <ColumnConstraints minWidth="220" prefWidth="260"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                            <ColumnConstraints minWidth="220" prefWidth="260"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Usa Lote e Validade" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <CheckBox fx:id="chkUsaLoteValidade" text="Controlar lote e validade"
+                                  GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                        <Label text="Alerta de Estoque Mínimo" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                        <CheckBox fx:id="chkAlertaEstoqueMinimo" text="Ativar alertas"
+                                  GridPane.rowIndex="0" GridPane.columnIndex="3"/>
+
+                        <Label text="Venda com Estoque Zero" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <CheckBox fx:id="chkPermiteVendaEstoqueZero" text="Permitir"
+                                  GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                        <Label text="Validade do Orçamento" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                        <HBox spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="1" GridPane.columnIndex="3">
+                            <Spinner fx:id="spnDiasValidadeOrcamento" prefWidth="90"/>
+                            <Label text="dias" styleClass="form-hint"/>
+                        </HBox>
+
+                        <Label text="Juros de Mora Padrão %" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtJurosMoraPadrao" promptText="0,00" maxWidth="120"
+                                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                        <Label text="Multa Padrão %" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                        <TextField fx:id="txtMultaPadrao" promptText="0,00" maxWidth="120"
+                                   GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+
+                        <Label text="Impressora Padrão" styleClass="form-label" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtImpressoraPadrao" promptText="Nome da impressora"
+                                   GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="3" maxWidth="Infinity"/>
+
+                        <Label text="Logotipo na Impressão" styleClass="form-label" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                        <CheckBox fx:id="chkExibirLogotipoImpressao" text="Exibir nos documentos"
+                                  GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                    </GridPane>
+                </VBox>
+            </Tab>
+        </TabPane>
+    </ScrollPane>
+
+    <HBox spacing="8" alignment="CENTER_RIGHT">
+        <Button text="Cancelar" onAction="#cancelar" styleClass="btn-secondary"/>
+        <Button text="Salvar" onAction="#salvar" styleClass="btn-primary"/>
+    </HBox>
+</VBox>

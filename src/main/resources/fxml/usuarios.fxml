@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.erp.controller.UsuariosController"
+            styleClass="content-area">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="8">
+            <Label text="Usuários do Sistema" styleClass="page-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="txtBusca" promptText="Buscar por nome ou login..." prefWidth="220"/>
+            <Button fx:id="btnNovo" text="+ Novo Usuário" onAction="#abrirNovo"
+                    styleClass="btn-primary"/>
+            <Button fx:id="btnEditar" text="Editar" onAction="#abrirEditar"
+                    styleClass="btn-secondary"/>
+            <Button fx:id="btnAlterarSenha" text="Alterar Senha" onAction="#alterarSenha"
+                    styleClass="btn-outline"/>
+            <Button fx:id="btnAtivarDesativar" text="Ativar/Desativar" onAction="#toggleAtivo"
+                    styleClass="btn-danger"/>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="12">
+            <Label fx:id="lblContador" text="0 usuário(s) cadastrado(s)" styleClass="page-subtitle"/>
+            <TableView fx:id="tabelaUsuarios" VBox.vgrow="ALWAYS" styleClass="table-view">
+                <columns>
+                    <TableColumn fx:id="colNome" text="NOME" prefWidth="200" minWidth="160"/>
+                    <TableColumn fx:id="colLogin" text="LOGIN" prefWidth="120" minWidth="100"/>
+                    <TableColumn fx:id="colPerfil" text="PERFIL" prefWidth="130" minWidth="110"/>
+                    <TableColumn fx:id="colEmail" text="EMAIL" prefWidth="200" minWidth="150"/>
+                    <TableColumn fx:id="colStatus" text="STATUS" prefWidth="90" minWidth="80"/>
+                </columns>
+                <placeholder>
+                    <Label text="Nenhum usuário encontrado" styleClass="content-placeholder"/>
+                </placeholder>
+            </TableView>
+        </VBox>
+    </center>
+</BorderPane>

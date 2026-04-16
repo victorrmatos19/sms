@@ -45,11 +45,28 @@
                    prefWidth="340"/>
         <ComboBox fx:id="cmbFiltroStatus" prefWidth="170"/>
         <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnNovasDespesa" text="+ Nova Despesa"
+                onAction="#novaDespesa" styleClass="btn-primary"/>
         <Button text="Atualizar" onAction="#atualizar" styleClass="btn-outline"/>
         <Button fx:id="btnBaixar" text="Baixar" onAction="#baixarSelecionada"
                 styleClass="btn-primary" disable="true"/>
+        <Button fx:id="btnEditarVencimento" text="Editar Vencimento"
+                onAction="#editarVencimento" styleClass="btn-outline" disable="true"/>
+        <Button fx:id="btnBaixarLote" text="Baixar em Lote"
+                onAction="#baixarEmLote" styleClass="btn-secondary" disable="true"/>
         <Button fx:id="btnCancelar" text="Cancelar" onAction="#cancelarSelecionada"
                 styleClass="btn-danger" disable="true"/>
+    </HBox>
+
+    <HBox spacing="8" alignment="CENTER_LEFT" styleClass="filtros-periodo">
+        <Label text="Período:" styleClass="form-label"/>
+        <ComboBox fx:id="filtroPeriodoPor" prefWidth="120"/>
+        <DatePicker fx:id="dpInicio" promptText="De" prefWidth="130"/>
+        <DatePicker fx:id="dpFim" promptText="Até" prefWidth="130"/>
+        <Button fx:id="btnFiltrarPeriodo" text="Filtrar"
+                onAction="#filtrarPorPeriodo" styleClass="btn-secondary"/>
+        <Button fx:id="btnLimparFiltro" text="Limpar"
+                onAction="#limparFiltro" styleClass="btn-outline"/>
     </HBox>
 
     <TableView fx:id="tblContas" VBox.vgrow="ALWAYS" styleClass="table-view">

@@ -31,41 +31,42 @@
             <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="sidebar-scroll">
                 <VBox styleClass="sidebar" spacing="0">
 
-                    <Label text="CADASTROS" styleClass="sidebar-section"/>
-                    <Button text="Clientes"      onAction="#abrirClientes"     maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button text="Fornecedores"  onAction="#abrirFornecedores" maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button text="Produtos"      onAction="#abrirProdutos"     maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button text="Funcionários"  onAction="#abrirFuncionarios" maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Label fx:id="lblSecaoCadastros" text="CADASTROS" styleClass="sidebar-section"/>
+                    <Button fx:id="btnClientes" text="Clientes"      onAction="#abrirClientes"     maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnFornecedores" text="Fornecedores"  onAction="#abrirFornecedores" maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnProdutos" text="Produtos"      onAction="#abrirProdutos"     maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnFuncionarios" text="Funcionários"  onAction="#abrirFuncionarios" maxWidth="Infinity" styleClass="sidebar-btn"/>
 
-                    <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
+                    <Region fx:id="separadorCadastros" styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
 
-                    <Label text="ESTOQUE" styleClass="sidebar-section"/>
-                    <Button text="Movimentações" onAction="#abrirEstoque"  maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button text="Compras"       onAction="#abrirCompras"  maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Label fx:id="lblSecaoEstoque" text="ESTOQUE" styleClass="sidebar-section"/>
+                    <Button fx:id="btnEstoque" text="Movimentações" onAction="#abrirEstoque"  maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnCompras" text="Compras"       onAction="#abrirCompras"  maxWidth="Infinity" styleClass="sidebar-btn"/>
 
-                    <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
+                    <Region fx:id="separadorEstoque" styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
 
-                    <Label text="COMERCIAL" styleClass="sidebar-section"/>
-                    <Button text="Orçamentos" onAction="#abrirOrcamentos" maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button text="Vendas"     onAction="#abrirVendas"     maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Label fx:id="lblSecaoComercial" text="COMERCIAL" styleClass="sidebar-section"/>
+                    <Button fx:id="btnOrcamentos" text="Orçamentos" onAction="#abrirOrcamentos" maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnVendas" text="Vendas"     onAction="#abrirVendas"     maxWidth="Infinity" styleClass="sidebar-btn"/>
 
-                    <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
+                    <Region fx:id="separadorComercial" styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
 
-                    <Label text="FINANCEIRO" styleClass="sidebar-section"/>
-                    <Button text="Caixa"             onAction="#abrirCaixa"          maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button text="Contas a Pagar"    onAction="#abrirContasPagar"    maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button text="Contas a Receber"  onAction="#abrirContasReceber"  maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Label fx:id="lblSecaoFinanceiro" text="FINANCEIRO" styleClass="sidebar-section"/>
+                    <Button fx:id="btnCaixa" text="Caixa"             onAction="#abrirCaixa"          maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnContasPagar" text="Contas a Pagar"    onAction="#abrirContasPagar"    maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnContasReceber" text="Contas a Receber"  onAction="#abrirContasReceber"  maxWidth="Infinity" styleClass="sidebar-btn"/>
 
-                    <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
+                    <Region fx:id="separadorFinanceiro" styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
 
-                    <Label text="RELATÓRIOS" styleClass="sidebar-section"/>
-                    <Button text="Relatórios" onAction="#abrirRelatorios" maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Label fx:id="lblSecaoRelatorios" text="RELATÓRIOS" styleClass="sidebar-section"/>
+                    <Button fx:id="btnRelatorios" text="Relatórios" onAction="#abrirRelatorios" maxWidth="Infinity" styleClass="sidebar-btn"/>
 
                     <Region VBox.vgrow="ALWAYS"/>
 
-                    <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
-                    <Label text="SISTEMA" styleClass="sidebar-section"/>
-                    <Button text="Configurações" onAction="#abrirConfiguracoes" maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Region fx:id="separadorRelatorios" styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
+                    <Label fx:id="lblSecaoSistema" text="SISTEMA" styleClass="sidebar-section"/>
+                    <Button fx:id="btnUsuarios" text="Usuários" onAction="#abrirUsuarios" maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnConfiguracoes" text="Configurações" onAction="#abrirConfiguracoes" maxWidth="Infinity" styleClass="sidebar-btn"/>
 
                     <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
                     <VBox styleClass="sidebar-user-area" spacing="3" alignment="CENTER_LEFT">

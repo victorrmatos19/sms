@@ -6,6 +6,10 @@ import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "usuario", uniqueConstraints = {
@@ -26,9 +30,14 @@ public class Usuario {
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "perfil_id", nullable = false)
-    private PerfilAcesso perfil;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "usuario_perfil",
+        joinColumns = @JoinColumn(name = "usuario_id"),
+        inverseJoinColumns = @JoinColumn(name = "perfil_id")
+    )
+    @Builder.Default
+    private Set<PerfilAcesso> perfis = new LinkedHashSet<>();
 
     @NotBlank
     @Column(nullable = false, length = 100)
@@ -63,5 +72,41 @@ public class Usuario {
     protected void onCreate() {
         criadoEm = LocalDateTime.now();
         atualizadoEm = LocalDateTime.now();
+    }
+
+    public boolean temPerfil(String nomePerfil) {
+        if (nomePerfil == null || perfis == null) {
+            return false;
+        }
+        return perfis.stream().anyMatch(p -> nomePerfil.equals(p.getNome()));
+    }
+
+    public PerfilAcesso getPerfilPrincipal() {
+        if (perfis == null || perfis.isEmpty()) {
+            return null;
+        }
+        return perfis.stream()
+            .min(Comparator.comparingInt(p -> ordemPerfil(p.getNome())))
+            .orElse(null);
+    }
+
+    public List<PerfilAcesso> getPerfisOrdenados() {
+        if (perfis == null) {
+            return List.of();
+        }
+        return perfis.stream()
+            .sorted(Comparator.comparingInt(p -> ordemPerfil(p.getNome())))
+            .toList();
+    }
+
+    private int ordemPerfil(String nomePerfil) {
+        return switch (nomePerfil != null ? nomePerfil : "") {
+            case "ADMINISTRADOR" -> 0;
+            case "GERENTE" -> 1;
+            case "VENDAS" -> 2;
+            case "FINANCEIRO" -> 3;
+            case "ESTOQUE" -> 4;
+            default -> 99;
+        };
     }
 }
