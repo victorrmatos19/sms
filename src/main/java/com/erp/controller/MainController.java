@@ -150,7 +150,7 @@ public class MainController implements Initializable {
     @FXML private void abrirCaixa()          { carregarModulo("/fxml/caixa.fxml", "Caixa"); }
     @FXML private void abrirContasPagar()    { carregarModulo("/fxml/contas-pagar.fxml", "Contas a Pagar"); }
     @FXML private void abrirContasReceber()  { carregarModulo("/fxml/contas-receber.fxml", "Contas a Receber"); }
-    @FXML private void abrirRelatorios()     { setStatus("Relatórios"); }
+    @FXML private void abrirRelatorios()     { carregarModulo("/fxml/relatorios.fxml", "Relatórios"); }
     @FXML
     private void abrirUsuarios() {
         if (!authService.temPerfil("ADMINISTRADOR")) {

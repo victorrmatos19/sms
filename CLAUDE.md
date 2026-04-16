@@ -11,9 +11,9 @@ O produto usa PostgreSQL embarcado local, UI JavaFX e Spring Boot sem servidor w
 
 **Nome do produto:** SMS — Simple Manage System
 **Tipo:** aplicativo desktop local com distribuição planejada por assinatura
-**Estado atual:** Fase 1 comercial implementada até Vendas, financeiro iniciado por Caixa, Contas a Pagar e Contas a Receber, Configurações da Empresa e Usuários operacionais para administradores, com controle de acesso por múltiplos perfis
+**Estado atual:** Fase 1 concluída: núcleo comercial, financeiro, configurações, usuários, múltiplos perfis e relatórios básicos implementados
 
-O foco de negócio atual é transformar o núcleo cadastral/estoque/compras/orçamentos/vendas/financeiro em um fluxo comercial confiável: cadastrar produtos e clientes, comprar, movimentar estoque, emitir orçamento, converter em venda, registrar venda direta, movimentar o caixa, baixar obrigações/recebíveis, configurar dados reais da empresa e refletir isso nos dashboards e documentos.
+O foco de negócio atual é evoluir do ERP operacional para a Fase 2 fiscal: emissão fiscal básica, documentos fiscais e impressão operacional, mantendo o núcleo cadastral/estoque/compras/orçamentos/vendas/financeiro já utilizável em fluxo ponta a ponta.
 
 ---
 
@@ -89,6 +89,21 @@ Novos arquivos adicionados no módulo Usuários:
 - `src/main/resources/fxml/usuarios.fxml`
 - `src/main/resources/db/migration/V7__multiplos_perfis_usuario.sql`
 
+Novos arquivos adicionados no módulo Relatórios Básicos:
+
+- `src/main/java/com/erp/service/RelatorioService.java`
+- `src/main/java/com/erp/service/RelatorioPdfService.java`
+- `src/main/java/com/erp/controller/RelatoriosController.java`
+- `src/main/java/com/erp/model/dto/relatorio/RelatorioVendasTotaisDTO.java`
+- `src/main/java/com/erp/model/dto/relatorio/RelatorioEstoqueTotaisDTO.java`
+- `src/main/java/com/erp/model/dto/relatorio/RelatorioFinanceiroTotaisDTO.java`
+- `src/main/java/com/erp/model/dto/relatorio/RelatorioCaixaTotaisDTO.java`
+- `src/main/resources/fxml/relatorios.fxml`
+- `src/main/resources/reports/relatorio-vendas.jrxml`
+- `src/main/resources/reports/relatorio-estoque.jrxml`
+- `src/main/resources/reports/relatorio-financeiro.jrxml`
+- `src/main/resources/reports/relatorio-caixa.jrxml`
+
 FXMLs principais existentes:
 
 - Login e shell: `login.fxml`, `main.fxml`
@@ -101,7 +116,7 @@ FXMLs principais existentes:
 - Orçamentos: `orcamentos.fxml`, `orcamento-form.fxml`, `orcamento-conversao.fxml`
 - Vendas: `vendas.fxml`, `venda-form.fxml`
 - Financeiro: `caixa.fxml`, `contas-pagar.fxml`, `contas-receber.fxml`
-- Sistema: `usuarios.fxml`, `configuracoes.fxml`
+- Sistema: `usuarios.fxml`, `configuracoes.fxml`, `relatorios.fxml`
 
 ---
 
@@ -236,8 +251,13 @@ FXMLs principais existentes:
 ### Relatórios
 
 - Orçamento em PDF via JasperReports.
-- Template atual: `src/main/resources/reports/orcamento.jrxml`.
-- Dados do PDF são montados em `OrcamentoPdfService` com DTO interno para itens.
+- Relatórios básicos implementados em tela única `relatorios.fxml` com `TabPane`.
+- Abas disponíveis: Vendas por Período, Posição de Estoque, Financeiro e Resumo de Caixa.
+- Cada aba possui filtros próprios, cards de totais, TableView e botão de exportação PDF.
+- `RelatorioService` centraliza queries de relatório com `JOIN FETCH` para evitar lazy loading em TableViews.
+- `RelatorioPdfService` gera PDFs via JasperReports, salva em temporário e abre externamente usando o mesmo padrão/fallback de `OrcamentoPdfService`.
+- Templates Jasper atuais: `orcamento.jrxml`, `relatorio-vendas.jrxml`, `relatorio-estoque.jrxml`, `relatorio-financeiro.jrxml`, `relatorio-caixa.jrxml`.
+- Dados de empresa/logotipo dos PDFs vêm das Configurações da Empresa.
 
 ---
 
@@ -336,6 +356,17 @@ Foram adicionados dados reais de venda ao dashboard admin:
 - Sidebar do `MainController` agora oculta botões e seções sem acesso para o usuário logado.
 - Formulário de usuários usa CheckBoxes de perfil, permitindo acumular departamentos no mesmo login.
 
+### Relatórios Básicos
+
+- `RelatorioService` concentra os relatórios de vendas, estoque, financeiro e caixa, retornando os mesmos dados usados em tela e no PDF.
+- `RelatoriosController` implementa a tela hub com abas lazy, filtros por relatório, cards de totais, tabelas e botões de PDF.
+- Vendas por período filtra por data, cliente, vendedor e status, com totais bruto/desconto/líquido.
+- Posição de estoque mostra situação atual sem período, com filtros por grupo, termo, situação e inativos.
+- Financeiro combina contas a pagar e receber por vencimento, status e pessoa relacionada.
+- Caixa lista sessões por período, caixa, operador e status, exibindo movimentações da sessão selecionada.
+- `RelatorioPdfService` compila os quatro templates JasperReports novos e usa cabeçalho padrão com empresa/logotipo.
+- `MainController#abrirRelatorios` agora carrega a tela real do módulo.
+
 ### PDF de Orçamento
 
 - JasperReports está em versão 6.21.4.
@@ -344,6 +375,12 @@ Foram adicionados dados reais de venda ao dashboard admin:
 - Dados da empresa vêm da tabela `empresa`, não de strings hardcoded ou apenas do seed inicial.
 - O logotipo da empresa é exibido quando existir imagem cadastrada e a configuração `exibir_logotipo_impressao` estiver ativa.
 - Para macOS, há fallback para comando nativo `open`.
+
+### PDFs de Relatórios
+
+- Relatórios básicos usam JasperReports 6.21.4 e `JRBeanCollectionDataSource`.
+- PDFs são salvos no diretório temporário com prefixo `sms_relatorio-*` e abertos por `Desktop.open` ou comando nativo (`open`, `xdg-open`, `rundll32`).
+- Botões de PDF ficam desabilitados quando a aba não possui dados para exportar.
 
 ### Visualizador de PDF
 
@@ -532,9 +569,11 @@ rm -rf /var/folders/vb/s6_m_53s1315y206glb3xdwc0000gn/T/embedded-pg
 
 ## Próximas Prioridades Prováveis
 
-A Fase 1 já tem o caminho comercial principal até vendas. Próximas prioridades de negócio sugeridas:
+A Fase 1 está concluída. Próximas prioridades de negócio sugeridas para a Fase 2:
 
-1. Relatórios básicos/gerenciais: vendas por período, produtos vendidos, compras, estoque, caixa e financeiro.
+1. Fiscal básico: NFC-e via API externa, como Focus NF-e ou WebMania.
+2. NF-e para vendas e operações que exigirem documento fiscal.
+3. Impressão de tabela de preços e materiais operacionais de balcão.
 
 ---
 

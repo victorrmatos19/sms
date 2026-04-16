@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.erp.controller.RelatoriosController"
+            styleClass="content-area">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="8" styleClass="topbar-modulo">
+            <VBox spacing="2">
+                <Label text="Relatórios" styleClass="page-title"/>
+                <Label text="Vendas, estoque, financeiro e caixa" styleClass="page-subtitle"/>
+            </VBox>
+        </HBox>
+    </top>
+
+    <center>
+        <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE">
+            <Tab fx:id="tabVendas" text="Vendas">
+                <VBox spacing="12">
+                    <padding><Insets top="12" right="0" bottom="0" left="0"/></padding>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Label text="De" styleClass="form-label"/>
+                        <DatePicker fx:id="dpInicioVendas" prefWidth="130"/>
+                        <Label text="Até" styleClass="form-label"/>
+                        <DatePicker fx:id="dpFimVendas" prefWidth="130"/>
+                        <ComboBox fx:id="cmbClienteVendas" promptText="Todos os clientes" prefWidth="190"/>
+                        <ComboBox fx:id="cmbVendedorVendas" promptText="Todos os vendedores" prefWidth="190"/>
+                        <ComboBox fx:id="cmbStatusVendas" prefWidth="135"/>
+                        <Button text="Aplicar Filtros" onAction="#aplicarFiltrosVendas" styleClass="btn-secondary"/>
+                        <Button text="Limpar" onAction="#limparFiltrosVendas" styleClass="btn-outline"/>
+                    </HBox>
+                    <HBox spacing="12">
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="VENDAS" styleClass="metric-card-label"/>
+                            <Label fx:id="lblQtdVendas" text="0" styleClass="metric-card-value"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="BRUTO" styleClass="metric-card-label"/>
+                            <Label fx:id="lblValorBrutoVendas" text="R$ 0,00" styleClass="metric-card-value"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="DESCONTOS" styleClass="metric-card-label"/>
+                            <Label fx:id="lblDescontosVendas" text="R$ 0,00" styleClass="metric-card-value-accent"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="LÍQUIDO" styleClass="metric-card-label"/>
+                            <Label fx:id="lblLiquidoVendas" text="R$ 0,00" styleClass="metric-card-value"/>
+                        </VBox>
+                    </HBox>
+                    <TableView fx:id="tblVendas" VBox.vgrow="ALWAYS" styleClass="table-view">
+                        <columns>
+                            <TableColumn fx:id="colVendaData" text="DATA/HORA" prefWidth="125"/>
+                            <TableColumn fx:id="colVendaNumero" text="NÚMERO" prefWidth="115"/>
+                            <TableColumn fx:id="colVendaCliente" text="CLIENTE" prefWidth="180"/>
+                            <TableColumn fx:id="colVendaVendedor" text="VENDEDOR" prefWidth="150"/>
+                            <TableColumn fx:id="colVendaForma" text="FORMA" prefWidth="130"/>
+                            <TableColumn fx:id="colVendaBruto" text="BRUTO" prefWidth="110"/>
+                            <TableColumn fx:id="colVendaDesconto" text="DESCONTO" prefWidth="110"/>
+                            <TableColumn fx:id="colVendaLiquido" text="LÍQUIDO" prefWidth="110"/>
+                            <TableColumn fx:id="colVendaStatus" text="STATUS" prefWidth="110"/>
+                        </columns>
+                    </TableView>
+                    <HBox alignment="CENTER_RIGHT" spacing="8">
+                        <Label fx:id="lblTotalVendas" text="Total: R$ 0,00" styleClass="page-subtitle"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnPdfVendas" text="Gerar PDF" onAction="#gerarPdfVendas" styleClass="btn-primary"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+
+            <Tab fx:id="tabEstoque" text="Estoque">
+                <VBox spacing="12">
+                    <padding><Insets top="12" right="0" bottom="0" left="0"/></padding>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <ComboBox fx:id="cmbGrupoEstoque" promptText="Todos os grupos" prefWidth="200"/>
+                        <TextField fx:id="txtBuscaEstoque" promptText="Produto ou código..." prefWidth="220"/>
+                        <ComboBox fx:id="cmbSituacaoEstoque" prefWidth="170"/>
+                        <CheckBox fx:id="chkInativosEstoque" text="Exibir inativos"/>
+                        <Button text="Aplicar Filtros" onAction="#aplicarFiltrosEstoque" styleClass="btn-secondary"/>
+                        <Button text="Limpar" onAction="#limparFiltrosEstoque" styleClass="btn-outline"/>
+                    </HBox>
+                    <HBox spacing="12">
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="ATIVOS" styleClass="metric-card-label"/>
+                            <Label fx:id="lblProdutosAtivos" text="0" styleClass="metric-card-value"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="NORMAL" styleClass="metric-card-label"/>
+                            <Label fx:id="lblProdutosNormal" text="0" styleClass="metric-card-value"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="ABAIXO" styleClass="metric-card-label"/>
+                            <Label fx:id="lblProdutosAbaixo" text="0" styleClass="metric-card-value-accent"/>
+                        </VBox>
+                        <VBox styleClass="metric-card-danger" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="ZERADOS" styleClass="metric-card-label"/>
+                            <Label fx:id="lblProdutosZerados" text="0" styleClass="metric-card-value-danger"/>
+                        </VBox>
+                    </HBox>
+                    <TableView fx:id="tblEstoque" VBox.vgrow="ALWAYS" styleClass="table-view">
+                        <columns>
+                            <TableColumn fx:id="colEstCodigo" text="CÓDIGO" prefWidth="95"/>
+                            <TableColumn fx:id="colEstDescricao" text="DESCRIÇÃO" prefWidth="220"/>
+                            <TableColumn fx:id="colEstGrupo" text="GRUPO" prefWidth="140"/>
+                            <TableColumn fx:id="colEstUnidade" text="UN" prefWidth="55"/>
+                            <TableColumn fx:id="colEstAtual" text="ATUAL" prefWidth="85"/>
+                            <TableColumn fx:id="colEstMinimo" text="MÍN." prefWidth="85"/>
+                            <TableColumn fx:id="colEstMaximo" text="MÁX." prefWidth="85"/>
+                            <TableColumn fx:id="colEstCusto" text="CUSTO" prefWidth="105"/>
+                            <TableColumn fx:id="colEstVenda" text="VENDA" prefWidth="105"/>
+                            <TableColumn fx:id="colEstValor" text="VALOR" prefWidth="115"/>
+                            <TableColumn fx:id="colEstSituacao" text="SITUAÇÃO" prefWidth="125"/>
+                        </columns>
+                    </TableView>
+                    <HBox alignment="CENTER_RIGHT" spacing="8">
+                        <Label fx:id="lblTotalEstoque" text="Valor em estoque: R$ 0,00" styleClass="page-subtitle"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnPdfEstoque" text="Gerar PDF" onAction="#gerarPdfEstoque" styleClass="btn-primary"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+
+            <Tab fx:id="tabFinanceiro" text="Financeiro">
+                <VBox spacing="12">
+                    <padding><Insets top="12" right="0" bottom="0" left="0"/></padding>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Label text="De" styleClass="form-label"/>
+                        <DatePicker fx:id="dpInicioFinanceiro" prefWidth="130"/>
+                        <Label text="Até" styleClass="form-label"/>
+                        <DatePicker fx:id="dpFimFinanceiro" prefWidth="130"/>
+                        <ComboBox fx:id="cmbStatusFinanceiro" prefWidth="145"/>
+                        <ComboBox fx:id="cmbFornecedorFinanceiro" promptText="Fornecedor" prefWidth="190"/>
+                        <ComboBox fx:id="cmbClienteFinanceiro" promptText="Cliente" prefWidth="190"/>
+                        <Button text="Aplicar Filtros" onAction="#aplicarFiltrosFinanceiro" styleClass="btn-secondary"/>
+                        <Button text="Limpar" onAction="#limparFiltrosFinanceiro" styleClass="btn-outline"/>
+                    </HBox>
+                    <HBox spacing="12">
+                        <VBox styleClass="metric-card-danger" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="PAGAR ABERTO" styleClass="metric-card-label"/>
+                            <Label fx:id="lblPagarAberto" text="R$ 0,00" styleClass="metric-card-value-danger"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="PAGO PERÍODO" styleClass="metric-card-label"/>
+                            <Label fx:id="lblPagarPago" text="R$ 0,00" styleClass="metric-card-value"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="RECEBER ABERTO" styleClass="metric-card-label"/>
+                            <Label fx:id="lblReceberAberto" text="R$ 0,00" styleClass="metric-card-value"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="RECEBIDO PERÍODO" styleClass="metric-card-label"/>
+                            <Label fx:id="lblRecebidoPeriodo" text="R$ 0,00" styleClass="metric-card-value"/>
+                        </VBox>
+                    </HBox>
+                    <Label text="Contas a Pagar" styleClass="card-title"/>
+                    <TableView fx:id="tblPagar" prefHeight="190" styleClass="table-view">
+                        <columns>
+                            <TableColumn fx:id="colPagarFornecedor" text="FORNECEDOR" prefWidth="180"/>
+                            <TableColumn fx:id="colPagarDescricao" text="DESCRIÇÃO" prefWidth="230"/>
+                            <TableColumn fx:id="colPagarParcela" text="PARC." prefWidth="65"/>
+                            <TableColumn fx:id="colPagarVencimento" text="VENCIMENTO" prefWidth="105"/>
+                            <TableColumn fx:id="colPagarValor" text="VALOR" prefWidth="105"/>
+                            <TableColumn fx:id="colPagarPago" text="PAGO" prefWidth="105"/>
+                            <TableColumn fx:id="colPagarForma" text="FORMA" prefWidth="120"/>
+                            <TableColumn fx:id="colPagarStatus" text="STATUS" prefWidth="110"/>
+                        </columns>
+                    </TableView>
+                    <Label text="Contas a Receber" styleClass="card-title"/>
+                    <TableView fx:id="tblReceber" prefHeight="190" styleClass="table-view">
+                        <columns>
+                            <TableColumn fx:id="colReceberCliente" text="CLIENTE" prefWidth="180"/>
+                            <TableColumn fx:id="colReceberDescricao" text="DESCRIÇÃO" prefWidth="230"/>
+                            <TableColumn fx:id="colReceberParcela" text="PARC." prefWidth="65"/>
+                            <TableColumn fx:id="colReceberVencimento" text="VENCIMENTO" prefWidth="105"/>
+                            <TableColumn fx:id="colReceberValor" text="VALOR" prefWidth="105"/>
+                            <TableColumn fx:id="colReceberPago" text="RECEBIDO" prefWidth="105"/>
+                            <TableColumn fx:id="colReceberForma" text="FORMA" prefWidth="120"/>
+                            <TableColumn fx:id="colReceberStatus" text="STATUS" prefWidth="110"/>
+                        </columns>
+                    </TableView>
+                    <HBox alignment="CENTER_RIGHT">
+                        <Button fx:id="btnPdfFinanceiro" text="Gerar PDF" onAction="#gerarPdfFinanceiro" styleClass="btn-primary"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+
+            <Tab fx:id="tabCaixa" text="Caixa">
+                <VBox spacing="12">
+                    <padding><Insets top="12" right="0" bottom="0" left="0"/></padding>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Label text="De" styleClass="form-label"/>
+                        <DatePicker fx:id="dpInicioCaixa" prefWidth="130"/>
+                        <Label text="Até" styleClass="form-label"/>
+                        <DatePicker fx:id="dpFimCaixa" prefWidth="130"/>
+                        <ComboBox fx:id="cmbCaixa" promptText="Todos os caixas" prefWidth="170"/>
+                        <ComboBox fx:id="cmbOperadorCaixa" promptText="Todos operadores" prefWidth="190"/>
+                        <ComboBox fx:id="cmbStatusCaixa" prefWidth="130"/>
+                        <Button text="Aplicar Filtros" onAction="#aplicarFiltrosCaixa" styleClass="btn-secondary"/>
+                        <Button text="Limpar" onAction="#limparFiltrosCaixa" styleClass="btn-outline"/>
+                    </HBox>
+                    <HBox spacing="12">
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="SESSÕES" styleClass="metric-card-label"/>
+                            <Label fx:id="lblSessoesCaixa" text="0" styleClass="metric-card-value"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="ENTRADAS" styleClass="metric-card-label"/>
+                            <Label fx:id="lblEntradasCaixa" text="R$ 0,00" styleClass="metric-card-value"/>
+                        </VBox>
+                        <VBox styleClass="metric-card-danger" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="SAÍDAS" styleClass="metric-card-label"/>
+                            <Label fx:id="lblSaidasCaixa" text="R$ 0,00" styleClass="metric-card-value-danger"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="SALDO LÍQUIDO" styleClass="metric-card-label"/>
+                            <Label fx:id="lblSaldoCaixa" text="R$ 0,00" styleClass="metric-card-value"/>
+                        </VBox>
+                    </HBox>
+                    <TableView fx:id="tblCaixa" prefHeight="260" styleClass="table-view">
+                        <columns>
+                            <TableColumn fx:id="colCaixaNome" text="CAIXA" prefWidth="140"/>
+                            <TableColumn fx:id="colCaixaOperador" text="OPERADOR" prefWidth="150"/>
+                            <TableColumn fx:id="colCaixaAbertura" text="ABERTURA" prefWidth="135"/>
+                            <TableColumn fx:id="colCaixaFechamento" text="FECHAMENTO" prefWidth="135"/>
+                            <TableColumn fx:id="colCaixaInicial" text="INICIAL" prefWidth="100"/>
+                            <TableColumn fx:id="colCaixaEntradas" text="ENTRADAS" prefWidth="100"/>
+                            <TableColumn fx:id="colCaixaSaidas" text="SAÍDAS" prefWidth="100"/>
+                            <TableColumn fx:id="colCaixaFinal" text="FINAL CALC." prefWidth="110"/>
+                            <TableColumn fx:id="colCaixaDiferenca" text="DIF." prefWidth="100"/>
+                            <TableColumn fx:id="colCaixaStatus" text="STATUS" prefWidth="95"/>
+                        </columns>
+                    </TableView>
+                    <Label text="Movimentações da sessão selecionada" styleClass="card-title"/>
+                    <TableView fx:id="tblMovCaixa" VBox.vgrow="ALWAYS" styleClass="table-view">
+                        <columns>
+                            <TableColumn fx:id="colMovTipo" text="TIPO" prefWidth="120"/>
+                            <TableColumn fx:id="colMovDescricao" text="DESCRIÇÃO" prefWidth="320"/>
+                            <TableColumn fx:id="colMovForma" text="FORMA" prefWidth="130"/>
+                            <TableColumn fx:id="colMovOrigem" text="ORIGEM" prefWidth="130"/>
+                            <TableColumn fx:id="colMovValor" text="VALOR" prefWidth="120"/>
+                        </columns>
+                    </TableView>
+                    <HBox alignment="CENTER_RIGHT">
+                        <Button fx:id="btnPdfCaixa" text="Gerar PDF" onAction="#gerarPdfCaixa" styleClass="btn-primary"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+        </TabPane>
+    </center>
+</BorderPane>

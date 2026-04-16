@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -56,7 +57,7 @@ class AuthServiceTest {
             .senhaHash("$2a$10$hash")
             .ativo(true)
             .empresa(empresa)
-            .perfil(perfilAdmin)
+            .perfis(Set.of(perfilAdmin))
             .build();
     }
 
@@ -140,7 +141,7 @@ class AuthServiceTest {
     void dado_usuario_inativo_quando_autenticar_entao_retorna_empty() {
         Usuario usuarioInativo = Usuario.builder()
             .id(2).login("inativo").senhaHash("$2a$10$hash")
-            .ativo(false).empresa(empresa).perfil(perfilVendas).nome("Inativo")
+            .ativo(false).empresa(empresa).perfis(Set.of(perfilVendas)).nome("Inativo")
             .build();
 
         when(usuarioRepository.findByLogin("inativo")).thenReturn(Optional.of(usuarioInativo));
@@ -174,7 +175,7 @@ class AuthServiceTest {
 
     @Test
     void dado_usuario_com_perfil_vendas_quando_verificar_perfil_vendas_entao_retorna_true() {
-        usuarioAtivo.setPerfil(perfilVendas);
+        usuarioAtivo.setPerfis(Set.of(perfilVendas));
         when(usuarioRepository.findByLogin("admin")).thenReturn(Optional.of(usuarioAtivo));
         when(passwordEncoder.matches("admin123", "$2a$10$hash")).thenReturn(true);
         when(empresaRepository.findById(1)).thenReturn(Optional.of(empresa));
@@ -185,7 +186,7 @@ class AuthServiceTest {
 
     @Test
     void dado_usuario_com_perfil_vendas_quando_verificar_perfil_financeiro_entao_retorna_false() {
-        usuarioAtivo.setPerfil(perfilVendas);
+        usuarioAtivo.setPerfis(Set.of(perfilVendas));
         when(usuarioRepository.findByLogin("admin")).thenReturn(Optional.of(usuarioAtivo));
         when(passwordEncoder.matches("admin123", "$2a$10$hash")).thenReturn(true);
         when(empresaRepository.findById(1)).thenReturn(Optional.of(empresa));
@@ -196,7 +197,7 @@ class AuthServiceTest {
 
     @Test
     void dado_usuario_com_perfil_vendas_quando_verificar_admin_ou_gerente_entao_retorna_false() {
-        usuarioAtivo.setPerfil(perfilVendas);
+        usuarioAtivo.setPerfis(Set.of(perfilVendas));
         when(usuarioRepository.findByLogin("admin")).thenReturn(Optional.of(usuarioAtivo));
         when(passwordEncoder.matches("admin123", "$2a$10$hash")).thenReturn(true);
         when(empresaRepository.findById(1)).thenReturn(Optional.of(empresa));
