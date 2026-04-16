@@ -38,6 +38,8 @@
                    prefWidth="340"/>
         <ComboBox fx:id="cmbFiltroStatus" prefWidth="160"/>
         <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnCancelarVenda" text="Cancelar Venda" onAction="#cancelarVendaSelecionada"
+                styleClass="btn-danger" disable="true"/>
         <Button fx:id="btnVisualizar" text="Visualizar" onAction="#visualizarSelecionada"
                 styleClass="btn-outline" disable="true"/>
     </HBox>

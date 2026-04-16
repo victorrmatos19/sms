@@ -1,6 +1,7 @@
 package com.erp.service;
 
 import com.erp.exception.NegocioException;
+import com.erp.model.CaixaMovimentacao;
 import com.erp.model.Configuracao;
 import com.erp.model.ContaReceber;
 import com.erp.model.MovimentacaoEstoque;
@@ -8,6 +9,7 @@ import com.erp.model.Produto;
 import com.erp.model.Venda;
 import com.erp.model.VendaItem;
 import com.erp.model.VendaPagamento;
+import com.erp.repository.CaixaMovimentacaoRepository;
 import com.erp.repository.ConfiguracaoRepository;
 import com.erp.repository.ContaReceberRepository;
 import com.erp.repository.MovimentacaoEstoqueRepository;
@@ -45,6 +47,8 @@ public class VendaService {
     private final ConfiguracaoRepository configuracaoRepository;
     private final AuthService authService;
     private final CaixaService caixaService;
+    private final CaixaMovimentacaoRepository caixaMovimentacaoRepository;
+    private final ClienteService clienteService;
 
     @Transactional(readOnly = true)
     public List<Venda> listarPorEmpresa(Integer empresaId) {
@@ -274,6 +278,102 @@ public class VendaService {
                     .build();
             contaReceberRepository.save(conta);
         }
+
+        // Reduz crédito disponível do cliente (venda a prazo consumiu crédito)
+        if (venda.getCliente() != null && venda.getCliente().getId() != null) {
+            clienteService.ajustarCreditoDisponivel(
+                    venda.getCliente().getId(), venda.getValorTotal().negate());
+        }
+    }
+
+    @Transactional
+    public void cancelarVenda(Integer vendaId) {
+        Venda venda = vendaRepository.findByIdWithItens(vendaId)
+                .orElseThrow(() -> new NegocioException("Venda não encontrada."));
+
+        if ("CANCELADA".equals(venda.getStatus())) {
+            throw new IllegalStateException("Venda já cancelada.");
+        }
+        if (!"FINALIZADA".equals(venda.getStatus())) {
+            throw new NegocioException("Apenas vendas finalizadas podem ser canceladas.");
+        }
+
+        var usuario = authService.getUsuarioLogado();
+
+        // 1. Estornar estoque
+        for (VendaItem item : venda.getItens()) {
+            Produto produto = produtoRepository.findById(item.getProduto().getId())
+                    .orElse(item.getProduto());
+            BigDecimal saldoAnterior = nvl(produto.getEstoqueAtual());
+            BigDecimal saldoPosterior = saldoAnterior.add(item.getQuantidade());
+            produto.setEstoqueAtual(saldoPosterior);
+            produtoRepository.save(produto);
+
+            movimentacaoEstoqueRepository.save(MovimentacaoEstoque.builder()
+                    .empresa(venda.getEmpresa())
+                    .produto(produto)
+                    .tipo("ENTRADA")
+                    .origem("CANCELAMENTO_VENDA")
+                    .origemId(venda.getId())
+                    .quantidade(item.getQuantidade())
+                    .custoUnitario(nvl(produto.getPrecoCusto()))
+                    .saldoAnterior(saldoAnterior)
+                    .saldoPosterior(saldoPosterior)
+                    .observacoes("Cancelamento da venda " + venda.getNumero())
+                    .usuario(usuario)
+                    .build());
+        }
+
+        // 2. Cancelar contas a receber abertas
+        List<ContaReceber> contas = contaReceberRepository.findByVendaIdOrderByNumeroParcela(vendaId);
+        for (ContaReceber conta : contas) {
+            if ("ABERTA".equals(conta.getStatus())) {
+                conta.setStatus("CANCELADA");
+                conta.setUsuario(usuario);
+                contaReceberRepository.save(conta);
+            } else if ("RECEBIDA".equals(conta.getStatus())) {
+                log.warn("Parcela id={} já recebida — não cancelada. Venda: {}", conta.getId(), venda.getNumero());
+            }
+        }
+
+        // 3. Estornar movimentação de caixa (se sessão ainda aberta)
+        List<CaixaMovimentacao> movCaixa =
+                caixaMovimentacaoRepository.findByOrigemAndOrigemId("VENDA", vendaId);
+        for (CaixaMovimentacao mov : movCaixa) {
+            if (mov.getSessao() != null && "ABERTO".equals(mov.getSessao().getStatus())) {
+                caixaMovimentacaoRepository.save(CaixaMovimentacao.builder()
+                        .sessao(mov.getSessao())
+                        .tipo("SAIDA")
+                        .descricao("Estorno venda " + venda.getNumero())
+                        .valor(mov.getValor())
+                        .formaPagamento(mov.getFormaPagamento())
+                        .origem("CANCELAMENTO_VENDA")
+                        .origemId(venda.getId())
+                        .usuario(usuario)
+                        .build());
+            } else {
+                log.warn("Sessão de caixa fechada — estorno manual necessário para venda {}", venda.getNumero());
+            }
+        }
+
+        // 4. Restaurar crédito do cliente
+        if (venda.getCliente() != null && venda.getCliente().getId() != null
+                && (FORMA_PRAZO.equals(obterFormaPagamento(venda))
+                    || FORMA_CREDIARIO.equals(obterFormaPagamento(venda)))) {
+            clienteService.ajustarCreditoDisponivel(
+                    venda.getCliente().getId(), nvl(venda.getValorTotal()));
+        }
+
+        // 5. Cancelar venda
+        venda.setStatus("CANCELADA");
+        vendaRepository.save(venda);
+        log.info("Venda cancelada: id={} numero='{}'", venda.getId(), venda.getNumero());
+    }
+
+    private String obterFormaPagamento(Venda venda) {
+        if (venda.getPagamentos() == null || venda.getPagamentos().isEmpty()) return "";
+        String forma = venda.getPagamentos().get(0).getFormaPagamento();
+        return forma != null ? forma : "";
     }
 
     private int normalizarParcelas(Integer parcelas) {

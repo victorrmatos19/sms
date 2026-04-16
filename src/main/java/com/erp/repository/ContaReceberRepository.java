@@ -82,4 +82,6 @@ public interface ContaReceberRepository extends JpaRepository<ContaReceber, Inte
     BigDecimal sumValorRecebidoPeriodo(@Param("empresaId") Integer empresaId,
                                        @Param("inicio") LocalDate inicio,
                                        @Param("fim") LocalDate fim);
+
+    List<ContaReceber> findByVendaIdOrderByNumeroParcela(Integer vendaId);
 }

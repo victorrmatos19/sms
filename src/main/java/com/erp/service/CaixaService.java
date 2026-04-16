@@ -14,6 +14,7 @@ import com.erp.repository.CaixaRepository;
 import com.erp.repository.CaixaSessaoRepository;
 import com.erp.model.dto.caixa.CaixaResumoDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CaixaService {
@@ -54,11 +56,10 @@ public class CaixaService {
 
     @Transactional
     public CaixaSessao abrirCaixa(Integer empresaId, BigDecimal saldoInicial, String observacoes) {
-        if (buscarSessaoAberta(empresaId).isPresent()) {
-            throw new NegocioException("Já existe um caixa aberto.");
-        }
-
         Caixa caixa = obterOuCriarCaixaPrincipal(empresaId);
+        if (caixaSessaoRepository.existsByCaixaIdAndStatus(caixa.getId(), STATUS_ABERTO)) {
+            throw new NegocioException("Este caixa já está aberto.");
+        }
         Usuario usuario = authService.getUsuarioLogado();
         if (usuario == null) {
             throw new NegocioException("Usuário logado não encontrado.");
@@ -132,7 +133,12 @@ public class CaixaService {
             return;
         }
 
-        buscarSessaoAberta(venda.getEmpresa().getId()).ifPresent(sessao ->
+        Optional<CaixaSessao> sessaoOpt = buscarSessaoAberta(venda.getEmpresa().getId());
+        if (sessaoOpt.isEmpty()) {
+            log.info("Venda {} sem caixa aberto pelo operador — movimentação não registrada", nvl(venda.getNumero()));
+            return;
+        }
+        sessaoOpt.ifPresent(sessao ->
                 caixaMovimentacaoRepository.save(CaixaMovimentacao.builder()
                         .sessao(sessao)
                         .tipo("VENDA")
@@ -194,8 +200,9 @@ public class CaixaService {
     }
 
     private Optional<CaixaSessao> buscarSessaoAberta(Integer empresaId) {
-        return caixaSessaoRepository.findFirstByCaixaEmpresaIdAndStatusOrderByDataAberturaDesc(
-                empresaId, STATUS_ABERTO);
+        Usuario usuario = authService.getUsuarioLogado();
+        if (usuario == null) return Optional.empty();
+        return caixaSessaoRepository.findByUsuarioIdAndStatus(usuario.getId(), STATUS_ABERTO);
     }
 
     private Caixa obterOuCriarCaixaPrincipal(Integer empresaId) {

@@ -95,6 +95,21 @@ public class ClienteService {
         return clienteRepository.countByEmpresaIdAndLimiteCreditoGreaterThan(empresaId, BigDecimal.ZERO);
     }
 
+    @Transactional
+    public void ajustarCreditoDisponivel(Integer clienteId, BigDecimal delta) {
+        if (clienteId == null || delta == null || delta.compareTo(BigDecimal.ZERO) == 0) return;
+        clienteRepository.findById(clienteId).ifPresent(cliente -> {
+            BigDecimal atual = cliente.getCreditoDisponivel() != null
+                    ? cliente.getCreditoDisponivel() : BigDecimal.ZERO;
+            BigDecimal novo = atual.add(delta);
+            if (novo.compareTo(BigDecimal.ZERO) < 0) {
+                log.warn("creditoDisponivel ficou negativo para clienteId={}: {}", clienteId, novo);
+            }
+            cliente.setCreditoDisponivel(novo);
+            clienteRepository.save(cliente);
+        });
+    }
+
     // ---- Validação ----
 
     private void validar(Cliente cliente) {

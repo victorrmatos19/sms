@@ -25,6 +25,7 @@ public class ContaReceberService {
     private final ContaReceberRepository contaReceberRepository;
     private final AuthService authService;
     private final CaixaService caixaService;
+    private final ClienteService clienteService;
 
     @Transactional(readOnly = true)
     public List<ContaReceber> listarPorEmpresa(Integer empresaId) {
@@ -92,7 +93,9 @@ public class ContaReceberService {
 
         ContaReceber salva = contaReceberRepository.save(conta);
         caixaService.registrarRecebimentoContaReceberSeCaixaAberto(salva, valorPagoNorm, formaRecebimento);
-        // TODO: incrementar credito_disponivel do cliente quando ClienteService expor esse método
+        if (salva.getCliente() != null && salva.getCliente().getId() != null) {
+            clienteService.ajustarCreditoDisponivel(salva.getCliente().getId(), valorPagoNorm);
+        }
         log.info("Conta a receber baixada: id={} valorRecebido={}", salva.getId(), salva.getValorPago());
         return salva;
     }
@@ -113,6 +116,9 @@ public class ContaReceberService {
         conta.setObservacoes(blankToNull(observacoes));
         conta.setUsuario(authService.getUsuarioLogado());
         ContaReceber salva = contaReceberRepository.save(conta);
+        if (salva.getCliente() != null && salva.getCliente().getId() != null) {
+            clienteService.ajustarCreditoDisponivel(salva.getCliente().getId(), nvl(salva.getValor()));
+        }
         log.info("Conta a receber cancelada: id={}", salva.getId());
         return salva;
     }

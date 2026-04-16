@@ -51,6 +51,7 @@ public class VendaController implements Initializable {
     @FXML private ComboBox<String> cmbFiltroStatus;
 
     @FXML private Button btnVisualizar;
+    @FXML private Button btnCancelarVenda;
 
     @FXML private TableView<Venda> tblVendas;
     @FXML private TableColumn<Venda, String> colNumero;
@@ -147,8 +148,10 @@ public class VendaController implements Initializable {
     }
 
     private void configurarSelecao() {
-        tblVendas.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) ->
-                btnVisualizar.setDisable(sel == null));
+        tblVendas.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+            btnVisualizar.setDisable(sel == null);
+            btnCancelarVenda.setDisable(sel == null || !"FINALIZADA".equals(sel.getStatus()));
+        });
 
         tblVendas.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2 && tblVendas.getSelectionModel().getSelectedItem() != null) {
@@ -202,6 +205,45 @@ public class VendaController implements Initializable {
         if (selecionada != null) {
             abrirFormulario(selecionada);
         }
+    }
+
+    @FXML
+    private void cancelarVendaSelecionada() {
+        Venda venda = tblVendas.getSelectionModel().getSelectedItem();
+        if (venda == null || !"FINALIZADA".equals(venda.getStatus())) return;
+
+        javafx.scene.control.Alert confirm = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Cancelar Venda");
+        confirm.setHeaderText("Cancelar a venda " + venda.getNumero() + "?");
+        confirm.setContentText("Esta ação irá:\n" +
+                "• Estornar o estoque dos itens\n" +
+                "• Cancelar as parcelas em aberto\n" +
+                "• Registrar estorno no caixa (se aplicável)\n\n" +
+                "Esta ação não pode ser desfeita.");
+        confirm.getButtonTypes().setAll(
+                javafx.scene.control.ButtonType.YES, javafx.scene.control.ButtonType.NO);
+
+        confirm.showAndWait().filter(javafx.scene.control.ButtonType.YES::equals).ifPresent(bt -> {
+            try {
+                vendaService.cancelarVenda(venda.getId());
+                carregarVendas();
+                new javafx.scene.control.Alert(
+                        javafx.scene.control.Alert.AlertType.INFORMATION,
+                        "Venda cancelada com sucesso.",
+                        javafx.scene.control.ButtonType.OK).showAndWait();
+            } catch (IllegalStateException e) {
+                new javafx.scene.control.Alert(
+                        javafx.scene.control.Alert.AlertType.ERROR, e.getMessage(),
+                        javafx.scene.control.ButtonType.OK).showAndWait();
+            } catch (Exception e) {
+                log.error("Erro ao cancelar venda", e);
+                new javafx.scene.control.Alert(
+                        javafx.scene.control.Alert.AlertType.ERROR,
+                        "Erro ao cancelar: " + e.getMessage(),
+                        javafx.scene.control.ButtonType.OK).showAndWait();
+            }
+        });
     }
 
     private void abrirFormulario(Venda venda) {

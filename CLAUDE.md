@@ -188,12 +188,19 @@ FXMLs principais existentes:
 - Venda baixa estoque e registra movimentação de origem `VENDA`.
 - Produto na linha da venda é pesquisável por descrição, código interno e código de barras.
 - Respeita configuração de permitir ou bloquear venda com estoque insuficiente.
+- **Cancelamento de venda:** vendas `FINALIZADA` podem ser canceladas via botão na listagem com confirmação.
+  - Estorna estoque de cada item (movimentação `ENTRADA` origem `CANCELAMENTO_VENDA`).
+  - Cancela todas as parcelas `ABERTA` em `conta_receber`; parcelas `RECEBIDA` são preservadas (log.warn).
+  - Registra estorno no caixa (`SAIDA` origem `CANCELAMENTO_VENDA`) se a sessão ainda estiver aberta.
+  - Restaura `credito_disponivel` do cliente para vendas a prazo/crediário.
+  - Toda a operação é atômica (`@Transactional`) — qualquer falha faz rollback completo.
 
 ### Caixa
 
 - Primeira versão operacional do módulo financeiro.
 - Abertura de caixa com saldo inicial e operador logado.
-- Bloqueio para impedir mais de um caixa aberto por empresa.
+- Bloqueio por caixa: cada caixa cadastrado só pode ter uma sessão `ABERTO` por vez; operadores diferentes podem abrir caixas distintos simultaneamente.
+- Sessão buscada pelo usuário logado (não pelo primeiro caixa aberto da empresa): cada operador vê e opera apenas seu próprio caixa.
 - Movimentações manuais de suprimento e sangria.
 - Fechamento com saldo final informado, saldo calculado e diferença.
 - Vendas à vista registram entrada no caixa quando existe caixa aberto.
@@ -227,7 +234,8 @@ FXMLs principais existentes:
 - Cancelamento de contas abertas.
 - Status da conta: ABERTA, RECEBIDA, VENCIDA (calculada na UI), CANCELADA.
 - Baixas registram entrada no caixa aberto como movimentação `RECEBIMENTO` via `CaixaService`.
-- `TODO`: incrementar `credito_disponivel` do cliente ao receber (aguarda método no `ClienteService`).
+- Baixa de parcela incrementa `credito_disponivel` do cliente pelo valor recebido (`ClienteService.ajustarCreditoDisponivel`).
+- Cancelamento de conta aberta restaura `credito_disponivel` do cliente pelo valor original da parcela.
 
 ### Configurações da Empresa
 
@@ -346,6 +354,29 @@ Foram adicionados dados reais de venda ao dashboard admin:
 - `UsuarioService` cria usuários com BCrypt, edita dados sem alterar login, altera senha e protege o último administrador ativo.
 - `UsuariosController` e `usuarios.fxml` implementam gestão de usuários em tela de módulo, com dialogs para novo/editar, múltiplos perfis por CheckBox e alteração de senha.
 - `MainController#abrirUsuarios` carrega a tela real somente para administradores.
+
+### Gaps pré-Fase 2
+
+Três correções funcionais aplicadas após conclusão da Fase 1 comercial:
+
+**GAP 1 — Cancelamento de Venda**
+- `VendaService.cancelarVenda()` implementado com transação única que estorna estoque, cancela parcelas abertas, registra estorno no caixa e restaura crédito do cliente.
+- `VendaController` e `vendas.fxml` ganharam botão "Cancelar Venda" habilitado apenas para status `FINALIZADA`, com Alert de confirmação detalhando o que será revertido.
+- `ContaReceberRepository.findByVendaIdOrderByNumeroParcela` adicionado para buscar parcelas de uma venda.
+- `CaixaMovimentacaoRepository.findByOrigemAndOrigemId` adicionado para buscar movimentações de caixa de uma venda.
+
+**GAP 2 — Crédito Disponível do Cliente**
+- `ClienteService.ajustarCreditoDisponivel(clienteId, delta)` centraliza o ajuste: delta positivo incrementa, negativo reduz. Permite crédito negativo com log.warn, sem bloquear.
+- `VendaService.gerarContasAReceber()` agora reduz `credito_disponivel` ao gerar parcelas (`-valorTotal`).
+- `ContaReceberService.baixar()` agora incrementa `credito_disponivel` ao receber (`+valorPago`).
+- `ContaReceberService.cancelar()` agora restaura `credito_disponivel` ao cancelar (`+valor`).
+- `VendaService.cancelarVenda()` restaura `credito_disponivel` para vendas a prazo/crediário (`+valorTotal`).
+
+**GAP 3 — Múltiplos Caixas Simultâneos**
+- `CaixaSessaoRepository` ganhou `findByUsuarioIdAndStatus` e `existsByCaixaIdAndStatus`.
+- `CaixaService.buscarSessaoAberta()` passa a buscar pelo usuário logado, não por empresa.
+- `CaixaService.abrirCaixa()` valida unicidade por caixa (`existsByCaixaIdAndStatus`) em vez de empresa.
+- `registrarVendaSeCaixaAberto()` loga quando o operador não tem caixa aberto e retorna sem registrar no caixa de outro operador.
 
 ### Controle de Acesso e Múltiplos Perfis
 

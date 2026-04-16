@@ -21,4 +21,6 @@ public interface CaixaMovimentacaoRepository extends JpaRepository<CaixaMoviment
             """)
     BigDecimal sumValorBySessaoIdAndTipoIn(@Param("sessaoId") Integer sessaoId,
                                            @Param("tipos") Collection<String> tipos);
+
+    List<CaixaMovimentacao> findByOrigemAndOrigemId(String origem, Integer origemId);
 }
