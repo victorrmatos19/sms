@@ -3,6 +3,7 @@ package com.erp.service;
 import com.erp.model.Produto;
 import com.erp.model.Venda;
 import com.erp.model.VendaPagamento;
+import com.erp.model.dto.caixa.CaixaResumoDTO;
 import com.erp.model.dto.dashboard.*;
 import com.erp.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class DashboardService {
     private final ProdutoRepository produtoRepository;
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     private final VendaRepository vendaRepository;
+    private final CaixaService caixaService;
 
     private static final String STATUS_VENDA_FINALIZADA = "FINALIZADA";
 
@@ -79,6 +81,9 @@ public class DashboardService {
         BigDecimal totalContasPagarAbertas = contaPagarRepository
                 .sumValorByEmpresaIdAndStatus(empresaId, "ABERTA");
 
+        // ---- Caixa ----
+        CaixaResumoDTO caixa = caixaService.obterResumoAtual(empresaId);
+
         // ---- Estoque ----
         List<Produto> zerados = produtoRepository.findByEmpresaIdAndEstoqueZerado(empresaId);
         List<Produto> abaixoMinimo = produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(empresaId);
@@ -95,6 +100,7 @@ public class DashboardService {
                 vendasHoje, valorVendasHoje, ticketMedioUltimos7Dias,
                 contasPagarHoje, valorContasPagarHoje,
                 contasPagarVencidas, contasPagarAbertas, totalContasPagarAbertas,
+                caixa.aberto(), caixa.saldoAtual(), caixa.totalEntradas(), caixa.totalSaidas(),
                 (long) abaixoMinimo.size(), (long) zerados.size(), totalProdutosAtivos,
                 vendasSemana, alertas, topProdutos, vendasHojeDetalhes
         );

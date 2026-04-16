@@ -4,6 +4,7 @@ import com.erp.exception.NegocioException;
 import com.erp.model.Caixa;
 import com.erp.model.CaixaMovimentacao;
 import com.erp.model.CaixaSessao;
+import com.erp.model.ContaPagar;
 import com.erp.model.Empresa;
 import com.erp.model.Usuario;
 import com.erp.model.Venda;
@@ -128,5 +129,29 @@ class CaixaServiceTest {
         assertThat(captor.getValue().getOrigem()).isEqualTo("VENDA");
         assertThat(captor.getValue().getOrigemId()).isEqualTo(7);
         assertThat(captor.getValue().getFormaPagamento()).isEqualTo("PIX");
+    }
+
+    @Test
+    void dado_caixa_aberto_quando_registrar_pagamento_conta_pagar_entao_cria_saida() {
+        CaixaSessao aberta = CaixaSessao.builder().id(10).caixa(caixa).usuario(usuario).status("ABERTO").build();
+        ContaPagar conta = ContaPagar.builder()
+                .id(12)
+                .empresa(empresa)
+                .descricao("Compra C2026-00001 - Parcela 1/1")
+                .usuario(usuario)
+                .build();
+        when(caixaSessaoRepository.findFirstByCaixaEmpresaIdAndStatusOrderByDataAberturaDesc(1, "ABERTO"))
+                .thenReturn(Optional.of(aberta));
+        when(caixaMovimentacaoRepository.save(any(CaixaMovimentacao.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        caixaService.registrarPagamentoContaPagarSeCaixaAberto(conta, new BigDecimal("45.50"), "BOLETO");
+
+        ArgumentCaptor<CaixaMovimentacao> captor = ArgumentCaptor.forClass(CaixaMovimentacao.class);
+        verify(caixaMovimentacaoRepository).save(captor.capture());
+        assertThat(captor.getValue().getTipo()).isEqualTo("PAGAMENTO");
+        assertThat(captor.getValue().getValor()).isEqualByComparingTo("45.50");
+        assertThat(captor.getValue().getOrigem()).isEqualTo("CONTA_PAGAR");
+        assertThat(captor.getValue().getOrigemId()).isEqualTo(12);
+        assertThat(captor.getValue().getFormaPagamento()).isEqualTo("BOLETO");
     }
 }

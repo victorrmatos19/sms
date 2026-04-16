@@ -4,6 +4,7 @@ import com.erp.exception.NegocioException;
 import com.erp.model.Caixa;
 import com.erp.model.CaixaMovimentacao;
 import com.erp.model.CaixaSessao;
+import com.erp.model.ContaPagar;
 import com.erp.model.Empresa;
 import com.erp.model.Usuario;
 import com.erp.model.Venda;
@@ -140,6 +141,30 @@ public class CaixaService {
                         .origem("VENDA")
                         .origemId(venda.getId())
                         .usuario(venda.getUsuario() != null ? venda.getUsuario() : authService.getUsuarioLogado())
+                        .build()));
+    }
+
+    @Transactional
+    public void registrarPagamentoContaPagarSeCaixaAberto(ContaPagar conta, BigDecimal valorPago,
+                                                          String formaPagamento) {
+        if (conta == null || conta.getEmpresa() == null || conta.getEmpresa().getId() == null) {
+            return;
+        }
+        BigDecimal valor = nvl(valorPago);
+        if (valor.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+
+        buscarSessaoAberta(conta.getEmpresa().getId()).ifPresent(sessao ->
+                caixaMovimentacaoRepository.save(CaixaMovimentacao.builder()
+                        .sessao(sessao)
+                        .tipo("PAGAMENTO")
+                        .descricao("Pagamento " + nvl(conta.getDescricao()))
+                        .valor(valor)
+                        .formaPagamento(blankToNull(formaPagamento))
+                        .origem("CONTA_PAGAR")
+                        .origemId(conta.getId())
+                        .usuario(conta.getUsuario() != null ? conta.getUsuario() : authService.getUsuarioLogado())
                         .build()));
     }
 

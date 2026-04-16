@@ -8,12 +8,33 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface ContaPagarRepository extends JpaRepository<ContaPagar, Integer> {
 
     long countByEmpresaIdAndStatus(Integer empresaId, String status);
 
     List<ContaPagar> findByEmpresaIdAndStatusOrderByDataVencimentoAsc(Integer empresaId, String status);
+
+    @Query("""
+            SELECT cp FROM ContaPagar cp
+            LEFT JOIN FETCH cp.fornecedor
+            LEFT JOIN FETCH cp.compra
+            LEFT JOIN FETCH cp.usuario
+            WHERE cp.empresa.id = :empresaId
+            ORDER BY cp.dataVencimento ASC, cp.id ASC
+            """)
+    List<ContaPagar> findByEmpresaIdComRelacionamentos(@Param("empresaId") Integer empresaId);
+
+    @Query("""
+            SELECT cp FROM ContaPagar cp
+            LEFT JOIN FETCH cp.empresa
+            LEFT JOIN FETCH cp.fornecedor
+            LEFT JOIN FETCH cp.compra
+            LEFT JOIN FETCH cp.usuario
+            WHERE cp.id = :id
+            """)
+    Optional<ContaPagar> findByIdComRelacionamentos(@Param("id") Integer id);
 
     // Soma total de contas por status
     @Query("SELECT COALESCE(SUM(cp.valor), 0) FROM ContaPagar cp " +
@@ -50,4 +71,20 @@ public interface ContaPagarRepository extends JpaRepository<ContaPagar, Integer>
            "AND cp.dataVencimento = :hoje")
     BigDecimal sumValorVencendoHoje(@Param("empresaId") Integer empresaId,
                                     @Param("hoje") LocalDate hoje);
+
+    @Query("SELECT COUNT(cp) FROM ContaPagar cp " +
+           "WHERE cp.empresa.id = :empresaId " +
+           "AND cp.status = 'PAGA' " +
+           "AND cp.dataPagamento BETWEEN :inicio AND :fim")
+    long countPagasPeriodo(@Param("empresaId") Integer empresaId,
+                           @Param("inicio") LocalDate inicio,
+                           @Param("fim") LocalDate fim);
+
+    @Query("SELECT COALESCE(SUM(cp.valorPago), 0) FROM ContaPagar cp " +
+           "WHERE cp.empresa.id = :empresaId " +
+           "AND cp.status = 'PAGA' " +
+           "AND cp.dataPagamento BETWEEN :inicio AND :fim")
+    BigDecimal sumValorPagoPeriodo(@Param("empresaId") Integer empresaId,
+                                   @Param("inicio") LocalDate inicio,
+                                   @Param("fim") LocalDate fim);
 }

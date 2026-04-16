@@ -4,6 +4,7 @@ import com.erp.model.Produto;
 import com.erp.model.Empresa;
 import com.erp.model.Venda;
 import com.erp.model.VendaPagamento;
+import com.erp.model.dto.caixa.CaixaResumoDTO;
 import com.erp.model.dto.dashboard.DashboardAdminDTO;
 import com.erp.model.dto.dashboard.DashboardEstoqueDTO;
 import com.erp.repository.*;
@@ -35,6 +36,7 @@ class DashboardServiceTest {
     @Mock private ProdutoRepository produtoRepository;
     @Mock private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     @Mock private VendaRepository vendaRepository;
+    @Mock private CaixaService caixaService;
 
     @InjectMocks private DashboardService dashboardService;
 
@@ -70,6 +72,7 @@ class DashboardServiceTest {
         when(produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(1)).thenReturn(List.of());
         when(produtoRepository.countByEmpresaIdAndAtivoTrue(1)).thenReturn(0L);
         stubVendasDashboard(hoje, List.of(), List.of(), List.of());
+        stubCaixaFechado();
 
         DashboardAdminDTO dto = dashboardService.carregarAdmin(1);
 
@@ -78,6 +81,8 @@ class DashboardServiceTest {
         assertThat(dto.vendasHoje()).isZero();
         assertThat(dto.valorVendasHoje()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(dto.contasPagarHoje()).isZero();
+        assertThat(dto.caixaAberto()).isFalse();
+        assertThat(dto.saldoCaixaAtual()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(dto.totalProdutosAtivos()).isZero();
     }
 
@@ -117,6 +122,7 @@ class DashboardServiceTest {
         when(produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(1)).thenReturn(List.of(zerado, abaixo));
         when(produtoRepository.countByEmpresaIdAndAtivoTrue(1)).thenReturn(2L);
         stubVendasDashboard(hoje, List.of(), List.of(), List.of());
+        stubCaixaFechado();
 
         DashboardAdminDTO dto = dashboardService.carregarAdmin(1);
 
@@ -163,6 +169,10 @@ class DashboardServiceTest {
         when(produtoRepository.countByEmpresaIdAndAtivoTrue(1)).thenReturn(0L);
         stubVendasDashboard(hoje, List.of(venda1, venda2), List.of(venda1, venda2),
                 List.<Object[]>of(new Object[]{"Produto A", new BigDecimal("100.00")}));
+        when(caixaService.obterResumoAtual(1)).thenReturn(new CaixaResumoDTO(
+                true, 20, "Caixa Principal", "Admin", hoje.atStartOfDay(), null,
+                new BigDecimal("50.00"), new BigDecimal("100.00"), new BigDecimal("30.00"),
+                new BigDecimal("120.00"), null, null));
 
         DashboardAdminDTO dto = dashboardService.carregarAdmin(1);
 
@@ -172,6 +182,10 @@ class DashboardServiceTest {
         assertThat(dto.vendasHojeDetalhes()).hasSize(2);
         assertThat(dto.vendasHojeDetalhes().get(0).formaPagamento()).isEqualTo("PIX");
         assertThat(dto.topProdutos()).extracting("nome").containsExactly("Produto A");
+        assertThat(dto.caixaAberto()).isTrue();
+        assertThat(dto.saldoCaixaAtual()).isEqualByComparingTo("120.00");
+        assertThat(dto.entradasCaixaAtual()).isEqualByComparingTo("100.00");
+        assertThat(dto.saidasCaixaAtual()).isEqualByComparingTo("30.00");
     }
 
     // ---- 3. carregarEstoque: calcula corretamente as contagens ----
@@ -220,5 +234,12 @@ class DashboardServiceTest {
         when(vendaRepository.findTopProdutosVendidosPeriodo(
                 eq(1), eq(inicioMes.atStartOfDay()), eq(fimMes.atTime(LocalTime.MAX)), any()))
                 .thenReturn(topProdutos);
+    }
+
+    private void stubCaixaFechado() {
+        when(caixaService.obterResumoAtual(1)).thenReturn(new CaixaResumoDTO(
+                false, null, "Caixa Principal", "—", null, null,
+                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                null, null));
     }
 }

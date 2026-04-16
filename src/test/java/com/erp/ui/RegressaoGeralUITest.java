@@ -140,7 +140,18 @@ class RegressaoGeralUITest extends BaseUITest {
         assertThat(lookup("#tblMovimentacoes").tryQuery()).isPresent();
     }
 
-    // ---- 10. Dashboard Admin carrega após login ----
+    // ---- 10. Módulo Contas a Pagar ----
+
+    @Test
+    void smoke_modulo_contas_pagar_carrega() {
+        fazerLogin();
+        clickOn("Contas a Pagar");
+        sleep(600);
+
+        assertThat(lookup("#tblContas").tryQuery()).isPresent();
+    }
+
+    // ---- 11. Dashboard Admin carrega após login ----
 
     @Test
     void smoke_dashboard_admin_carrega() {

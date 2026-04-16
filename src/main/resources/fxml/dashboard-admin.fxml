@@ -57,8 +57,8 @@
             <!-- 4. CAIXA ATUAL (branco) -->
             <VBox fx:id="cardCaixa" styleClass="dash-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="5">
                 <Label text="CAIXA ATUAL" styleClass="dash-card-label"/>
-                <Label text="—" styleClass="dash-val-white"/>
-                <Label text="módulo em breve" styleClass="dash-card-sub"/>
+                <Label fx:id="lblCaixaAtual" text="R$ 0,00" styleClass="dash-val-white"/>
+                <Label fx:id="lblSubCaixaAtual" text="caixa fechado" styleClass="dash-card-sub"/>
             </VBox>
 
             <!-- 5. TICKET MÉDIO (branco) -->

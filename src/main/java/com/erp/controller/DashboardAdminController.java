@@ -75,6 +75,8 @@ public class DashboardAdminController implements Initializable {
     @FXML private Label lblSubVendasHoje;
     @FXML private Label lblValorAPagarHoje;
     @FXML private Label lblQtdAPagarHoje;
+    @FXML private Label lblCaixaAtual;
+    @FXML private Label lblSubCaixaAtual;
     @FXML private Label lblTicketMedio;
     @FXML private Label lblSubTicketMedio;
 
@@ -202,6 +204,13 @@ public class DashboardAdminController implements Initializable {
         lblQtdAPagarHoje.setText(dto.contasPagarHoje() == 0
                 ? "nenhuma hoje"
                 : dto.contasPagarHoje() + (dto.contasPagarHoje() == 1 ? " conta" : " contas"));
+
+        // Card CAIXA ATUAL
+        lblCaixaAtual.setText(MoneyUtils.formatCurrency(dto.saldoCaixaAtual()));
+        lblSubCaixaAtual.setText(dto.caixaAberto()
+                ? MoneyUtils.formatCurrency(dto.entradasCaixaAtual()) + " entradas / "
+                    + MoneyUtils.formatCurrency(dto.saidasCaixaAtual()) + " saídas"
+                : "caixa fechado");
 
         lblTicketMedio.setText(MoneyUtils.formatCurrency(dto.ticketMedioUltimos7Dias()));
         lblSubTicketMedio.setText("Últimos 7 dias");

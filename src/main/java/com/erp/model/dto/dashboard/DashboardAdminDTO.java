@@ -21,6 +21,11 @@ public record DashboardAdminDTO(
         long contasPagarVencidas,
         long contasPagarAbertas,
         BigDecimal totalContasPagarAbertas,
+        // Caixa
+        boolean caixaAberto,
+        BigDecimal saldoCaixaAtual,
+        BigDecimal entradasCaixaAtual,
+        BigDecimal saidasCaixaAtual,
         // Estoque
         long produtosAbaixoMinimo,
         long produtosEstoqueZerado,
