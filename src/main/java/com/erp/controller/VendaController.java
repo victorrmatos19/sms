@@ -3,6 +3,7 @@ package com.erp.controller;
 import com.erp.model.Venda;
 import com.erp.service.AuthService;
 import com.erp.service.VendaService;
+import com.erp.util.MoneyUtils;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -28,9 +29,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.net.URL;
-import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 @Slf4j
@@ -67,9 +66,6 @@ public class VendaController implements Initializable {
 
     private static final DateTimeFormatter DATE_TIME_FMT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final NumberFormat CURRENCY_FORMAT =
-            NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
-
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         configurarFiltroStatus();
@@ -98,7 +94,7 @@ public class VendaController implements Initializable {
         });
         colValorTotal.setCellValueFactory(c -> {
             BigDecimal valor = c.getValue().getValorTotal();
-            return new SimpleStringProperty(valor != null ? CURRENCY_FORMAT.format(valor) : "R$ 0,00");
+            return new SimpleStringProperty(MoneyUtils.formatCurrency(valor));
         });
         colFormaPagamento.setCellValueFactory(c -> {
             if (c.getValue().getPagamentos() == null || c.getValue().getPagamentos().isEmpty()) {
@@ -171,7 +167,7 @@ public class VendaController implements Initializable {
     private void atualizarMetricas() {
         Integer empresaId = authService.getEmpresaIdLogado();
         lblTotalMes.setText(String.valueOf(vendaService.contarVendasMes(empresaId)));
-        lblValorMes.setText(CURRENCY_FORMAT.format(vendaService.calcularValorTotalMes(empresaId)));
+        lblValorMes.setText(MoneyUtils.formatCurrency(vendaService.calcularValorTotalMes(empresaId)));
         lblFinalizadas.setText(String.valueOf(vendaService.contarFinalizadas(empresaId)));
     }
 

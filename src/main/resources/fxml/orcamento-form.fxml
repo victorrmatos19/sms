@@ -109,7 +109,7 @@
                 </HBox>
                 <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
                     <Label text="Desconto Global R$:" styleClass="form-label"/>
-                    <TextField fx:id="txtDescontoGlobal" text="0" prefWidth="150"
+                    <TextField fx:id="txtDescontoGlobal" text="0,00" prefWidth="150"
                                style="-fx-alignment: CENTER-RIGHT;"/>
                 </HBox>
                 <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">

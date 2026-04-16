@@ -6,6 +6,7 @@ import com.erp.model.Produto;
 import com.erp.repository.GrupoProdutoRepository;
 import com.erp.service.AuthService;
 import com.erp.service.EstoqueService;
+import com.erp.util.MoneyUtils;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -89,7 +90,6 @@ public class EstoqueController implements Initializable {
     private final ObservableList<MovimentacaoEstoque> movimentacoesFiltradas = FXCollections.observableArrayList();
 
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final NumberFormat CURRENCY_FMT = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
     private static final NumberFormat QTD_FMT = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
 
     static {
@@ -129,12 +129,12 @@ public class EstoqueController implements Initializable {
         });
         colECusto.setCellValueFactory(c -> {
             BigDecimal v = c.getValue().getPrecoCusto();
-            return new SimpleStringProperty(v != null ? CURRENCY_FMT.format(v) : "R$ 0,00");
+            return new SimpleStringProperty(MoneyUtils.formatCurrency(v));
         });
         colEValor.setCellValueFactory(c -> {
             BigDecimal est = c.getValue().getEstoqueAtual() != null ? c.getValue().getEstoqueAtual() : BigDecimal.ZERO;
             BigDecimal cst = c.getValue().getPrecoCusto()   != null ? c.getValue().getPrecoCusto()   : BigDecimal.ZERO;
-            return new SimpleStringProperty(CURRENCY_FMT.format(est.multiply(cst)));
+            return new SimpleStringProperty(MoneyUtils.formatCurrency(est.multiply(cst)));
         });
         colESituacao.setCellValueFactory(c -> new SimpleStringProperty(""));
         colESituacao.setCellFactory(col -> new TableCell<>() {
@@ -206,7 +206,7 @@ public class EstoqueController implements Initializable {
         });
         colHCusto.setCellValueFactory(c -> {
             BigDecimal v = c.getValue().getCustoUnitario();
-            return new SimpleStringProperty(v != null ? CURRENCY_FMT.format(v) : "—");
+            return new SimpleStringProperty(v != null ? MoneyUtils.formatCurrency(v) : "—");
         });
         colHSaldoAnt.setCellValueFactory(c -> {
             BigDecimal v = c.getValue().getSaldoAnterior();
@@ -267,7 +267,7 @@ public class EstoqueController implements Initializable {
     private void atualizarMetricas() {
         Integer empresaId = authService.getEmpresaIdLogado();
         lblTotalProdutos.setText(String.valueOf(todosProdutos.size()));
-        lblValorTotal.setText(CURRENCY_FMT.format(estoqueService.calcularValorTotalEstoque(empresaId)));
+        lblValorTotal.setText(MoneyUtils.formatCurrency(estoqueService.calcularValorTotalEstoque(empresaId)));
 
         long abaixo = todosProdutos.stream()
                 .filter(p -> p.getEstoqueAtual() != null && p.getEstoqueMinimo() != null

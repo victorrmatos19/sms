@@ -3,6 +3,7 @@ package com.erp.controller;
 import com.erp.model.dto.dashboard.DashboardVendasDTO;
 import com.erp.service.AuthService;
 import com.erp.service.DashboardService;
+import com.erp.util.MoneyUtils;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -15,8 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
-import java.text.NumberFormat;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 @Slf4j
@@ -35,8 +34,6 @@ public class DashboardVendasController implements Initializable {
     @FXML private Label lblValorCompras;
 
     private Timeline autoRefresh;
-    private static final NumberFormat CURRENCY = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
-
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         carregarDados();
@@ -61,10 +58,10 @@ public class DashboardVendasController implements Initializable {
 
     private void preencherUI(DashboardVendasDTO dto) {
         lblOrcamentosMes.setText(String.valueOf(dto.orcamentosMes()));
-        lblValorOrcamentos.setText(CURRENCY.format(dto.valorOrcamentosMes()));
+        lblValorOrcamentos.setText(MoneyUtils.formatCurrency(dto.valorOrcamentosMes()));
         lblVendasMes.setText(String.valueOf(dto.vendasMes()));
-        lblValorVendas.setText(CURRENCY.format(dto.valorVendasMes()));
+        lblValorVendas.setText(MoneyUtils.formatCurrency(dto.valorVendasMes()));
         lblComprasMes.setText(String.valueOf(dto.comprasMes()));
-        lblValorCompras.setText(CURRENCY.format(dto.valorComprasMes()));
+        lblValorCompras.setText(MoneyUtils.formatCurrency(dto.valorComprasMes()));
     }
 }

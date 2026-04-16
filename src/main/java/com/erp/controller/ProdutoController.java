@@ -6,6 +6,7 @@ import com.erp.model.Produto;
 import com.erp.repository.GrupoProdutoRepository;
 import com.erp.service.AuthService;
 import com.erp.service.ProdutoService;
+import com.erp.util.MoneyUtils;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -25,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.List;
@@ -72,10 +74,11 @@ public class ProdutoController implements Initializable {
     private final ObservableList<Produto> todosProdutos = FXCollections.observableArrayList();
     private FilteredList<Produto> filteredProdutos;
 
-    private static final NumberFormat CURRENCY_FORMAT =
-        NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
-    private static final NumberFormat DECIMAL_FORMAT =
-        NumberFormat.getInstance(new Locale("pt", "BR"));
+    private static final NumberFormat QUANTITY_FORMAT = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
+
+    static {
+        QUANTITY_FORMAT.setMaximumFractionDigits(4);
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -101,10 +104,11 @@ public class ProdutoController implements Initializable {
         });
 
         colPrecoVenda.setCellValueFactory(c ->
-            new SimpleStringProperty(CURRENCY_FORMAT.format(c.getValue().getPrecoVenda())));
+            new SimpleStringProperty(MoneyUtils.formatCurrency(c.getValue().getPrecoVenda())));
 
         colEstoque.setCellValueFactory(c ->
-            new SimpleStringProperty(DECIMAL_FORMAT.format(c.getValue().getEstoqueAtual())));
+            new SimpleStringProperty(QUANTITY_FORMAT.format(
+                c.getValue().getEstoqueAtual() != null ? c.getValue().getEstoqueAtual() : BigDecimal.ZERO)));
 
         // Coluna de status com badge
         colStatus.setCellFactory(col -> new TableCell<>() {

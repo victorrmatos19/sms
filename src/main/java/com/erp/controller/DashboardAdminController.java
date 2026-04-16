@@ -7,6 +7,7 @@ import com.erp.model.dto.dashboard.TopProdutoDTO;
 import com.erp.model.dto.dashboard.VendaDiariaDTO;
 import com.erp.service.AuthService;
 import com.erp.service.DashboardService;
+import com.erp.util.MoneyUtils;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -26,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -76,7 +76,6 @@ public class DashboardAdminController implements Initializable {
 
     private Timeline autoRefresh;
 
-    private static final NumberFormat CURRENCY = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
     private static final DateTimeFormatter DIA_SEMANA =
             DateTimeFormatter.ofPattern("EEE", new Locale("pt", "BR"));
     private static final DateTimeFormatter DATA_EXTENSO =
@@ -180,7 +179,7 @@ public class DashboardAdminController implements Initializable {
 
         // Card A PAGAR HOJE — dados reais
         lblValorAPagarHoje.setText(dto.contasPagarHoje() > 0
-                ? CURRENCY.format(dto.valorContasPagarHoje()) : "R$ 0,00");
+                ? MoneyUtils.formatCurrency(dto.valorContasPagarHoje()) : "R$ 0,00");
         lblQtdAPagarHoje.setText(dto.contasPagarHoje() == 0
                 ? "nenhuma hoje"
                 : dto.contasPagarHoje() + (dto.contasPagarHoje() == 1 ? " conta" : " contas"));
@@ -294,7 +293,7 @@ public class DashboardAdminController implements Initializable {
             nomeBox.getChildren().addAll(nome, underline);
 
             // Valor
-            Label valor = new Label(CURRENCY.format(p.valor()));
+            Label valor = new Label(MoneyUtils.formatCurrency(p.valor()));
             valor.getStyleClass().add("dash-top-valor");
 
             row.getChildren().addAll(rank, nomeBox, valor);

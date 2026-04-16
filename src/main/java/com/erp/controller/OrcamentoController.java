@@ -5,6 +5,7 @@ import com.erp.model.Orcamento;
 import com.erp.service.AuthService;
 import com.erp.service.OrcamentoPdfService;
 import com.erp.service.OrcamentoService;
+import com.erp.util.MoneyUtils;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -25,9 +26,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.net.URL;
-import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 @Slf4j
@@ -73,9 +72,6 @@ public class OrcamentoController implements Initializable {
     private FilteredList<Orcamento> filteredOrcamentos;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final NumberFormat CURRENCY_FMT =
-            NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
-
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         configurarFiltroStatus();
@@ -129,7 +125,7 @@ public class OrcamentoController implements Initializable {
 
         colValorTotal.setCellValueFactory(c -> {
             BigDecimal v = c.getValue().getValorTotal();
-            return new SimpleStringProperty(v != null ? CURRENCY_FMT.format(v) : "R$ 0,00");
+            return new SimpleStringProperty(MoneyUtils.formatCurrency(v));
         });
 
         colStatus.setCellFactory(col -> new TableCell<>() {
@@ -198,7 +194,7 @@ public class OrcamentoController implements Initializable {
 
         cardAbertos.setText(String.valueOf(abertos));
         cardAVencer.setText(String.valueOf(aVencer));
-        cardConvertidosMes.setText(CURRENCY_FMT.format(convertidosMes));
+        cardConvertidosMes.setText(MoneyUtils.formatCurrency(convertidosMes));
         cardTaxaConversao.setText(taxa + "%");
     }
 

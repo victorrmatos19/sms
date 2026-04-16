@@ -9,6 +9,7 @@ import com.erp.service.AuthService;
 import com.erp.service.ConfiguracaoService;
 import com.erp.service.OrcamentoPdfService;
 import com.erp.service.OrcamentoService;
+import com.erp.util.MoneyUtils;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -27,11 +28,9 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.net.URL;
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 @Slf4j
@@ -87,9 +86,6 @@ public class OrcamentoFormController implements Initializable {
     private ObservableList<Cliente>     clientesDisplay;
     private ObservableList<Funcionario> funcionariosDisplay;
     private final List<ItemRow> itemRows = new ArrayList<>();
-
-    private static final NumberFormat CURRENCY_FMT =
-            NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -363,7 +359,7 @@ public class OrcamentoFormController implements Initializable {
         ir.txtQtd.textProperty().addListener((obs, old, val) -> recalcularLinha(ir));
 
         // Preço Unitário
-        ir.txtPreco = new TextField("0");
+        ir.txtPreco = new TextField("0,00");
         ir.txtPreco.setPrefWidth(100);
         ir.txtPreco.textProperty().addListener((obs, old, val) -> {
             verificarPrecoMinimo(ir);
@@ -377,7 +373,7 @@ public class OrcamentoFormController implements Initializable {
         ir.lblAvisoPreco.setManaged(false);
 
         // Desconto
-        ir.txtDesconto = new TextField("0");
+        ir.txtDesconto = new TextField("0,00");
         ir.txtDesconto.setPrefWidth(90);
         ir.txtDesconto.textProperty().addListener((obs, old, val) -> recalcularLinha(ir));
 
@@ -406,8 +402,8 @@ public class OrcamentoFormController implements Initializable {
             ir.cbProduto.setValue(itemExistente.getProduto());
             ir.txtDescricao.setText(nvl(itemExistente.getDescricao()));
             ir.txtQtd.setText(itemExistente.getQuantidade().toPlainString());
-            ir.txtPreco.setText(itemExistente.getPrecoUnitario().toPlainString());
-            ir.txtDesconto.setText(itemExistente.getDesconto().toPlainString());
+            ir.txtPreco.setText(formatDecimal(itemExistente.getPrecoUnitario()));
+            ir.txtDesconto.setText(formatDecimal(itemExistente.getDesconto()));
             recalcularLinha(ir);
         }
 
@@ -428,7 +424,7 @@ public class OrcamentoFormController implements Initializable {
     private void aoSelecionarProduto(ItemRow ir, Produto produto) {
         if (produto == null) return;
         ir.txtDescricao.setText(produto.getDescricao());
-        ir.txtPreco.setText(produto.getPrecoVenda().toPlainString());
+        ir.txtPreco.setText(formatDecimal(produto.getPrecoVenda()));
         ir.produtoAtual = produto;
         verificarPrecoMinimo(ir);
         recalcularLinha(ir);
@@ -439,7 +435,7 @@ public class OrcamentoFormController implements Initializable {
         BigDecimal preco = parseBD(ir.txtPreco.getText());
         BigDecimal minimo = ir.produtoAtual.getPrecoMinimo();
         if (minimo != null && preco.compareTo(minimo) < 0) {
-            ir.lblAvisoPreco.setText("Abaixo do preço mínimo: " + CURRENCY_FMT.format(minimo));
+            ir.lblAvisoPreco.setText("Abaixo do preço mínimo: " + MoneyUtils.formatCurrency(minimo));
             ir.lblAvisoPreco.setVisible(true);
             ir.lblAvisoPreco.setManaged(true);
         } else {
@@ -463,7 +459,7 @@ public class OrcamentoFormController implements Initializable {
         ir.item.setPrecoUnitario(preco);
         ir.item.setDesconto(desc);
         ir.item.setValorTotal(total);
-        ir.lblTotal.setText(CURRENCY_FMT.format(total));
+        ir.lblTotal.setText(MoneyUtils.formatCurrency(total));
         recalcularTotal();
     }
 
@@ -473,9 +469,9 @@ public class OrcamentoFormController implements Initializable {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal descGlobal = parseBD(txtDescontoGlobal.getText());
         BigDecimal total = subtotal.subtract(descGlobal).max(BigDecimal.ZERO);
-        lblSubtotal.setText(CURRENCY_FMT.format(subtotal));
-        lblDesconto.setText(CURRENCY_FMT.format(descGlobal));
-        lblTotal.setText(CURRENCY_FMT.format(total));
+        lblSubtotal.setText(MoneyUtils.formatCurrency(subtotal));
+        lblDesconto.setText(MoneyUtils.formatCurrency(descGlobal));
+        lblTotal.setText(MoneyUtils.formatCurrency(total));
     }
 
     // ================================================================
@@ -567,16 +563,11 @@ public class OrcamentoFormController implements Initializable {
     // ================================================================
 
     private BigDecimal parseBD(String text) {
-        if (text == null || text.trim().isEmpty()) return BigDecimal.ZERO;
-        try {
-            return new BigDecimal(text.trim().replace(".", "").replace(",", "."));
-        } catch (NumberFormatException e) {
-            return BigDecimal.ZERO;
-        }
+        return MoneyUtils.parse(text);
     }
 
     private String formatDecimal(BigDecimal v) {
-        return v != null ? v.toPlainString() : "0";
+        return MoneyUtils.formatInput(v);
     }
 
     private String nvl(String v) { return v != null ? v : ""; }

@@ -111,6 +111,8 @@ public class OrcamentoPdfService {
 
     private Map<String, Object> montarParametros(Orcamento orc) {
         Map<String, Object> p = new HashMap<>();
+        p.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
+
         Empresa empresa = orc.getEmpresa();
         p.put("EMPRESA_NOME",      empresa != null ? nvl(empresa.getRazaoSocial()) : "");
         p.put("EMPRESA_CNPJ",      empresa != null ? nvl(empresa.getCnpj()) : "");

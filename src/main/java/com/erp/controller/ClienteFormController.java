@@ -6,6 +6,7 @@ import com.erp.service.AuthService;
 import com.erp.service.ClienteService;
 import com.erp.service.ViaCepService;
 import com.erp.util.CpfCnpjValidator;
+import com.erp.util.MoneyUtils;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -278,8 +279,7 @@ public class ClienteFormController implements Initializable {
         txtTelefone.setText(nvl(clienteAtual.getTelefone()));
         txtCelular.setText(nvl(clienteAtual.getCelular()));
         txtEmail.setText(nvl(clienteAtual.getEmail()));
-        txtLimiteCredito.setText(clienteAtual.getLimiteCredito() != null
-            ? clienteAtual.getLimiteCredito().toPlainString().replace(".", ",") : "0,00");
+        txtLimiteCredito.setText(MoneyUtils.formatInput(clienteAtual.getLimiteCredito()));
         txtObservacoes.setText(nvl(clienteAtual.getObservacoes()));
 
         // Endereço
@@ -524,12 +524,7 @@ public class ClienteFormController implements Initializable {
     // ---- Helpers gerais ----
 
     private BigDecimal parseBigDecimal(String text) {
-        if (text == null || text.trim().isEmpty()) return BigDecimal.ZERO;
-        try {
-            return new BigDecimal(text.trim().replace(".", "").replace(",", "."));
-        } catch (NumberFormatException e) {
-            return BigDecimal.ZERO;
-        }
+        return MoneyUtils.parse(text);
     }
 
     private void mostrarErro(Label lbl, String msg) {

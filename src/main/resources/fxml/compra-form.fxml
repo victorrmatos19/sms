@@ -115,17 +115,17 @@
                 </HBox>
                 <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
                     <Label text="Valor do Frete:" styleClass="form-label"/>
-                    <TextField fx:id="txtFrete" text="0" prefWidth="150"
+                    <TextField fx:id="txtFrete" text="0,00" prefWidth="150"
                                style="-fx-alignment: CENTER-RIGHT;"/>
                 </HBox>
                 <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
                     <Label text="Desconto Global:" styleClass="form-label"/>
-                    <TextField fx:id="txtDescontoGlobal" text="0" prefWidth="150"
+                    <TextField fx:id="txtDescontoGlobal" text="0,00" prefWidth="150"
                                style="-fx-alignment: CENTER-RIGHT;"/>
                 </HBox>
                 <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 4 0;">
                     <Label text="Outras Despesas:" styleClass="form-label"/>
-                    <TextField fx:id="txtOutrasDespesas" text="0" prefWidth="150"
+                    <TextField fx:id="txtOutrasDespesas" text="0,00" prefWidth="150"
                                style="-fx-alignment: CENTER-RIGHT;"/>
                 </HBox>
                 <Separator style="-fx-padding: 4 0;"/>

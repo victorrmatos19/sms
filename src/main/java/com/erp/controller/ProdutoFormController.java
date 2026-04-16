@@ -6,6 +6,7 @@ import com.erp.repository.GrupoProdutoRepository;
 import com.erp.repository.UnidadeMedidaRepository;
 import com.erp.service.AuthService;
 import com.erp.service.ProdutoService;
+import com.erp.util.MoneyUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -76,8 +77,12 @@ public class ProdutoFormController implements Initializable {
     private Produto produtoAtual;
     private Runnable onSaved;
 
-    private static final NumberFormat DECIMAL_INPUT_FORMAT =
+    private static final NumberFormat QUANTITY_INPUT_FORMAT =
         NumberFormat.getInstance(new Locale("pt", "BR"));
+
+    static {
+        QUANTITY_INPUT_FORMAT.setMaximumFractionDigits(4);
+    }
 
     // ---- Configuração pública ----
 
@@ -211,10 +216,10 @@ public class ProdutoFormController implements Initializable {
         txtPrecoCusto.setText(formatarDecimal(produtoAtual.getPrecoCusto()));
         txtPrecoVenda.setText(formatarDecimal(produtoAtual.getPrecoVenda()));
         txtPrecoMinimo.setText(formatarDecimal(produtoAtual.getPrecoMinimo()));
-        txtEstoqueAtual.setText(formatarDecimal(produtoAtual.getEstoqueAtual()));
-        txtEstoqueMinimo.setText(formatarDecimal(produtoAtual.getEstoqueMinimo()));
+        txtEstoqueAtual.setText(formatarQuantidade(produtoAtual.getEstoqueAtual()));
+        txtEstoqueMinimo.setText(formatarQuantidade(produtoAtual.getEstoqueMinimo()));
         txtEstoqueMaximo.setText(produtoAtual.getEstoqueMaximo() != null
-            ? formatarDecimal(produtoAtual.getEstoqueMaximo()) : "");
+            ? formatarQuantidade(produtoAtual.getEstoqueMaximo()) : "");
         txtLocalizacao.setText(nvl(produtoAtual.getLocalizacao()));
         chkUsaLote.setSelected(Boolean.TRUE.equals(produtoAtual.getUsaLoteValidade()));
 
@@ -371,20 +376,15 @@ public class ProdutoFormController implements Initializable {
     }
 
     private BigDecimal parseBigDecimal(String text) {
-        if (text == null || text.trim().isEmpty()) return BigDecimal.ZERO;
-        // Aceita vírgula como separador decimal (padrão BR)
-        String normalizado = text.trim().replace(".", "").replace(",", ".");
-        try {
-            return new BigDecimal(normalizado);
-        } catch (NumberFormatException e) {
-            return BigDecimal.ZERO;
-        }
+        return MoneyUtils.parse(text);
     }
 
     private String formatarDecimal(BigDecimal value) {
-        if (value == null) return "0";
-        // Remove zeros à direita mas mantém pelo menos 2 casas
-        return DECIMAL_INPUT_FORMAT.format(value);
+        return MoneyUtils.formatInput(value);
+    }
+
+    private String formatarQuantidade(BigDecimal value) {
+        return value != null ? QUANTITY_INPUT_FORMAT.format(value) : "0";
     }
 
     private String nvl(String value) {

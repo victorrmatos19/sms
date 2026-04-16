@@ -7,6 +7,7 @@ import com.erp.repository.LoteRepository;
 import com.erp.repository.ProdutoRepository;
 import com.erp.service.AuthService;
 import com.erp.service.CompraService;
+import com.erp.util.MoneyUtils;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -25,11 +26,9 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.net.URL;
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 @Slf4j
@@ -86,9 +85,6 @@ public class CompraFormController implements Initializable {
     private boolean somenteLeitura = false;
     /** Guard contra loop infinito: filtrar → ComboBox reseta editor → listener → filtrar */
     private boolean filtrando = false;
-
-    private static final NumberFormat CURRENCY_FMT =
-            NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
     // ================================================================
     // Inicialização
@@ -418,12 +414,12 @@ public class CompraFormController implements Initializable {
         ir.txtQtd.textProperty().addListener((obs, old, val) -> recalcularLinha(ir));
 
         // --- Custo ---
-        ir.txtCusto = new TextField("0");
+        ir.txtCusto = new TextField("0,00");
         ir.txtCusto.setPrefWidth(100);
         ir.txtCusto.textProperty().addListener((obs, old, val) -> recalcularLinha(ir));
 
         // --- Desconto ---
-        ir.txtDesconto = new TextField("0");
+        ir.txtDesconto = new TextField("0,00");
         ir.txtDesconto.setPrefWidth(90);
         ir.txtDesconto.textProperty().addListener((obs, old, val) -> recalcularLinha(ir));
 
@@ -449,8 +445,8 @@ public class CompraFormController implements Initializable {
         if (itemExistente != null) {
             ir.cbProduto.setValue(itemExistente.getProduto());
             ir.txtQtd.setText(itemExistente.getQuantidade().toPlainString());
-            ir.txtCusto.setText(itemExistente.getCustoUnitario().toPlainString());
-            ir.txtDesconto.setText(itemExistente.getDesconto().toPlainString());
+            ir.txtCusto.setText(formatDecimal(itemExistente.getCustoUnitario()));
+            ir.txtDesconto.setText(formatDecimal(itemExistente.getDesconto()));
             if (itemExistente.getLote() != null) {
                 ir.txtLote.setText(itemExistente.getLote().getNumeroLote());
                 ir.dpValidade.setValue(itemExistente.getLote().getDataValidade());
@@ -490,7 +486,7 @@ public class CompraFormController implements Initializable {
         Integer empresaId = authService.getEmpresaIdLogado();
         BigDecimal ultimoCusto = compraService.buscarUltimoCusto(produto.getId(), empresaId)
                 .orElse(produto.getPrecoCusto());
-        ir.txtCusto.setText(ultimoCusto.toPlainString());
+        ir.txtCusto.setText(formatDecimal(ultimoCusto));
         recalcularLinha(ir);
     }
 
@@ -509,7 +505,7 @@ public class CompraFormController implements Initializable {
         ir.item.setCustoUnitario(custo);
         ir.item.setDesconto(desc);
         ir.item.setValorTotal(total);
-        ir.lblTotal.setText(CURRENCY_FMT.format(total));
+        ir.lblTotal.setText(MoneyUtils.formatCurrency(total));
         recalcularTotal();
     }
 
@@ -521,8 +517,8 @@ public class CompraFormController implements Initializable {
         BigDecimal descGlobal = parseBD(txtDescontoGlobal.getText());
         BigDecimal outros = parseBD(txtOutrasDespesas.getText());
         BigDecimal total = valorProdutos.add(frete).add(outros).subtract(descGlobal).max(BigDecimal.ZERO);
-        lblValorProdutos.setText(CURRENCY_FMT.format(valorProdutos));
-        lblValorTotal.setText(CURRENCY_FMT.format(total));
+        lblValorProdutos.setText(MoneyUtils.formatCurrency(valorProdutos));
+        lblValorTotal.setText(MoneyUtils.formatCurrency(total));
     }
 
     // ================================================================
@@ -655,16 +651,11 @@ public class CompraFormController implements Initializable {
     // ================================================================
 
     private BigDecimal parseBD(String text) {
-        if (text == null || text.trim().isEmpty()) return BigDecimal.ZERO;
-        try {
-            return new BigDecimal(text.trim().replace(".", "").replace(",", "."));
-        } catch (NumberFormatException e) {
-            return BigDecimal.ZERO;
-        }
+        return MoneyUtils.parse(text);
     }
 
     private String formatDecimal(BigDecimal v) {
-        return v != null ? v.toPlainString() : "0";
+        return MoneyUtils.formatInput(v);
     }
 
     private String nvl(String v) { return v != null ? v : ""; }

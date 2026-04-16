@@ -4,6 +4,7 @@ import com.erp.StageManager;
 import com.erp.model.Cliente;
 import com.erp.service.AuthService;
 import com.erp.service.ClienteService;
+import com.erp.util.MoneyUtils;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -23,8 +24,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
-import java.text.NumberFormat;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
@@ -66,9 +65,6 @@ public class ClienteController implements Initializable {
     private final ObservableList<Cliente> todosClientes = FXCollections.observableArrayList();
     private FilteredList<Cliente> filteredClientes;
 
-    private static final NumberFormat CURRENCY_FORMAT =
-        NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
-
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         configurarColunas();
@@ -108,7 +104,7 @@ public class ClienteController implements Initializable {
         colLimite.setCellValueFactory(c ->
             new SimpleStringProperty(
                 c.getValue().getLimiteCredito() != null
-                    ? CURRENCY_FORMAT.format(c.getValue().getLimiteCredito())
+                    ? MoneyUtils.formatCurrency(c.getValue().getLimiteCredito())
                     : "—"));
 
         // Badge de status

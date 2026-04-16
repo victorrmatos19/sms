@@ -4,6 +4,7 @@ import com.erp.exception.NegocioException;
 import com.erp.model.Orcamento;
 import com.erp.model.Venda;
 import com.erp.service.OrcamentoService;
+import com.erp.util.MoneyUtils;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -13,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
-import java.text.NumberFormat;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 @Slf4j
@@ -36,9 +35,6 @@ public class OrcamentoConversaoController implements Initializable {
     private Orcamento orcamentoAtual;
     private Dialog<?> dialog;
     private Runnable onConversaoRealizada;
-
-    private static final NumberFormat CURRENCY_FMT =
-            NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -106,7 +102,7 @@ public class OrcamentoConversaoController implements Initializable {
         String cliente = orcamentoAtual.getCliente() != null
                 ? orcamentoAtual.getCliente().getNome() : "(sem cliente)";
         String valor = orcamentoAtual.getValorTotal() != null
-                ? CURRENCY_FMT.format(orcamentoAtual.getValorTotal()) : "R$ 0,00";
+                ? MoneyUtils.formatCurrency(orcamentoAtual.getValorTotal()) : "R$ 0,00";
         lblResumoOrcamento.setText(
                 "Orçamento: " + orcamentoAtual.getNumero()
                 + "\nCliente: " + cliente
