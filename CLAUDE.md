@@ -11,9 +11,9 @@ O produto usa PostgreSQL embarcado local, UI JavaFX e Spring Boot sem servidor w
 
 **Nome do produto:** SMS — Simple Manage System
 **Tipo:** aplicativo desktop local com distribuição planejada por assinatura
-**Estado atual:** Fase 1 implementada até Vendas, com dashboards e relatórios básicos em evolução
+**Estado atual:** Fase 1 comercial implementada até Vendas, com início do módulo financeiro pelo Caixa
 
-O foco de negócio atual é transformar o núcleo cadastral/estoque/compras/orçamentos/vendas em um fluxo comercial confiável: cadastrar produtos e clientes, comprar, movimentar estoque, emitir orçamento, converter em venda, registrar venda direta e refletir isso nos dashboards.
+O foco de negócio atual é transformar o núcleo cadastral/estoque/compras/orçamentos/vendas/caixa em um fluxo comercial confiável: cadastrar produtos e clientes, comprar, movimentar estoque, emitir orçamento, converter em venda, registrar venda direta, movimentar o caixa e refletir isso nos dashboards.
 
 ---
 
@@ -64,6 +64,7 @@ FXMLs principais existentes:
 - Compras: `compras.fxml`, `compra-form.fxml`
 - Orçamentos: `orcamentos.fxml`, `orcamento-form.fxml`, `orcamento-conversao.fxml`
 - Vendas: `vendas.fxml`, `venda-form.fxml`
+- Financeiro/Caixa: `caixa.fxml`
 
 ---
 
@@ -120,6 +121,17 @@ FXMLs principais existentes:
 - Produto na linha da venda é pesquisável por descrição, código interno e código de barras.
 - Respeita configuração de permitir ou bloquear venda com estoque insuficiente.
 
+### Caixa
+
+- Primeira versão operacional do módulo financeiro.
+- Abertura de caixa com saldo inicial e operador logado.
+- Bloqueio para impedir mais de um caixa aberto por empresa.
+- Movimentações manuais de suprimento e sangria.
+- Fechamento com saldo final informado, saldo calculado e diferença.
+- Vendas à vista registram entrada no caixa quando existe caixa aberto.
+- Vendas a prazo/crediário não entram no caixa no momento da venda.
+- Tela exibe saldo atual, entradas, saídas, operador, data de abertura e histórico do caixa atual.
+
 ### Dashboards
 
 - Dashboard admin exibe cards de vendas hoje, contas a pagar hoje, ticket médio, gráfico de vendas dos últimos 7 dias, alertas e top produtos vendidos no mês.
@@ -167,6 +179,14 @@ Foram adicionados dados reais de venda ao dashboard admin:
 - `VendaRepository` possui queries para vendas finalizadas por período e top produtos vendidos.
 - `DashboardService` calcula vendas de hoje, gráfico semanal, ticket médio e ranking por vendas.
 - `DashboardAdminController` abre modal ao clicar no card `VENDAS HOJE`.
+
+### Módulo Caixa
+
+- `CaixaService` centraliza abertura, fechamento, suprimento, sangria, resumo atual e integração com vendas.
+- `CaixaController` e `caixa.fxml` implementam a tela inicial de operação do caixa.
+- `MainController#abrirCaixa` agora carrega a tela real do módulo.
+- `VendaService` registra movimentação de caixa para vendas à vista quando há caixa aberto.
+- As tabelas `caixa`, `caixa_sessao` e `caixa_movimentacao` já existiam na migration inicial, então não foi necessária nova migration.
 
 ### PDF de Orçamento
 
@@ -352,10 +372,10 @@ rm -rf /var/folders/vb/s6_m_53s1315y206glb3xdwc0000gn/T/embedded-pg
 
 A Fase 1 já tem o caminho comercial principal até vendas. Próximas prioridades de negócio sugeridas:
 
-1. Caixa: abertura, fechamento, sangria, suprimento e vínculo com vendas.
+1. Evoluir Caixa: relatório de sessões fechadas, reabertura controlada, conferência por forma de pagamento e filtros históricos.
 2. Contas a Receber: tela de consulta, baixa e vencimentos gerados por vendas a prazo/crediário.
 3. Contas a Pagar: tela operacional para contas geradas por compras.
-4. Relatórios gerenciais: vendas por período, produtos vendidos, compras, estoque e financeiro.
+4. Relatórios gerenciais: vendas por período, produtos vendidos, compras, estoque, caixa e financeiro.
 5. Melhorias no dashboard: top clientes do mês, caixa atual e contas a receber hoje.
 
 ---

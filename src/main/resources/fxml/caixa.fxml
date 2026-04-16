@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.erp.controller.CaixaController"
+      spacing="16" styleClass="content-area">
+
+    <HBox alignment="CENTER_LEFT">
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Caixa" styleClass="page-title"/>
+            <Label text="Abertura, fechamento, suprimentos, sangrias e entradas de vendas" styleClass="page-subtitle"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="STATUS" styleClass="metric-card-label"/>
+            <Label fx:id="lblStatus" text="FECHADO" styleClass="badge-neutral"/>
+            <Label fx:id="lblOperador" text="—" styleClass="metric-card-label"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="SALDO ATUAL" styleClass="metric-card-label"/>
+            <Label fx:id="lblSaldoAtual" text="R$ 0,00" styleClass="metric-card-value-accent"/>
+            <Label fx:id="lblAbertura" text="—" styleClass="metric-card-label"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="ENTRADAS" styleClass="metric-card-label"/>
+            <Label fx:id="lblEntradas" text="R$ 0,00" styleClass="metric-card-value"/>
+        </VBox>
+        <VBox styleClass="metric-card" spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="SAÍDAS" styleClass="metric-card-label"/>
+            <Label fx:id="lblSaidas" text="R$ 0,00" styleClass="metric-card-value"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12" alignment="TOP_LEFT">
+        <VBox styleClass="card" spacing="10" prefWidth="260">
+            <Label text="Abertura" styleClass="card-title"/>
+            <Label text="Saldo inicial" styleClass="form-label"/>
+            <TextField fx:id="txtSaldoInicial" text="0,00"/>
+            <Button fx:id="btnAbrir" text="Abrir Caixa" onAction="#abrirCaixa"
+                    maxWidth="Infinity" styleClass="btn-primary"/>
+        </VBox>
+
+        <VBox styleClass="card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="Movimentação Manual" styleClass="card-title"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <ComboBox fx:id="cmbTipoMovimentacao" prefWidth="150"/>
+                <TextField fx:id="txtValorMovimentacao" promptText="Valor" prefWidth="120"/>
+                <ComboBox fx:id="cmbFormaPagamento" prefWidth="160"/>
+                <TextField fx:id="txtDescricaoMovimentacao" promptText="Descrição" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="btnRegistrarMovimentacao" text="Registrar"
+                        onAction="#registrarMovimentacao" styleClass="btn-secondary"/>
+            </HBox>
+        </VBox>
+
+        <VBox styleClass="card" spacing="10" prefWidth="300">
+            <Label text="Fechamento" styleClass="card-title"/>
+            <Label text="Saldo final informado" styleClass="form-label"/>
+            <TextField fx:id="txtSaldoFinal" text="0,00"/>
+            <TextArea fx:id="txtObservacoesFechamento" promptText="Observações do fechamento"
+                      prefRowCount="2" wrapText="true"/>
+            <Button fx:id="btnFechar" text="Fechar Caixa" onAction="#fecharCaixa"
+                    maxWidth="Infinity" styleClass="btn-danger"/>
+        </VBox>
+    </HBox>
+
+    <TableView fx:id="tblMovimentacoes" VBox.vgrow="ALWAYS" styleClass="table-view">
+        <columns>
+            <TableColumn fx:id="colDataHora" text="DATA/HORA" prefWidth="140" minWidth="120"/>
+            <TableColumn fx:id="colTipo" text="TIPO" prefWidth="120" minWidth="90"/>
+            <TableColumn fx:id="colDescricao" text="DESCRIÇÃO" prefWidth="260" minWidth="180"/>
+            <TableColumn fx:id="colForma" text="FORMA" prefWidth="140" minWidth="110"/>
+            <TableColumn fx:id="colValor" text="VALOR" prefWidth="130" minWidth="110"/>
+            <TableColumn fx:id="colOrigem" text="ORIGEM" prefWidth="120" minWidth="90"/>
+        </columns>
+        <placeholder>
+            <Label text="Nenhuma movimentação no caixa atual" styleClass="content-placeholder"/>
+        </placeholder>
+    </TableView>
+</VBox>

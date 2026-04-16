@@ -45,6 +45,7 @@ class VendaServiceTest {
     @Mock private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     @Mock private ConfiguracaoRepository configuracaoRepository;
     @Mock private AuthService authService;
+    @Mock private CaixaService caixaService;
 
     @InjectMocks private VendaService vendaService;
 
@@ -122,6 +123,7 @@ class VendaServiceTest {
         assertThat(movCaptor.getValue().getOrigemId()).isEqualTo(7);
         assertThat(movCaptor.getValue().getTipo()).isEqualTo("SAIDA");
         verify(contaReceberRepository, never()).save(any());
+        verify(caixaService).registrarVendaSeCaixaAberto(salva, "DINHEIRO");
     }
 
     @Test

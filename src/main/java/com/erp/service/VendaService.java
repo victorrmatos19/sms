@@ -44,6 +44,7 @@ public class VendaService {
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     private final ConfiguracaoRepository configuracaoRepository;
     private final AuthService authService;
+    private final CaixaService caixaService;
 
     @Transactional(readOnly = true)
     public List<Venda> listarPorEmpresa(Integer empresaId) {
@@ -101,6 +102,7 @@ public class VendaService {
         Venda vendaSalva = vendaRepository.save(venda);
         baixarEstoque(vendaSalva, produtos, permiteEstoqueZero);
         gerarContasAReceber(vendaSalva, formaPagamento, normalizarParcelas(parcelas));
+        caixaService.registrarVendaSeCaixaAberto(vendaSalva, formaPagamento);
 
         log.info("Venda direta registrada: id={} numero='{}' valor={}",
                 vendaSalva.getId(), vendaSalva.getNumero(), vendaSalva.getValorTotal());

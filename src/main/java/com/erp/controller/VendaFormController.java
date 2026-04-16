@@ -377,12 +377,7 @@ public class VendaFormController implements Initializable {
         ir.row = itemBox;
 
         if (itemExistente != null) {
-            ir.cbProduto.setValue(itemExistente.getProduto());
-            ir.txtDescricao.setText(nvl(itemExistente.getDescricao()));
-            ir.txtQtd.setText(itemExistente.getQuantidade().toPlainString());
-            ir.txtPreco.setText(formatDecimal(itemExistente.getPrecoUnitario()));
-            ir.txtDesconto.setText(formatDecimal(itemExistente.getDesconto()));
-            recalcularLinha(ir);
+            preencherItemExistente(ir, itemExistente);
         }
 
         if (somenteLeitura) {
@@ -397,6 +392,23 @@ public class VendaFormController implements Initializable {
         vboxItens.getChildren().add(itemBox);
         itemRows.add(ir);
         recalcularTotal();
+    }
+
+    private void preencherItemExistente(ItemRow ir, VendaItem itemExistente) {
+        ir.carregandoItemExistente = true;
+        try {
+            ir.cbProduto.setValue(itemExistente.getProduto());
+            ir.produtoAtual = itemExistente.getProduto();
+            atualizarEstoque(ir, itemExistente.getProduto());
+            ir.txtDescricao.setText(nvl(itemExistente.getDescricao()));
+            ir.txtQtd.setText(nvl(itemExistente.getQuantidade()).toPlainString());
+            ir.txtPreco.setText(formatDecimal(itemExistente.getPrecoUnitario()));
+            ir.txtDesconto.setText(formatDecimal(itemExistente.getDesconto()));
+        } finally {
+            ir.carregandoItemExistente = false;
+        }
+        verificarPrecoMinimo(ir);
+        recalcularLinha(ir);
     }
 
     private void filtrarProdutos(ItemRow ir, ObservableList<Produto> produtosDisplay,
@@ -429,11 +441,22 @@ public class VendaFormController implements Initializable {
     private void aoSelecionarProduto(ItemRow ir, Produto produto) {
         if (produto == null) return;
         ir.produtoAtual = produto;
+        atualizarEstoque(ir, produto);
+        if (ir.carregandoItemExistente) {
+            return;
+        }
         ir.txtDescricao.setText(produto.getDescricao());
         ir.txtPreco.setText(formatDecimal(produto.getPrecoVenda()));
-        ir.lblEstoque.setText("Estoque: " + nvl(produto.getEstoqueAtual()).stripTrailingZeros().toPlainString());
         verificarPrecoMinimo(ir);
         recalcularLinha(ir);
+    }
+
+    private void atualizarEstoque(ItemRow ir, Produto produto) {
+        if (produto == null) {
+            ir.lblEstoque.setText("Estoque: -");
+            return;
+        }
+        ir.lblEstoque.setText("Estoque: " + nvl(produto.getEstoqueAtual()).stripTrailingZeros().toPlainString());
     }
 
     private void verificarPrecoMinimo(ItemRow ir) {
@@ -584,6 +607,7 @@ public class VendaFormController implements Initializable {
     private static class ItemRow {
         VendaItem item;
         Produto produtoAtual;
+        boolean carregandoItemExistente;
         ComboBox<Produto> cbProduto;
         TextField txtDescricao;
         TextField txtQtd;
