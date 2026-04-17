@@ -7,7 +7,7 @@
 
     <groupId>com.erp</groupId>
     <artifactId>erp-desktop</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
     <name>ERP Desktop</name>
     <description>ERP Desktop para Pequenas Empresas</description>
@@ -237,6 +237,12 @@
             <version>75.1</version>
         </dependency>
 
+        <!-- JSON para manifest/cache de atualização -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
         <!-- Apache Batik — conversão de SVG para PNG em runtime -->
         <!-- Necessário pois JavaFX não suporta SVG nativo como Image -->
         <dependency>
@@ -299,6 +305,22 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>version.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>version.properties</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <plugins>
 
             <!-- Compilador Java 21 -->
@@ -369,6 +391,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.3.1</version>
+                <configuration>
+                    <propertiesEncoding>UTF-8</propertiesEncoding>
+                </configuration>
                 <executions>
                     <execution>
                         <id>copy-jpackage-input</id>
@@ -400,7 +425,7 @@
                 <configuration>
                     <name>SMS - Simple Manage System</name>
                     <type>EXE</type>
-                    <appVersion>1.0.0</appVersion>
+                    <appVersion>${project.version}</appVersion>
                     <vendor>SMS</vendor>
                     <destination>target/dist</destination>
                     <input>target/jpackage-input</input>
@@ -415,6 +440,8 @@
                     <winDirChooser>true</winDirChooser>
                     <winMenu>true</winMenu>
                     <winShortcut>true</winShortcut>
+                    <winPerUserInstall>true</winPerUserInstall>
+                    <winUpgradeUuid>7c29f1a6-4b58-4c72-9f5f-0b8480ac1a2d</winUpgradeUuid>
                 </configuration>
             </plugin>
 
