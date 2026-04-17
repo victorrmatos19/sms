@@ -46,6 +46,7 @@ public class UpdateService {
             @Value("${sms.update.check-interval-days:7}") long checkIntervalDays) {
         this(updateUrl, checkIntervalDays, HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(8))
+                .followRedirects(HttpClient.Redirect.NORMAL)
                 .build(), new ObjectMapper(), defaultCachePath(), loadCurrentVersion());
     }
 
