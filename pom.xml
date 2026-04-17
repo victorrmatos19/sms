@@ -347,6 +347,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring.boot.version}</version>
                 <configuration>
+                    <mainClass>com.erp.Launcher</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
@@ -354,6 +355,40 @@
                         </exclude>
                     </excludes>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Prepara uma pasta limpa para o jpackage empacotar apenas o JAR final -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-jpackage-input</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/jpackage-input</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes>
+                                        <include>${project.build.finalName}.jar</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- jpackage — gera instalador .exe no Windows -->
@@ -363,12 +398,15 @@
                 <artifactId>jpackage-maven-plugin</artifactId>
                 <version>1.6.5</version>
                 <configuration>
-                    <name>ERP Desktop</name>
+                    <name>SMS - Simple Manage System</name>
+                    <type>EXE</type>
                     <appVersion>1.0.0</appVersion>
-                    <vendor>Sua Empresa</vendor>
+                    <vendor>SMS</vendor>
                     <destination>target/dist</destination>
-                    <mainClass>com.erp.MainApp</mainClass>
+                    <input>target/jpackage-input</input>
+                    <mainClass>org.springframework.boot.loader.launch.JarLauncher</mainClass>
                     <mainJar>${project.artifactId}-${project.version}.jar</mainJar>
+                    <icon>src/main/resources/images/icon.ico</icon>
                     <javaOptions>
                         <option>-Dfile.encoding=UTF-8</option>
                         <option>--add-opens=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED</option>
