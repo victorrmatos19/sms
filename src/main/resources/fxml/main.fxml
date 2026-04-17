@@ -4,6 +4,7 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -32,41 +33,69 @@
                 <VBox styleClass="sidebar" spacing="0">
 
                     <Label fx:id="lblSecaoCadastros" text="CADASTROS" styleClass="sidebar-section"/>
-                    <Button fx:id="btnClientes" text="Clientes"      onAction="#abrirClientes"     maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button fx:id="btnFornecedores" text="Fornecedores"  onAction="#abrirFornecedores" maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button fx:id="btnProdutos" text="Produtos"      onAction="#abrirProdutos"     maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button fx:id="btnFuncionarios" text="Funcionários"  onAction="#abrirFuncionarios" maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnClientes" text="Clientes" onAction="#abrirClientes" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2a-account-group" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
+                    <Button fx:id="btnFornecedores" text="Fornecedores" onAction="#abrirFornecedores" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2t-truck-delivery" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
+                    <Button fx:id="btnProdutos" text="Produtos" onAction="#abrirProdutos" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2p-package-variant" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
+                    <Button fx:id="btnFuncionarios" text="Funcionários" onAction="#abrirFuncionarios" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2a-account-tie" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
 
                     <Region fx:id="separadorCadastros" styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
 
                     <Label fx:id="lblSecaoEstoque" text="ESTOQUE" styleClass="sidebar-section"/>
-                    <Button fx:id="btnEstoque" text="Movimentações" onAction="#abrirEstoque"  maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button fx:id="btnCompras" text="Compras"       onAction="#abrirCompras"  maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnEstoque" text="Movimentações" onAction="#abrirEstoque" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2s-swap-vertical" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
+                    <Button fx:id="btnCompras" text="Compras" onAction="#abrirCompras" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2c-cart-arrow-down" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
 
                     <Region fx:id="separadorEstoque" styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
 
                     <Label fx:id="lblSecaoComercial" text="COMERCIAL" styleClass="sidebar-section"/>
-                    <Button fx:id="btnOrcamentos" text="Orçamentos" onAction="#abrirOrcamentos" maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button fx:id="btnVendas" text="Vendas"     onAction="#abrirVendas"     maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnOrcamentos" text="Orçamentos" onAction="#abrirOrcamentos" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2f-file-document-edit" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
+                    <Button fx:id="btnVendas" text="Vendas" onAction="#abrirVendas" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2p-point-of-sale" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
 
                     <Region fx:id="separadorComercial" styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
 
                     <Label fx:id="lblSecaoFinanceiro" text="FINANCEIRO" styleClass="sidebar-section"/>
-                    <Button fx:id="btnCaixa" text="Caixa"             onAction="#abrirCaixa"          maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button fx:id="btnContasPagar" text="Contas a Pagar"    onAction="#abrirContasPagar"    maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button fx:id="btnContasReceber" text="Contas a Receber"  onAction="#abrirContasReceber"  maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnCaixa" text="Caixa" onAction="#abrirCaixa" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2c-cash-register" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
+                    <Button fx:id="btnContasPagar" text="Contas a Pagar" onAction="#abrirContasPagar" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2c-credit-card-minus" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
+                    <Button fx:id="btnContasReceber" text="Contas a Receber" onAction="#abrirContasReceber" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2c-credit-card-plus" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
 
                     <Region fx:id="separadorFinanceiro" styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
 
                     <Label fx:id="lblSecaoRelatorios" text="RELATÓRIOS" styleClass="sidebar-section"/>
-                    <Button fx:id="btnRelatorios" text="Relatórios" onAction="#abrirRelatorios" maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnRelatorios" text="Relatórios" onAction="#abrirRelatorios" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2c-chart-bar" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
 
                     <Region VBox.vgrow="ALWAYS"/>
 
                     <Region fx:id="separadorRelatorios" styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
                     <Label fx:id="lblSecaoSistema" text="SISTEMA" styleClass="sidebar-section"/>
-                    <Button fx:id="btnUsuarios" text="Usuários" onAction="#abrirUsuarios" maxWidth="Infinity" styleClass="sidebar-btn"/>
-                    <Button fx:id="btnConfiguracoes" text="Configurações" onAction="#abrirConfiguracoes" maxWidth="Infinity" styleClass="sidebar-btn"/>
+                    <Button fx:id="btnUsuarios" text="Usuários" onAction="#abrirUsuarios" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2a-account-cog" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
+                    <Button fx:id="btnConfiguracoes" text="Configurações" onAction="#abrirConfiguracoes" maxWidth="Infinity" styleClass="sidebar-btn">
+                        <graphic><StackPane styleClass="sidebar-icon-wrap"><FontIcon iconLiteral="mdi2c-cog" iconSize="16" styleClass="sidebar-icon"/></StackPane></graphic>
+                    </Button>
 
                     <Region styleClass="sidebar-divider" prefHeight="1" maxWidth="Infinity"/>
                     <VBox styleClass="sidebar-user-area" spacing="3" alignment="CENTER_LEFT">

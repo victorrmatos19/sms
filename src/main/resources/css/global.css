@@ -87,13 +87,15 @@
     -fx-text-fill: #555555;
     -fx-font-size: 13px;
     -fx-alignment: CENTER_LEFT;
-    -fx-padding: 9 16 9 19;
+    -fx-padding: 9 16 9 12;
     -fx-background-radius: 0;
     -fx-border-width: 0 0 0 3;
     -fx-border-color: transparent;
     -fx-cursor: hand;
     -fx-pref-width: Infinity;
     -fx-min-height: 36;
+    -fx-content-display: LEFT;
+    -fx-graphic-text-gap: 10;
 }
 
 .sidebar-btn:hover {
@@ -108,12 +110,46 @@
     -fx-font-weight: bold;
     -fx-border-color: #16a34a;
     -fx-border-width: 0 0 0 3;
-    -fx-padding: 9 16 9 16;
+    -fx-padding: 9 16 9 12;
     -fx-alignment: CENTER_LEFT;
     -fx-pref-width: Infinity;
     -fx-min-height: 36;
     -fx-cursor: hand;
     -fx-background-radius: 0;
+    -fx-content-display: LEFT;
+    -fx-graphic-text-gap: 10;
+}
+
+/* ---- Chip de ícone na sidebar (light) ---- */
+
+.sidebar-icon-wrap {
+    -fx-min-width: 28;
+    -fx-max-width: 28;
+    -fx-min-height: 28;
+    -fx-max-height: 28;
+    -fx-background-radius: 7;
+    -fx-background-color: transparent;
+    -fx-alignment: CENTER;
+}
+
+.sidebar-icon {
+    -fx-icon-color: rgba(0,0,0,0.35);
+}
+
+.sidebar-btn:hover .sidebar-icon-wrap {
+    -fx-background-color: rgba(0,0,0,0.05);
+}
+
+.sidebar-btn:hover .sidebar-icon {
+    -fx-icon-color: rgba(0,0,0,0.75);
+}
+
+.sidebar-btn-active .sidebar-icon-wrap {
+    -fx-background-color: rgba(22,163,74,0.18);
+}
+
+.sidebar-btn-active .sidebar-icon {
+    -fx-icon-color: #16a34a;
 }
 
 .sidebar-divider {
@@ -216,12 +252,12 @@
 }
 
 .theme-dark .sidebar-btn {
-    -fx-text-fill: rgba(255,255,255,0.38);
+    -fx-text-fill: rgba(255,255,255,0.45);
 }
 
 .theme-dark .sidebar-btn:hover {
     -fx-background-color: rgba(255,255,255,0.06);
-    -fx-text-fill: rgba(255,255,255,0.92);
+    -fx-text-fill: rgba(255,255,255,0.85);
 }
 
 .theme-dark .sidebar-btn-active {
@@ -232,6 +268,28 @@
 
 .theme-dark .sidebar-divider {
     -fx-background-color: rgba(255,255,255,0.07);
+}
+
+/* ---- Chip de ícone — dark mode ---- */
+
+.theme-dark .sidebar-icon {
+    -fx-icon-color: rgba(255,255,255,0.28);
+}
+
+.theme-dark .sidebar-btn:hover .sidebar-icon-wrap {
+    -fx-background-color: rgba(255,255,255,0.06);
+}
+
+.theme-dark .sidebar-btn:hover .sidebar-icon {
+    -fx-icon-color: rgba(255,255,255,0.75);
+}
+
+.theme-dark .sidebar-btn-active .sidebar-icon-wrap {
+    -fx-background-color: rgba(29,185,84,0.18);
+}
+
+.theme-dark .sidebar-btn-active .sidebar-icon {
+    -fx-icon-color: #1db954;
 }
 
 .theme-dark .sidebar-user-avatar {

@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.ResourceBundle;
 
 /**
@@ -81,6 +82,8 @@ public class MainController implements Initializable {
     private static final DateTimeFormatter FORMATTER =
         DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
+    private List<Button> sidebarBtns;
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         var logo = svgImageLoader.load("/images/logo-dark.svg", 130, 34);
@@ -110,6 +113,14 @@ public class MainController implements Initializable {
         clock.setCycleCount(Timeline.INDEFINITE);
         clock.play();
 
+        // Lista de todos os botões da sidebar para gerenciar o estado ativo
+        sidebarBtns = List.of(
+            btnClientes, btnFornecedores, btnProdutos, btnFuncionarios,
+            btnEstoque, btnCompras, btnOrcamentos, btnVendas,
+            btnCaixa, btnContasPagar, btnContasReceber,
+            btnRelatorios, btnUsuarios, btnConfiguracoes
+        );
+
         configurarAcessoSidebar();
 
         // Sincronizar ícone do botão com tema atual
@@ -129,28 +140,43 @@ public class MainController implements Initializable {
         btnTema.setText(stageManager.isDarkMode() ? "☀" : "☾");
     }
 
+    // ---- Gerenciamento do item ativo na sidebar ----
+
+    private void setActiveBtn(Button btn) {
+        if (sidebarBtns != null) {
+            sidebarBtns.forEach(b -> b.getStyleClass().remove("sidebar-btn-active"));
+        }
+        if (btn != null && !btn.getStyleClass().contains("sidebar-btn-active")) {
+            btn.getStyleClass().add("sidebar-btn-active");
+        }
+    }
+
     // ---- Handlers do menu lateral ----
 
     @FXML
     private void abrirClientes() {
+        setActiveBtn(btnClientes);
         carregarModulo("/fxml/clientes.fxml", "Clientes");
     }
     @FXML
     private void abrirFornecedores() {
+        setActiveBtn(btnFornecedores);
         carregarModulo("/fxml/fornecedores.fxml", "Fornecedores");
     }
     @FXML
     private void abrirFuncionarios() {
+        setActiveBtn(btnFuncionarios);
         carregarModulo("/fxml/funcionarios.fxml", "Funcionários");
     }
-    @FXML private void abrirEstoque()        { carregarModulo("/fxml/estoque.fxml", "Movimentações de Estoque"); }
-    @FXML private void abrirCompras()        { carregarModulo("/fxml/compras.fxml", "Compras"); }
-    @FXML private void abrirOrcamentos()     { carregarModulo("/fxml/orcamentos.fxml", "Orçamentos"); }
-    @FXML private void abrirVendas()         { carregarModulo("/fxml/vendas.fxml", "Vendas"); }
-    @FXML private void abrirCaixa()          { carregarModulo("/fxml/caixa.fxml", "Caixa"); }
-    @FXML private void abrirContasPagar()    { carregarModulo("/fxml/contas-pagar.fxml", "Contas a Pagar"); }
-    @FXML private void abrirContasReceber()  { carregarModulo("/fxml/contas-receber.fxml", "Contas a Receber"); }
-    @FXML private void abrirRelatorios()     { carregarModulo("/fxml/relatorios.fxml", "Relatórios"); }
+    @FXML private void abrirEstoque()       { setActiveBtn(btnEstoque);       carregarModulo("/fxml/estoque.fxml",         "Movimentações de Estoque"); }
+    @FXML private void abrirCompras()       { setActiveBtn(btnCompras);       carregarModulo("/fxml/compras.fxml",         "Compras"); }
+    @FXML private void abrirOrcamentos()    { setActiveBtn(btnOrcamentos);    carregarModulo("/fxml/orcamentos.fxml",      "Orçamentos"); }
+    @FXML private void abrirVendas()        { setActiveBtn(btnVendas);        carregarModulo("/fxml/vendas.fxml",          "Vendas"); }
+    @FXML private void abrirCaixa()         { setActiveBtn(btnCaixa);         carregarModulo("/fxml/caixa.fxml",           "Caixa"); }
+    @FXML private void abrirContasPagar()   { setActiveBtn(btnContasPagar);   carregarModulo("/fxml/contas-pagar.fxml",    "Contas a Pagar"); }
+    @FXML private void abrirContasReceber() { setActiveBtn(btnContasReceber); carregarModulo("/fxml/contas-receber.fxml",  "Contas a Receber"); }
+    @FXML private void abrirRelatorios()    { setActiveBtn(btnRelatorios);    carregarModulo("/fxml/relatorios.fxml",      "Relatórios"); }
+
     @FXML
     private void abrirUsuarios() {
         if (!authService.temPerfil("ADMINISTRADOR")) {
@@ -161,6 +187,7 @@ public class MainController implements Initializable {
             alert.showAndWait();
             return;
         }
+        setActiveBtn(btnUsuarios);
         carregarModulo("/fxml/usuarios.fxml", "Usuários");
     }
 
@@ -174,11 +201,13 @@ public class MainController implements Initializable {
             alert.showAndWait();
             return;
         }
+        setActiveBtn(btnConfiguracoes);
         carregarModulo("/fxml/configuracoes.fxml", "Configurações");
     }
 
     @FXML
     private void abrirProdutos() {
+        setActiveBtn(btnProdutos);
         carregarModulo("/fxml/produtos.fxml", "Produtos");
     }
 
@@ -194,6 +223,7 @@ public class MainController implements Initializable {
     }
 
     public void carregarDashboard() {
+        setActiveBtn(null); // dashboard não corresponde a nenhum botão da sidebar
         PerfilAcesso perfilPrincipal = authService.getPerfilPrincipal();
         String perfil = perfilPrincipal != null ? perfilPrincipal.getNome() : "ADMINISTRADOR";
 
