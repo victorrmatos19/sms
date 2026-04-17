@@ -1,6 +1,7 @@
 package com.erp.controller;
 
 import com.erp.model.dto.dashboard.DashboardVendasDTO;
+import com.erp.service.AppNavigationService;
 import com.erp.service.AuthService;
 import com.erp.service.DashboardService;
 import com.erp.util.MoneyUtils;
@@ -25,13 +26,18 @@ public class DashboardVendasController implements Initializable {
 
     private final DashboardService dashboardService;
     private final AuthService authService;
+    private final AppNavigationService appNavigationService;
 
+    @FXML private Label lblVendasHoje;
+    @FXML private Label lblValorVendasHoje;
     @FXML private Label lblOrcamentosMes;
     @FXML private Label lblValorOrcamentos;
+    @FXML private Label lblOrcamentosAbertos;
+    @FXML private Label lblOrcamentosConvertidos;
     @FXML private Label lblVendasMes;
     @FXML private Label lblValorVendas;
-    @FXML private Label lblComprasMes;
-    @FXML private Label lblValorCompras;
+    @FXML private Label lblVendasTimeMes;
+    @FXML private Label lblOrcamentosTimeMes;
 
     private Timeline autoRefresh;
     @Override
@@ -49,7 +55,7 @@ public class DashboardVendasController implements Initializable {
     private void carregarDados() {
         Integer empresaId = authService.getEmpresaIdLogado();
         try {
-            DashboardVendasDTO dto = dashboardService.carregarVendas(empresaId);
+            DashboardVendasDTO dto = dashboardService.carregarVendas(empresaId, authService.getUsuarioLogado());
             Platform.runLater(() -> preencherUI(dto));
         } catch (Exception e) {
             log.error("Erro ao carregar dashboard vendas", e);
@@ -57,11 +63,25 @@ public class DashboardVendasController implements Initializable {
     }
 
     private void preencherUI(DashboardVendasDTO dto) {
-        lblOrcamentosMes.setText(String.valueOf(dto.orcamentosMes()));
-        lblValorOrcamentos.setText(MoneyUtils.formatCurrency(dto.valorOrcamentosMes()));
-        lblVendasMes.setText(String.valueOf(dto.vendasMes()));
-        lblValorVendas.setText(MoneyUtils.formatCurrency(dto.valorVendasMes()));
-        lblComprasMes.setText(String.valueOf(dto.comprasMes()));
-        lblValorCompras.setText(MoneyUtils.formatCurrency(dto.valorComprasMes()));
+        lblVendasHoje.setText(String.valueOf(dto.minhasVendasHoje()));
+        lblValorVendasHoje.setText(MoneyUtils.formatCurrency(dto.valorMinhasVendasHoje()));
+        lblVendasMes.setText(String.valueOf(dto.minhasVendasMes()));
+        lblValorVendas.setText(MoneyUtils.formatCurrency(dto.valorMinhasVendasMes()));
+        lblOrcamentosAbertos.setText(String.valueOf(dto.meusOrcamentosAbertos()));
+        lblOrcamentosMes.setText(String.valueOf(dto.meusOrcamentosMes()));
+        lblValorOrcamentos.setText(MoneyUtils.formatCurrency(dto.valorMeusOrcamentosMes()));
+        lblOrcamentosConvertidos.setText(dto.meusOrcamentosConvertidosMes() + " convertidos no mês");
+        lblVendasTimeMes.setText(String.valueOf(dto.vendasTimeMes()));
+        lblOrcamentosTimeMes.setText(String.valueOf(dto.orcamentosTimeMes()));
+    }
+
+    @FXML
+    private void abrirVendas() {
+        appNavigationService.navigateTo(AppNavigationService.Destination.VENDAS);
+    }
+
+    @FXML
+    private void abrirOrcamentos() {
+        appNavigationService.navigateTo(AppNavigationService.Destination.ORCAMENTOS);
     }
 }

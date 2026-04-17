@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +38,62 @@ public interface OrcamentoRepository extends JpaRepository<Orcamento, Integer> {
 
     long countByEmpresaIdAndStatusAndDataEmissaoBetween(
             Integer empresaId, String status, LocalDate inicio, LocalDate fim);
+
+    long countByEmpresaIdAndDataEmissaoBetween(Integer empresaId, LocalDate inicio, LocalDate fim);
+
+    @Query("""
+            SELECT COUNT(o)
+            FROM Orcamento o
+            WHERE o.empresa.id = :empresaId
+              AND (:status IS NULL OR o.status = :status)
+              AND (
+                    (:vendedorId IS NOT NULL AND o.vendedor.id = :vendedorId)
+                    OR (:vendedorId IS NULL AND :usuarioId IS NOT NULL AND o.usuario.id = :usuarioId)
+                  )
+            """)
+    long countPessoalByStatus(
+            @Param("empresaId") Integer empresaId,
+            @Param("status") String status,
+            @Param("vendedorId") Integer vendedorId,
+            @Param("usuarioId") Integer usuarioId);
+
+    @Query("""
+            SELECT COUNT(o)
+            FROM Orcamento o
+            WHERE o.empresa.id = :empresaId
+              AND (:status IS NULL OR o.status = :status)
+              AND o.dataEmissao BETWEEN :inicio AND :fim
+              AND (
+                    (:vendedorId IS NOT NULL AND o.vendedor.id = :vendedorId)
+                    OR (:vendedorId IS NULL AND :usuarioId IS NOT NULL AND o.usuario.id = :usuarioId)
+                  )
+            """)
+    long countPessoalByPeriodo(
+            @Param("empresaId") Integer empresaId,
+            @Param("status") String status,
+            @Param("inicio") LocalDate inicio,
+            @Param("fim") LocalDate fim,
+            @Param("vendedorId") Integer vendedorId,
+            @Param("usuarioId") Integer usuarioId);
+
+    @Query("""
+            SELECT COALESCE(SUM(o.valorTotal), 0)
+            FROM Orcamento o
+            WHERE o.empresa.id = :empresaId
+              AND (:status IS NULL OR o.status = :status)
+              AND o.dataEmissao BETWEEN :inicio AND :fim
+              AND (
+                    (:vendedorId IS NOT NULL AND o.vendedor.id = :vendedorId)
+                    OR (:vendedorId IS NULL AND :usuarioId IS NOT NULL AND o.usuario.id = :usuarioId)
+                  )
+            """)
+    BigDecimal sumValorPessoal(
+            @Param("empresaId") Integer empresaId,
+            @Param("status") String status,
+            @Param("inicio") LocalDate inicio,
+            @Param("fim") LocalDate fim,
+            @Param("vendedorId") Integer vendedorId,
+            @Param("usuarioId") Integer usuarioId);
 
     boolean existsByEmpresaIdAndNumero(Integer empresaId, String numero);
 

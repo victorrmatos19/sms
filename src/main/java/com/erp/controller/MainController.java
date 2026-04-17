@@ -2,6 +2,7 @@ package com.erp.controller;
 
 import com.erp.StageManager;
 import com.erp.model.PerfilAcesso;
+import com.erp.service.AppNavigationService;
 import com.erp.service.AuthService;
 import com.erp.util.SvgImageLoader;
 import javafx.animation.KeyFrame;
@@ -42,6 +43,7 @@ public class MainController implements Initializable {
     private final StageManager stageManager;
     private final SvgImageLoader svgImageLoader;
     private final ApplicationContext springContext;
+    private final AppNavigationService appNavigationService;
 
     @FXML private ImageView imgLogoTopbar;
     @FXML private Button btnTema;
@@ -122,12 +124,18 @@ public class MainController implements Initializable {
         );
 
         configurarAcessoSidebar();
+        configurarNavegacaoInterna();
 
         // Sincronizar ícone do botão com tema atual
         atualizarIconeTema();
 
         // Carrega o dashboard do perfil do usuário logado
         carregarDashboard();
+    }
+
+    private void configurarNavegacaoInterna() {
+        appNavigationService.register(AppNavigationService.Destination.VENDAS, this::abrirVendas);
+        appNavigationService.register(AppNavigationService.Destination.ORCAMENTOS, this::abrirOrcamentos);
     }
 
     @FXML

@@ -12,41 +12,55 @@
       spacing="24">
     <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
 
-    <!-- Cabeçalho -->
-    <VBox spacing="4">
-        <Label text="Dashboard" styleClass="page-title"/>
-        <Label text="Visão geral do mês — Vendas" styleClass="page-subtitle"/>
-    </VBox>
+    <HBox alignment="CENTER_LEFT" spacing="16">
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Dashboard" styleClass="page-title"/>
+            <Label text="Visão comercial do seu dia e do mês" styleClass="page-subtitle"/>
+        </VBox>
+        <Button text="Abrir Orçamentos" onAction="#abrirOrcamentos" styleClass="btn-secondary"/>
+        <Button text="Abrir Vendas" onAction="#abrirVendas" styleClass="btn-primary"/>
+    </HBox>
 
-    <!-- Métricas -->
     <HBox spacing="16">
-        <VBox fx:id="cardOrcamentosAbertos" styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
-            <Label text="ORÇAMENTOS — MÊS" styleClass="metric-card-label"/>
-            <Label fx:id="lblOrcamentosMes" text="0" styleClass="metric-card-value"/>
-            <Label fx:id="lblValorOrcamentos" text="R$ 0,00" styleClass="metric-card-subtitle"/>
-            <Label text="em breve" styleClass="badge-neutral"/>
+        <VBox styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+            <Label text="VENDAS HOJE" styleClass="metric-card-label"/>
+            <Label fx:id="lblVendasHoje" text="0" styleClass="metric-card-value"/>
+            <Label fx:id="lblValorVendasHoje" text="R$ 0,00" styleClass="metric-card-subtitle"/>
         </VBox>
 
-        <VBox fx:id="cardMinhasVendas" styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
-            <Label text="VENDAS REALIZADAS — MÊS" styleClass="metric-card-label"/>
+        <VBox styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+            <Label text="MINHAS VENDAS - MÊS" styleClass="metric-card-label"/>
             <Label fx:id="lblVendasMes" text="0" styleClass="metric-card-value"/>
             <Label fx:id="lblValorVendas" text="R$ 0,00" styleClass="metric-card-subtitle"/>
-            <Label text="em breve" styleClass="badge-neutral"/>
         </VBox>
 
-        <VBox fx:id="cardMeta" styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
-            <Label text="COMPRAS CONFIRMADAS — MÊS" styleClass="metric-card-label"/>
-            <Label fx:id="lblComprasMes" text="0" styleClass="metric-card-value"/>
-            <Label fx:id="lblValorCompras" text="R$ 0,00" styleClass="metric-card-subtitle"/>
+        <VBox styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+            <Label text="ORÇAMENTOS ABERTOS" styleClass="metric-card-label"/>
+            <Label fx:id="lblOrcamentosAbertos" text="0" styleClass="metric-card-value"/>
+            <Label text="em andamento" styleClass="metric-card-subtitle"/>
+        </VBox>
+
+        <VBox styleClass="metric-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+            <Label text="ORÇAMENTOS - MÊS" styleClass="metric-card-label"/>
+            <Label fx:id="lblOrcamentosMes" text="0" styleClass="metric-card-value"/>
+            <Label fx:id="lblValorOrcamentos" text="R$ 0,00" styleClass="metric-card-subtitle"/>
+            <Label fx:id="lblOrcamentosConvertidos" text="0 convertidos no mês" styleClass="badge-success"/>
         </VBox>
     </HBox>
 
-    <!-- Aviso módulos em breve -->
-    <VBox styleClass="dashboard-info-card" spacing="8" alignment="CENTER">
-        <padding><Insets top="32" right="32" bottom="32" left="32"/></padding>
-        <Label text="🚧  Módulo de Vendas em desenvolvimento" styleClass="dashboard-info-title"/>
-        <Label text="Os módulos de Orçamentos e Vendas estão previstos para a Fase 1 do sistema."
-               styleClass="dashboard-info-subtitle" wrapText="true" textAlignment="CENTER"/>
+    <VBox styleClass="dash-section-card" spacing="14">
+        <Label text="Time comercial" styleClass="section-title"/>
+        <HBox spacing="16">
+            <VBox styleClass="dash-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+                <Label text="VENDAS DO TIME - MÊS" styleClass="dash-card-label"/>
+                <Label fx:id="lblVendasTimeMes" text="0" styleClass="dash-val-green"/>
+                <Label text="vendas finalizadas" styleClass="dash-card-sub"/>
+            </VBox>
+            <VBox styleClass="dash-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="6">
+                <Label text="ORÇAMENTOS DO TIME - MÊS" styleClass="dash-card-label"/>
+                <Label fx:id="lblOrcamentosTimeMes" text="0" styleClass="dash-val-blue"/>
+                <Label text="orçamentos emitidos" styleClass="dash-card-sub"/>
+            </VBox>
+        </HBox>
     </VBox>
-
 </VBox>

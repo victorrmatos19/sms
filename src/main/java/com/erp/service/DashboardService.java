@@ -1,6 +1,8 @@
 package com.erp.service;
 
+import com.erp.model.Funcionario;
 import com.erp.model.Produto;
+import com.erp.model.Usuario;
 import com.erp.model.Venda;
 import com.erp.model.VendaPagamento;
 import com.erp.model.dto.caixa.CaixaResumoDTO;
@@ -31,6 +33,8 @@ public class DashboardService {
     private final ProdutoRepository produtoRepository;
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     private final VendaRepository vendaRepository;
+    private final OrcamentoRepository orcamentoRepository;
+    private final FuncionarioRepository funcionarioRepository;
     private final CaixaService caixaService;
 
     private static final String STATUS_VENDA_FINALIZADA = "FINALIZADA";
@@ -115,23 +119,54 @@ public class DashboardService {
     // -----------------------------------------------------------------------
 
     @Transactional(readOnly = true)
-    public DashboardVendasDTO carregarVendas(Integer empresaId) {
+    public DashboardVendasDTO carregarVendas(Integer empresaId, Usuario usuarioLogado) {
         LocalDate hoje = LocalDate.now();
         LocalDate inicioMes = hoje.withDayOfMonth(1);
         LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
+        LocalDateTime inicioHoje = hoje.atStartOfDay();
+        LocalDateTime fimHoje = hoje.atTime(LocalTime.MAX);
+        LocalDateTime inicioMesVenda = inicioMes.atStartOfDay();
+        LocalDateTime fimMesVenda = fimMes.atTime(LocalTime.MAX);
 
-        long comprasMes = compraRepository.countByEmpresaIdAndStatusAndDataEmissaoBetween(
-                empresaId, "CONFIRMADA", inicioMes, fimMes);
-        BigDecimal valorComprasMes = compraRepository
-                .findByEmpresaIdAndStatus(empresaId, "CONFIRMADA")
-                .stream()
-                .filter(c -> !c.getDataEmissao().isBefore(inicioMes)
-                          && !c.getDataEmissao().isAfter(fimMes))
-                .map(c -> c.getValorTotal() != null ? c.getValorTotal() : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        Integer usuarioId = usuarioLogado != null ? usuarioLogado.getId() : null;
+        Integer vendedorId = buscarFuncionarioVinculadoId(empresaId, usuarioId);
 
-        return new DashboardVendasDTO(0L, BigDecimal.ZERO, 0L, BigDecimal.ZERO,
-                comprasMes, valorComprasMes);
+        long minhasVendasHoje = vendaRepository.countPessoalByStatusAndPeriodo(
+                empresaId, STATUS_VENDA_FINALIZADA, inicioHoje, fimHoje, vendedorId, usuarioId);
+        BigDecimal valorMinhasVendasHoje = zeroIfNull(vendaRepository.sumValorPessoalByStatusAndPeriodo(
+                empresaId, STATUS_VENDA_FINALIZADA, inicioHoje, fimHoje, vendedorId, usuarioId));
+
+        long minhasVendasMes = vendaRepository.countPessoalByStatusAndPeriodo(
+                empresaId, STATUS_VENDA_FINALIZADA, inicioMesVenda, fimMesVenda, vendedorId, usuarioId);
+        BigDecimal valorMinhasVendasMes = zeroIfNull(vendaRepository.sumValorPessoalByStatusAndPeriodo(
+                empresaId, STATUS_VENDA_FINALIZADA, inicioMesVenda, fimMesVenda, vendedorId, usuarioId));
+
+        long meusOrcamentosAbertos = orcamentoRepository.countPessoalByStatus(
+                empresaId, "ABERTO", vendedorId, usuarioId);
+        long meusOrcamentosMes = orcamentoRepository.countPessoalByPeriodo(
+                empresaId, null, inicioMes, fimMes, vendedorId, usuarioId);
+        BigDecimal valorMeusOrcamentosMes = zeroIfNull(orcamentoRepository.sumValorPessoal(
+                empresaId, null, inicioMes, fimMes, vendedorId, usuarioId));
+        long meusOrcamentosConvertidosMes = orcamentoRepository.countPessoalByPeriodo(
+                empresaId, "CONVERTIDO", inicioMes, fimMes, vendedorId, usuarioId);
+
+        long vendasTimeMes = vendaRepository.countByEmpresaIdAndStatusAndDataVendaBetween(
+                empresaId, STATUS_VENDA_FINALIZADA, inicioMesVenda, fimMesVenda);
+        long orcamentosTimeMes = orcamentoRepository.countByEmpresaIdAndDataEmissaoBetween(
+                empresaId, inicioMes, fimMes);
+
+        return new DashboardVendasDTO(
+                minhasVendasHoje,
+                valorMinhasVendasHoje,
+                minhasVendasMes,
+                valorMinhasVendasMes,
+                meusOrcamentosAbertos,
+                meusOrcamentosMes,
+                valorMeusOrcamentosMes,
+                meusOrcamentosConvertidosMes,
+                vendasTimeMes,
+                orcamentosTimeMes
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -312,5 +347,14 @@ public class DashboardService {
 
     private BigDecimal zeroIfNull(BigDecimal value) {
         return value != null ? value : BigDecimal.ZERO;
+    }
+
+    private Integer buscarFuncionarioVinculadoId(Integer empresaId, Integer usuarioId) {
+        if (empresaId == null || usuarioId == null) {
+            return null;
+        }
+        return funcionarioRepository.findByEmpresaIdAndUsuarioId(empresaId, usuarioId)
+                .map(Funcionario::getId)
+                .orElse(null);
     }
 }

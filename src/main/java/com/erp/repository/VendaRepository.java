@@ -78,6 +78,44 @@ public interface VendaRepository extends JpaRepository<Venda, Integer> {
             @Param("fim") LocalDateTime fim);
 
     @Query("""
+            SELECT COUNT(v)
+            FROM Venda v
+            WHERE v.empresa.id = :empresaId
+              AND v.status = :status
+              AND v.dataVenda BETWEEN :inicio AND :fim
+              AND (
+                    (:vendedorId IS NOT NULL AND v.vendedor.id = :vendedorId)
+                    OR (:vendedorId IS NULL AND :usuarioId IS NOT NULL AND v.usuario.id = :usuarioId)
+                  )
+            """)
+    long countPessoalByStatusAndPeriodo(
+            @Param("empresaId") Integer empresaId,
+            @Param("status") String status,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim,
+            @Param("vendedorId") Integer vendedorId,
+            @Param("usuarioId") Integer usuarioId);
+
+    @Query("""
+            SELECT COALESCE(SUM(v.valorTotal), 0)
+            FROM Venda v
+            WHERE v.empresa.id = :empresaId
+              AND v.status = :status
+              AND v.dataVenda BETWEEN :inicio AND :fim
+              AND (
+                    (:vendedorId IS NOT NULL AND v.vendedor.id = :vendedorId)
+                    OR (:vendedorId IS NULL AND :usuarioId IS NOT NULL AND v.usuario.id = :usuarioId)
+                  )
+            """)
+    BigDecimal sumValorPessoalByStatusAndPeriodo(
+            @Param("empresaId") Integer empresaId,
+            @Param("status") String status,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim,
+            @Param("vendedorId") Integer vendedorId,
+            @Param("usuarioId") Integer usuarioId);
+
+    @Query("""
             SELECT DISTINCT v FROM Venda v
             LEFT JOIN FETCH v.cliente
             LEFT JOIN FETCH v.vendedor

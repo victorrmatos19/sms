@@ -2,11 +2,14 @@ package com.erp.service;
 
 import com.erp.model.Produto;
 import com.erp.model.Empresa;
+import com.erp.model.Funcionario;
+import com.erp.model.Usuario;
 import com.erp.model.Venda;
 import com.erp.model.VendaPagamento;
 import com.erp.model.dto.caixa.CaixaResumoDTO;
 import com.erp.model.dto.dashboard.DashboardAdminDTO;
 import com.erp.model.dto.dashboard.DashboardEstoqueDTO;
+import com.erp.model.dto.dashboard.DashboardVendasDTO;
 import com.erp.model.dto.dashboard.VendaDiariaDTO;
 import com.erp.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -38,6 +42,8 @@ class DashboardServiceTest {
     @Mock private ProdutoRepository produtoRepository;
     @Mock private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     @Mock private VendaRepository vendaRepository;
+    @Mock private OrcamentoRepository orcamentoRepository;
+    @Mock private FuncionarioRepository funcionarioRepository;
     @Mock private CaixaService caixaService;
 
     @InjectMocks private DashboardService dashboardService;
@@ -269,6 +275,127 @@ class DashboardServiceTest {
             assertThat(dia.quantidade()).isEqualTo(1L);
         });
         assertThat(dto.ticketMedioUltimos7Dias()).isEqualByComparingTo("100.00");
+    }
+
+    @Test
+    void dado_usuario_com_funcionario_vinculado_quando_carregar_vendas_entao_filtra_por_vendedor() {
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioMes = hoje.withDayOfMonth(1);
+        LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
+        LocalDateTime inicioHoje = hoje.atStartOfDay();
+        LocalDateTime fimHoje = hoje.atTime(LocalTime.MAX);
+        LocalDateTime inicioMesVenda = inicioMes.atStartOfDay();
+        LocalDateTime fimMesVenda = fimMes.atTime(LocalTime.MAX);
+        Usuario usuario = Usuario.builder().id(9).empresa(empresa).nome("Vendedor").login("vendedor").senhaHash("x").build();
+        Funcionario funcionario = Funcionario.builder().id(77).empresa(empresa).usuario(usuario).nome("Vendedor").build();
+
+        when(funcionarioRepository.findByEmpresaIdAndUsuarioId(1, 9)).thenReturn(Optional.of(funcionario));
+        when(vendaRepository.countPessoalByStatusAndPeriodo(1, "FINALIZADA", inicioHoje, fimHoje, 77, 9))
+                .thenReturn(1L);
+        when(vendaRepository.sumValorPessoalByStatusAndPeriodo(1, "FINALIZADA", inicioHoje, fimHoje, 77, 9))
+                .thenReturn(new BigDecimal("120.00"));
+        when(vendaRepository.countPessoalByStatusAndPeriodo(1, "FINALIZADA", inicioMesVenda, fimMesVenda, 77, 9))
+                .thenReturn(4L);
+        when(vendaRepository.sumValorPessoalByStatusAndPeriodo(1, "FINALIZADA", inicioMesVenda, fimMesVenda, 77, 9))
+                .thenReturn(new BigDecimal("980.50"));
+        when(orcamentoRepository.countPessoalByStatus(1, "ABERTO", 77, 9)).thenReturn(3L);
+        when(orcamentoRepository.countPessoalByPeriodo(1, null, inicioMes, fimMes, 77, 9)).thenReturn(6L);
+        when(orcamentoRepository.sumValorPessoal(1, null, inicioMes, fimMes, 77, 9))
+                .thenReturn(new BigDecimal("1500.00"));
+        when(orcamentoRepository.countPessoalByPeriodo(1, "CONVERTIDO", inicioMes, fimMes, 77, 9)).thenReturn(2L);
+        when(vendaRepository.countByEmpresaIdAndStatusAndDataVendaBetween(1, "FINALIZADA", inicioMesVenda, fimMesVenda))
+                .thenReturn(12L);
+        when(orcamentoRepository.countByEmpresaIdAndDataEmissaoBetween(1, inicioMes, fimMes)).thenReturn(18L);
+
+        DashboardVendasDTO dto = dashboardService.carregarVendas(1, usuario);
+
+        assertThat(dto.minhasVendasHoje()).isEqualTo(1L);
+        assertThat(dto.valorMinhasVendasHoje()).isEqualByComparingTo("120.00");
+        assertThat(dto.minhasVendasMes()).isEqualTo(4L);
+        assertThat(dto.valorMinhasVendasMes()).isEqualByComparingTo("980.50");
+        assertThat(dto.meusOrcamentosAbertos()).isEqualTo(3L);
+        assertThat(dto.meusOrcamentosMes()).isEqualTo(6L);
+        assertThat(dto.valorMeusOrcamentosMes()).isEqualByComparingTo("1500.00");
+        assertThat(dto.meusOrcamentosConvertidosMes()).isEqualTo(2L);
+        assertThat(dto.vendasTimeMes()).isEqualTo(12L);
+        assertThat(dto.orcamentosTimeMes()).isEqualTo(18L);
+    }
+
+    @Test
+    void dado_usuario_sem_funcionario_vinculado_quando_carregar_vendas_entao_filtra_por_usuario() {
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioMes = hoje.withDayOfMonth(1);
+        LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
+        LocalDateTime inicioHoje = hoje.atStartOfDay();
+        LocalDateTime fimHoje = hoje.atTime(LocalTime.MAX);
+        LocalDateTime inicioMesVenda = inicioMes.atStartOfDay();
+        LocalDateTime fimMesVenda = fimMes.atTime(LocalTime.MAX);
+        Usuario usuario = Usuario.builder().id(9).empresa(empresa).nome("Vendedor").login("vendedor").senhaHash("x").build();
+
+        when(funcionarioRepository.findByEmpresaIdAndUsuarioId(1, 9)).thenReturn(Optional.empty());
+        when(vendaRepository.countPessoalByStatusAndPeriodo(eq(1), eq("FINALIZADA"), eq(inicioHoje), eq(fimHoje), isNull(), eq(9)))
+                .thenReturn(2L);
+        when(vendaRepository.sumValorPessoalByStatusAndPeriodo(eq(1), eq("FINALIZADA"), eq(inicioHoje), eq(fimHoje), isNull(), eq(9)))
+                .thenReturn(new BigDecimal("250.00"));
+        when(vendaRepository.countPessoalByStatusAndPeriodo(eq(1), eq("FINALIZADA"), eq(inicioMesVenda), eq(fimMesVenda), isNull(), eq(9)))
+                .thenReturn(5L);
+        when(vendaRepository.sumValorPessoalByStatusAndPeriodo(eq(1), eq("FINALIZADA"), eq(inicioMesVenda), eq(fimMesVenda), isNull(), eq(9)))
+                .thenReturn(new BigDecimal("700.00"));
+        when(orcamentoRepository.countPessoalByStatus(eq(1), eq("ABERTO"), isNull(), eq(9))).thenReturn(1L);
+        when(orcamentoRepository.countPessoalByPeriodo(eq(1), isNull(), eq(inicioMes), eq(fimMes), isNull(), eq(9))).thenReturn(2L);
+        when(orcamentoRepository.sumValorPessoal(eq(1), isNull(), eq(inicioMes), eq(fimMes), isNull(), eq(9)))
+                .thenReturn(new BigDecimal("300.00"));
+        when(orcamentoRepository.countPessoalByPeriodo(eq(1), eq("CONVERTIDO"), eq(inicioMes), eq(fimMes), isNull(), eq(9))).thenReturn(1L);
+        when(vendaRepository.countByEmpresaIdAndStatusAndDataVendaBetween(1, "FINALIZADA", inicioMesVenda, fimMesVenda))
+                .thenReturn(8L);
+        when(orcamentoRepository.countByEmpresaIdAndDataEmissaoBetween(1, inicioMes, fimMes)).thenReturn(11L);
+
+        DashboardVendasDTO dto = dashboardService.carregarVendas(1, usuario);
+
+        assertThat(dto.minhasVendasHoje()).isEqualTo(2L);
+        assertThat(dto.valorMinhasVendasHoje()).isEqualByComparingTo("250.00");
+        assertThat(dto.minhasVendasMes()).isEqualTo(5L);
+        assertThat(dto.valorMinhasVendasMes()).isEqualByComparingTo("700.00");
+        assertThat(dto.meusOrcamentosAbertos()).isEqualTo(1L);
+        assertThat(dto.meusOrcamentosMes()).isEqualTo(2L);
+        assertThat(dto.valorMeusOrcamentosMes()).isEqualByComparingTo("300.00");
+        assertThat(dto.meusOrcamentosConvertidosMes()).isEqualTo(1L);
+    }
+
+    @Test
+    void dado_somas_nulas_quando_carregar_vendas_entao_retorna_zero() {
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioMes = hoje.withDayOfMonth(1);
+        LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
+        LocalDateTime inicioHoje = hoje.atStartOfDay();
+        LocalDateTime fimHoje = hoje.atTime(LocalTime.MAX);
+        LocalDateTime inicioMesVenda = inicioMes.atStartOfDay();
+        LocalDateTime fimMesVenda = fimMes.atTime(LocalTime.MAX);
+        Usuario usuario = Usuario.builder().id(9).empresa(empresa).nome("Vendedor").login("vendedor").senhaHash("x").build();
+
+        when(funcionarioRepository.findByEmpresaIdAndUsuarioId(1, 9)).thenReturn(Optional.empty());
+        when(vendaRepository.countPessoalByStatusAndPeriodo(eq(1), eq("FINALIZADA"), eq(inicioHoje), eq(fimHoje), isNull(), eq(9)))
+                .thenReturn(0L);
+        when(vendaRepository.sumValorPessoalByStatusAndPeriodo(eq(1), eq("FINALIZADA"), eq(inicioHoje), eq(fimHoje), isNull(), eq(9)))
+                .thenReturn(null);
+        when(vendaRepository.countPessoalByStatusAndPeriodo(eq(1), eq("FINALIZADA"), eq(inicioMesVenda), eq(fimMesVenda), isNull(), eq(9)))
+                .thenReturn(0L);
+        when(vendaRepository.sumValorPessoalByStatusAndPeriodo(eq(1), eq("FINALIZADA"), eq(inicioMesVenda), eq(fimMesVenda), isNull(), eq(9)))
+                .thenReturn(null);
+        when(orcamentoRepository.countPessoalByStatus(eq(1), eq("ABERTO"), isNull(), eq(9))).thenReturn(0L);
+        when(orcamentoRepository.countPessoalByPeriodo(eq(1), isNull(), eq(inicioMes), eq(fimMes), isNull(), eq(9))).thenReturn(0L);
+        when(orcamentoRepository.sumValorPessoal(eq(1), isNull(), eq(inicioMes), eq(fimMes), isNull(), eq(9)))
+                .thenReturn(null);
+        when(orcamentoRepository.countPessoalByPeriodo(eq(1), eq("CONVERTIDO"), eq(inicioMes), eq(fimMes), isNull(), eq(9))).thenReturn(0L);
+        when(vendaRepository.countByEmpresaIdAndStatusAndDataVendaBetween(1, "FINALIZADA", inicioMesVenda, fimMesVenda))
+                .thenReturn(0L);
+        when(orcamentoRepository.countByEmpresaIdAndDataEmissaoBetween(1, inicioMes, fimMes)).thenReturn(0L);
+
+        DashboardVendasDTO dto = dashboardService.carregarVendas(1, usuario);
+
+        assertThat(dto.valorMinhasVendasHoje()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(dto.valorMinhasVendasMes()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(dto.valorMeusOrcamentosMes()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
     // ---- 3. carregarEstoque: calcula corretamente as contagens ----
