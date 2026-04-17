@@ -80,4 +80,64 @@ class FornecedoresUITest extends BaseUITest {
         // Formulário deve fechar — tabela fica visível
         assertThat(lookup("#tblFornecedores").tryQuery()).isPresent();
     }
+
+    // ---- UI-32: Busca inexistente esvazia tabela ----
+
+    @Test
+    void dado_busca_inexistente_quando_digitar_entao_tabela_vazia() {
+        assertThat(lookup("#txtBusca").tryQuery()).isPresent();
+        clickOn("#txtBusca").write("xxxxxNaoExisteFornecedor9999");
+        sleep(400);
+
+        @SuppressWarnings("unchecked")
+        javafx.scene.control.TableView<Object> tabela =
+            (javafx.scene.control.TableView<Object>) lookup("#tblFornecedores").query();
+        assertThat(tabela.getItems()).isEmpty();
+    }
+
+    // ---- UI-33: Formulário novo abre com botões PF/PJ ----
+
+    @Test
+    void quando_clicar_novo_entao_formulario_exibe_campos_pessoa() {
+        clickOn("#btnNovo");
+        sleep(500);
+
+        // Nome é obrigatório em qualquer tipo de pessoa
+        assertThat(lookup("#txtNome").tryQuery()).isPresent();
+    }
+
+    // ---- UI-34: Tipo PJ no formulário exibe campo CNPJ ----
+
+    @Test
+    void dado_formulario_novo_quando_selecionar_pj_entao_campo_cnpj_visivel() {
+        clickOn("#btnNovo");
+        sleep(500);
+
+        // Alterna para PJ (se existir botão similar ao de clientes)
+        if (lookup("#btnPJ").tryQuery().isPresent()) {
+            clickOn("#btnPJ");
+            sleep(300);
+            assertThat(lookup("#txtCnpj").tryQuery()).isPresent();
+        } else {
+            // PF/PJ pode ser um ComboBox em vez de botão — verifica que o form abriu
+            assertThat(lookup("#txtNome").tryQuery()).isPresent();
+        }
+    }
+
+    // ---- UI-35: Fornecedor salvo sem PIX aparece na tabela ----
+
+    @Test
+    void dado_fornecedor_sem_pix_quando_salvar_entao_aparece_na_tabela() {
+        clickOn("#btnNovo");
+        sleep(500);
+
+        clickOn("#txtNome").write("Fornecedor Sem PIX UI");
+        clickOn("#btnSalvar");
+        sleep(800);
+
+        @SuppressWarnings("unchecked")
+        javafx.scene.control.TableView<Object> tabela =
+            (javafx.scene.control.TableView<Object>) lookup("#tblFornecedores").query();
+        assertThat(tabela.getItems()).isNotEmpty();
+    }
 }

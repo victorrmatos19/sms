@@ -404,4 +404,96 @@ class CompraServiceTest {
         assertThat(vencimentos.get(1)).isEqualTo(base.plusDays(60));
         assertThat(vencimentos.get(2)).isEqualTo(base.plusDays(90));
     }
+
+    // ---- CF-201: confirmar compra sem itens deve lançar exceção ----
+
+    @Test
+    void dado_compra_rascunho_sem_itens_quando_confirmar_entao_lanca_negocio_exception() {
+        Compra semItens = Compra.builder()
+                .id(5).empresa(empresa).fornecedor(fornecedor)
+                .status("RASCUNHO")
+                .numeroDocumento("C2026-00005")
+                .dataEmissao(LocalDate.now())
+                .condicaoPagamento("A_VISTA")
+                .valorTotal(BigDecimal.ZERO)
+                .itens(new ArrayList<>()).build();
+
+        when(compraRepository.findById(5)).thenReturn(Optional.of(semItens));
+
+        assertThatThrownBy(() -> compraService.confirmarCompra(5, 1))
+                .isInstanceOf(NegocioException.class)
+                .hasMessageContaining("itens");
+
+        verify(movimentacaoEstoqueRepository, never()).save(any());
+        verify(contaPagarRepository, never()).save(any());
+    }
+
+    // ---- CF-202: confirmar compra já CONFIRMADA é idempotência (lança exceção) ----
+    // Já coberto por CF-124: dado_compra_confirmada_quando_tentar_confirmar_entao_lanca_negocio_exception
+
+    // ---- CF-203: cancelar compra CONFIRMADA deve reverter estoque ----
+    // GAP: cancelarCompra() atual só aceita RASCUNHO. Compras CONFIRMADAS não podem ser canceladas
+    // pelo serviço — é necessário um fluxo de devolução. Documentado como gap de negócio.
+
+    // ---- CF-204: cancelar compra CANCELADA deve lançar exceção ----
+
+    @Test
+    void dado_compra_cancelada_quando_cancelar_novamente_entao_lanca_negocio_exception() {
+        Compra cancelada = Compra.builder()
+                .id(9).empresa(empresa).fornecedor(fornecedor)
+                .status("CANCELADA")
+                .itens(new ArrayList<>(List.of(item))).build();
+
+        when(compraRepository.findById(9)).thenReturn(Optional.of(cancelada));
+
+        assertThatThrownBy(() -> compraService.cancelarCompra(9))
+                .isInstanceOf(NegocioException.class)
+                .hasMessageContaining("Rascunho");
+    }
+
+    // ---- CF-206: confirmar compra A_VISTA gera parcela com vencimento = emissão ----
+    // Já coberto por CF-127
+
+    // ---- CF-207: confirmar compra 30_60_90 gera 3 parcelas nos dias corretos ----
+    // Já coberto por CF-128
+
+    // ---- CF-208: calcularVencimentos PERSONALIZADO com 0 parcelas ----
+
+    @Test
+    void dado_condicao_personalizado_zero_parcelas_quando_calcular_entao_retorna_uma_data() {
+        // Math.max(1, 0) = 1, então o service garante mínimo 1 parcela
+        LocalDate base = LocalDate.of(2026, 4, 1);
+
+        List<LocalDate> vencimentos = compraService.calcularVencimentos(base, "PERSONALIZADO", 0);
+
+        assertThat(vencimentos).hasSize(1);
+        assertThat(vencimentos.get(0)).isEqualTo(base.plusDays(30));
+    }
+
+    // ---- CF-209: valor_total da compra ----
+    // Já coberto por CF-122: recalcularTotais
+
+    // ---- CF-210: custo do produto atualizado ao confirmar ----
+    // Já coberto por CF-126
+
+    // ---- CF-211/212: numeração sequencial por empresa ----
+
+    @Test
+    void dado_compra_de_empresa_2_quando_gerar_numero_entao_usa_contagem_da_empresa_2() {
+        when(compraRepository.countByEmpresaId(2)).thenReturn(3L);
+        int ano = LocalDate.now().getYear();
+
+        String numero = compraService.gerarNumeroCompra(2);
+
+        assertThat(numero).isEqualTo("C" + ano + "-00004");
+        verify(compraRepository).countByEmpresaId(2);
+        // Empresa 1 não é consultada — isolamento por empresa confirmado
+        verify(compraRepository, never()).countByEmpresaId(1);
+    }
+
+    // ---- CF-205: movimentação de cancelamento ----
+    // GAP: cancelarCompra() não cria movimentação de SAIDA / CANCELAMENTO_COMPRA.
+    // Atualmente apenas muda status para CANCELADA sem estornar estoque.
+    // Recomendação: implementar cancelamento de compra confirmada com estorno de estoque
+    // e cancelamento de parcelas ABERTA em ContaPagar.
 }

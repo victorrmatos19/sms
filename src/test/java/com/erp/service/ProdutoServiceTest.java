@@ -337,4 +337,117 @@ class ProdutoServiceTest {
 
         assertThat(total).isEqualTo(2L);
     }
+
+    // ---- CF-159: atualizar precoVenda recalcula margemLucro automaticamente ----
+
+    @Test
+    void dado_produto_existente_quando_aumentar_preco_venda_entao_margem_e_recalculada() {
+        Produto existente = Produto.builder()
+            .id(10).empresa(empresa).descricao("Produto").unidade(unidade)
+            .precoCusto(new BigDecimal("10.00")).precoVenda(new BigDecimal("15.00"))
+            .precoMinimo(BigDecimal.ZERO).estoqueAtual(new BigDecimal("10.00"))
+            .estoqueMinimo(BigDecimal.ZERO).ativo(true).build();
+
+        Produto atualizado = Produto.builder()
+            .id(10).empresa(empresa).descricao("Produto").unidade(unidade)
+            .precoCusto(new BigDecimal("10.00")).precoVenda(new BigDecimal("20.00"))
+            .precoMinimo(BigDecimal.ZERO).estoqueAtual(new BigDecimal("10.00"))
+            .estoqueMinimo(BigDecimal.ZERO).ativo(true).build();
+
+        when(produtoRepository.findById(10)).thenReturn(Optional.of(existente));
+        when(produtoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        Produto resultado = produtoService.salvar(atualizado);
+
+        // margem = (20 - 10) / 10 * 100 = 100%
+        assertThat(resultado.getMargemLucro()).isEqualByComparingTo(new BigDecimal("100.00"));
+    }
+
+    // ---- CF-160: atualizar precoCusto recalcula margemLucro automaticamente ----
+
+    @Test
+    void dado_produto_existente_quando_aumentar_preco_custo_entao_margem_e_recalculada() {
+        Produto existente = Produto.builder()
+            .id(10).empresa(empresa).descricao("Produto").unidade(unidade)
+            .precoCusto(new BigDecimal("10.00")).precoVenda(new BigDecimal("15.00"))
+            .precoMinimo(BigDecimal.ZERO).estoqueAtual(new BigDecimal("10.00"))
+            .estoqueMinimo(BigDecimal.ZERO).ativo(true).build();
+
+        Produto atualizado = Produto.builder()
+            .id(10).empresa(empresa).descricao("Produto").unidade(unidade)
+            .precoCusto(new BigDecimal("12.00")).precoVenda(new BigDecimal("15.00"))
+            .precoMinimo(BigDecimal.ZERO).estoqueAtual(new BigDecimal("10.00"))
+            .estoqueMinimo(BigDecimal.ZERO).ativo(true).build();
+
+        when(produtoRepository.findById(10)).thenReturn(Optional.of(existente));
+        when(produtoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        Produto resultado = produtoService.salvar(atualizado);
+
+        // margem = (15 - 12) / 12 * 100 = 25%
+        assertThat(resultado.getMargemLucro()).isEqualByComparingTo(new BigDecimal("25.00"));
+    }
+
+    // ---- CF-165: produto sem grupo deve ser permitido ----
+
+    @Test
+    void dado_produto_sem_grupo_quando_salvar_entao_persiste_normalmente() {
+        Produto semGrupo = Produto.builder()
+            .empresa(empresa).descricao("Produto Sem Grupo").unidade(unidade)
+            .precoCusto(new BigDecimal("5.00")).precoVenda(new BigDecimal("10.00"))
+            .precoMinimo(BigDecimal.ZERO).estoqueAtual(BigDecimal.ZERO)
+            .estoqueMinimo(BigDecimal.ZERO).ativo(true)
+            .grupo(null) // explicitamente sem grupo
+            .build();
+
+        when(produtoRepository.save(any())).thenAnswer(inv -> {
+            Produto p = inv.getArgument(0);
+            p.setId(99);
+            return p;
+        });
+
+        Produto resultado = produtoService.salvar(semGrupo);
+
+        assertThat(resultado.getId()).isEqualTo(99);
+        assertThat(resultado.getGrupo()).isNull();
+        verify(produtoRepository).save(any());
+    }
+
+    // ---- CF-166: produto sem unidade deve ser permitido ----
+
+    @Test
+    void dado_produto_sem_unidade_quando_salvar_entao_persiste_normalmente() {
+        Produto semUnidade = Produto.builder()
+            .empresa(empresa).descricao("Produto Sem Unidade")
+            .precoCusto(new BigDecimal("5.00")).precoVenda(new BigDecimal("10.00"))
+            .precoMinimo(BigDecimal.ZERO).estoqueAtual(BigDecimal.ZERO)
+            .estoqueMinimo(BigDecimal.ZERO).ativo(true)
+            .unidade(null) // explicitamente sem unidade
+            .build();
+
+        when(produtoRepository.save(any())).thenAnswer(inv -> {
+            Produto p = inv.getArgument(0);
+            p.setId(100);
+            return p;
+        });
+
+        Produto resultado = produtoService.salvar(semUnidade);
+
+        assertThat(resultado.getId()).isEqualTo(100);
+        assertThat(resultado.getUnidade()).isNull();
+        verify(produtoRepository).save(any());
+    }
+
+    // ---- CF-156/157/158: Gaps identificados — validação de código interno/barras ----
+    // GAP: ProdutoService não valida unicidade de codigo_interno nem codigo_barras.
+    // A unicidade é garantida apenas por constraint de banco (UNIQUE).
+    // Recomendação: adicionar validação no service antes do save.
+
+    // ---- CF-162: Inativar com estoque > 0 — Gap identificado ----
+    // GAP: ProdutoService.inativar() não verifica se produto tem estoque > 0.
+    // Recomendação: adicionar aviso ou bloqueio configurável.
+
+    // ---- CF-163/164: Busca por acento e por código de barras — comportamento do repository ----
+    // Esses cenários dependem de suporte a UNACCENT no PostgreSQL e query específica.
+    // Cobertos por testes de integração com banco real, não por testes unitários com mock.
 }

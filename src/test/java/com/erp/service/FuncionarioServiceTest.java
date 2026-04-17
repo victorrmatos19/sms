@@ -408,4 +408,81 @@ class FuncionarioServiceTest {
 
         assertThat(resultado).isEmpty();
     }
+
+    // ---- CF-184: funcionário sem CPF deve ser permitido ----
+    // Já coberto por CF-96: dado_funcionario_sem_cpf_quando_salvar_entao_persiste
+
+    // ---- CF-185: funcionário com CPF inválido quando preenchido lança exceção ----
+    // Já coberto por CF-99: dado_funcionario_com_cpf_invalido_quando_salvar_entao_lanca_negocio_exception
+
+    // ---- CF-186: percentual_comissao negativo deve lançar exceção ----
+
+    @Test
+    void dado_funcionario_com_comissao_negativa_quando_salvar_entao_lanca_negocio_exception() {
+        Funcionario f = Funcionario.builder()
+            .empresa(empresa).nome("Vendedor Comissão Negativa")
+            .cpf(null).cargo("Vendedor")
+            .ativo(true).percentualComissao(new BigDecimal("-5.00"))
+            .build();
+
+        assertThatThrownBy(() -> funcionarioService.salvar(f))
+            .isInstanceOf(NegocioException.class)
+            .hasMessageContaining("comissão");
+
+        verify(funcionarioRepository, never()).save(any());
+    }
+
+    // ---- CF-187: percentual_comissao acima de 100 deve lançar exceção ----
+
+    @Test
+    void dado_funcionario_com_comissao_acima_de_100_quando_salvar_entao_lanca_negocio_exception() {
+        Funcionario f = Funcionario.builder()
+            .empresa(empresa).nome("Vendedor Comissão Absurda")
+            .cpf(null).cargo("Vendedor")
+            .ativo(true).percentualComissao(new BigDecimal("101.00"))
+            .build();
+
+        assertThatThrownBy(() -> funcionarioService.salvar(f))
+            .isInstanceOf(NegocioException.class)
+            .hasMessageContaining("comissão");
+
+        verify(funcionarioRepository, never()).save(any());
+    }
+
+    // ---- CF-188: mesmo usuario_id não pode estar vinculado a dois funcionários ativos ----
+    // GAP: FuncionarioService não valida unicidade de usuario_id entre funcionários ativos.
+    // Recomendação: adicionar FuncionarioRepository.existsByEmpresaIdAndUsuarioIdAndIdNot()
+    // e verificar antes de salvar quando usuario_id != null.
+
+    // ---- CF-189: inativar funcionário que é vendedor de orçamentos em aberto ----
+    // GAP: inativar() não verifica orçamentos em ABERTO com vendedor vinculado.
+    // Recomendação: adicionar aviso (não bloqueio) antes de inativar.
+
+    @Test
+    void dado_funcionario_com_comissao_zero_quando_salvar_entao_persiste() {
+        Funcionario f = Funcionario.builder()
+            .empresa(empresa).nome("Funcionário Sem Comissão")
+            .cpf(null).cargo("Caixa")
+            .ativo(true).percentualComissao(BigDecimal.ZERO)
+            .build();
+        when(funcionarioRepository.save(any())).thenReturn(f);
+
+        funcionarioService.salvar(f);
+
+        verify(funcionarioRepository, times(1)).save(f);
+    }
+
+    @Test
+    void dado_funcionario_com_comissao_100_quando_salvar_entao_persiste() {
+        Funcionario f = Funcionario.builder()
+            .empresa(empresa).nome("Funcionário 100% Comissão")
+            .cpf(null).cargo("Representante")
+            .ativo(true).percentualComissao(new BigDecimal("100.00"))
+            .build();
+        when(funcionarioRepository.save(any())).thenReturn(f);
+
+        funcionarioService.salvar(f);
+
+        verify(funcionarioRepository, times(1)).save(f);
+    }
 }

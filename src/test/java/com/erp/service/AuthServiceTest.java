@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -221,4 +222,100 @@ class AuthServiceTest {
         assertThat(authService.temPerfil("QUALQUER")).isFalse();
         assertThat(authService.isAdminOuGerente()).isFalse();
     }
+
+    // ---- CF-148: login com espaços em branco ----
+
+    @Test
+    void dado_login_com_espacos_quando_autenticar_entao_retorna_empty() {
+        when(usuarioRepository.findByLogin("  admin  ")).thenReturn(Optional.empty());
+
+        Optional<Usuario> resultado = authService.autenticar("  admin  ", "admin123");
+
+        assertThat(resultado).isEmpty();
+        assertThat(authService.isLogado()).isFalse();
+    }
+
+    // ---- CF-150: getUsuarioLogado antes de qualquer login ----
+
+    @Test
+    void dado_sem_login_previo_quando_obter_usuario_logado_entao_retorna_null_sem_npe() {
+        assertThatCode(() -> {
+            assertThat(authService.getUsuarioLogado()).isNull();
+            assertThat(authService.getEmpresaIdLogado()).isNull();
+            assertThat(authService.getEmpresaLogada()).isNull();
+        }).doesNotThrowAnyException();
+    }
+
+    // ---- CF-151: logout chamado duas vezes consecutivas ----
+
+    @Test
+    void dado_usuario_logado_quando_fazer_logout_duas_vezes_entao_nao_lanca_excecao() {
+        when(usuarioRepository.findByLogin("admin")).thenReturn(Optional.of(usuarioAtivo));
+        when(passwordEncoder.matches("admin123", "$2a$10$hash")).thenReturn(true);
+        when(empresaRepository.findById(1)).thenReturn(Optional.of(empresa));
+        authService.autenticar("admin", "admin123");
+
+        authService.logout();
+        assertThatCode(() -> authService.logout()).doesNotThrowAnyException();
+        assertThat(authService.isLogado()).isFalse();
+    }
+
+    // ---- CF-152: temPerfil com usuário não logado ----
+
+    @Test
+    void dado_sem_usuario_logado_quando_verificar_perfil_entao_retorna_false_sem_npe() {
+        assertThatCode(() -> {
+            boolean resultado = authService.temPerfil("ADMINISTRADOR");
+            assertThat(resultado).isFalse();
+        }).doesNotThrowAnyException();
+    }
+
+    // ---- CF-153: isAdminOuGerente para perfis operacionais ----
+
+    @Test
+    void dado_usuario_com_perfil_financeiro_quando_verificar_admin_ou_gerente_entao_retorna_false() {
+        PerfilAcesso perfilFinanceiro = PerfilAcesso.builder().id(3).nome("FINANCEIRO").build();
+        usuarioAtivo.setPerfis(Set.of(perfilFinanceiro));
+        when(usuarioRepository.findByLogin("admin")).thenReturn(Optional.of(usuarioAtivo));
+        when(passwordEncoder.matches("admin123", "$2a$10$hash")).thenReturn(true);
+        when(empresaRepository.findById(1)).thenReturn(Optional.of(empresa));
+        authService.autenticar("admin", "admin123");
+
+        assertThat(authService.isAdminOuGerente()).isFalse();
+    }
+
+    @Test
+    void dado_usuario_com_perfil_estoque_quando_verificar_admin_ou_gerente_entao_retorna_false() {
+        PerfilAcesso perfilEstoque = PerfilAcesso.builder().id(5).nome("ESTOQUE").build();
+        usuarioAtivo.setPerfis(Set.of(perfilEstoque));
+        when(usuarioRepository.findByLogin("admin")).thenReturn(Optional.of(usuarioAtivo));
+        when(passwordEncoder.matches("admin123", "$2a$10$hash")).thenReturn(true);
+        when(empresaRepository.findById(1)).thenReturn(Optional.of(empresa));
+        authService.autenticar("admin", "admin123");
+
+        assertThat(authService.isAdminOuGerente()).isFalse();
+    }
+
+    @Test
+    void dado_usuario_com_perfil_gerente_quando_verificar_admin_ou_gerente_entao_retorna_true() {
+        PerfilAcesso perfilGerente = PerfilAcesso.builder().id(2).nome("GERENTE").build();
+        usuarioAtivo.setPerfis(Set.of(perfilGerente));
+        when(usuarioRepository.findByLogin("admin")).thenReturn(Optional.of(usuarioAtivo));
+        when(passwordEncoder.matches("admin123", "$2a$10$hash")).thenReturn(true);
+        when(empresaRepository.findById(1)).thenReturn(Optional.of(empresa));
+        authService.autenticar("admin", "admin123");
+
+        assertThat(authService.isAdminOuGerente()).isTrue();
+    }
+
+    // ---- CF-149: isolamento multi-empresa — documentação de gap ----
+    // O AuthService atual busca usuário só por login (sem filtrar empresa).
+    // Um usuário de empresa_id=2 pode autenticar na sessão sem restrição de empresa.
+    // GAP: adicionar parâmetro empresaId em autenticar() para garantir isolamento.
+
+    // ---- CF-154: autenticar atualiza ultimo_acesso ----
+    // Já coberto por: dado_login_bem_sucedido_entao_atualiza_ultimo_acesso
+
+    // ---- CF-155: usuário inativo com senha correta falha ----
+    // Já coberto por: dado_usuario_inativo_quando_autenticar_entao_retorna_empty
 }

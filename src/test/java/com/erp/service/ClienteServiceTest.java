@@ -322,4 +322,95 @@ class ClienteServiceTest {
 
         assertThat(total).isEqualTo(3L);
     }
+
+    // ---- CF-167: CPF com todos os dígitos iguais deve ser inválido ----
+
+    @Test
+    void dado_cpf_com_todos_digitos_iguais_quando_salvar_entao_lanca_negocio_exception() {
+        Cliente c = Cliente.builder()
+            .empresa(empresa).tipoPessoa("PF").nome("Teste CPF Inválido")
+            .cpfCnpj("11111111111") // dígitos todos iguais — inválido
+            .ativo(true).limiteCredito(BigDecimal.ZERO).creditoDisponivel(BigDecimal.ZERO)
+            .build();
+
+        assertThatThrownBy(() -> clienteService.salvar(c))
+            .isInstanceOf(NegocioException.class)
+            .hasMessageContaining("CPF inválido");
+
+        verify(clienteRepository, never()).save(any());
+    }
+
+    @Test
+    void dado_cpf_com_zeros_quando_salvar_entao_lanca_negocio_exception() {
+        Cliente c = Cliente.builder()
+            .empresa(empresa).tipoPessoa("PF").nome("Teste CPF Zeros")
+            .cpfCnpj("00000000000")
+            .ativo(true).limiteCredito(BigDecimal.ZERO).creditoDisponivel(BigDecimal.ZERO)
+            .build();
+
+        assertThatThrownBy(() -> clienteService.salvar(c))
+            .isInstanceOf(NegocioException.class)
+            .hasMessageContaining("CPF inválido");
+
+        verify(clienteRepository, never()).save(any());
+    }
+
+    // ---- CF-168: CNPJ com todos os dígitos iguais deve ser inválido ----
+
+    @Test
+    void dado_cnpj_com_todos_digitos_iguais_quando_salvar_entao_lanca_negocio_exception() {
+        Cliente c = Cliente.builder()
+            .empresa(empresa).tipoPessoa("PJ").nome("Empresa Inválida")
+            .razaoSocial("Empresa Inválida Ltda")
+            .cpfCnpj("11111111111111") // todos iguais — inválido
+            .ativo(true).limiteCredito(BigDecimal.ZERO).creditoDisponivel(BigDecimal.ZERO)
+            .build();
+
+        assertThatThrownBy(() -> clienteService.salvar(c))
+            .isInstanceOf(NegocioException.class)
+            .hasMessageContaining("CNPJ inválido");
+
+        verify(clienteRepository, never()).save(any());
+    }
+
+    // ---- CF-172: busca de cliente por nome delega ao repository com busca ----
+
+    @Test
+    void dado_busca_por_nome_quando_buscar_com_filtros_entao_repositorio_e_chamado_com_termo() {
+        when(clienteRepository.buscarComFiltros(1, "João", false))
+            .thenReturn(List.of(clientePfBase));
+
+        List<Cliente> resultado = clienteService.buscarComFiltros(1, "João", false);
+
+        assertThat(resultado).hasSize(1);
+        verify(clienteRepository).buscarComFiltros(1, "João", false);
+    }
+
+    @Test
+    void dado_busca_com_espacos_quando_buscar_com_filtros_entao_repositorio_recebe_busca_sem_espacos() {
+        when(clienteRepository.buscarComFiltros(1, "João", false))
+            .thenReturn(List.of(clientePfBase));
+
+        clienteService.buscarComFiltros(1, "  João  ", false);
+
+        // Service faz trim() antes de passar para o repository
+        verify(clienteRepository).buscarComFiltros(1, "João", false);
+    }
+
+    // ---- CF-175: CPF duplicado na mesma empresa (novo cliente) — gap documentado ----
+    // Já coberto por CF-48
+
+    // ---- CF-176: CPF em empresa diferente é permitido — já coberto por CF-50 ----
+
+    // ---- CF-169/170: PF com razaoSocial / PJ sem razaoSocial ----
+    // GAP: ClienteService.validar() não verifica a consistência de razaoSocial por tipoPessoa.
+    // Recomendação: adicionar validação para exigir razaoSocial quando PJ e ignorar/limpar quando PF.
+
+    // ---- CF-171: limite menor que crédito utilizado ----
+    // GAP: ClienteService.salvar() não valida se novo limiteCredito < saldo devedor.
+    // Recomendação: adicionar checagem antes de persistir.
+
+    // ---- CF-173/174: busca com unaccent / inativar com parcelas em aberto ----
+    // CF-173: comportamento do repository (PostgreSQL UNACCENT). Coberto em teste de integração.
+    // CF-174: GAP — inativar() não verifica parcelas em aberto. Apenas desativa logicamente.
 }

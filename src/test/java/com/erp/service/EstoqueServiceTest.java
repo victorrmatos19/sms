@@ -1,5 +1,6 @@
 package com.erp.service;
 
+import com.erp.exception.NegocioException;
 import com.erp.model.*;
 import com.erp.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -204,6 +206,141 @@ class EstoqueServiceTest {
         verify(movimentacaoEstoqueRepository)
                 .findByEmpresaIdAndCriadoEmBetweenOrderByCriadoEmDesc(1, inicio, fim);
         assertThat(resultado).isEmpty();
+    }
+
+    // ---- CF-190: entrada com quantidade zero deve lançar exceção ----
+
+    @Test
+    void dado_quantidade_zero_quando_registrar_entrada_entao_lanca_negocio_exception() {
+        assertThatThrownBy(() -> estoqueService.registrarEntrada(1, 1, BigDecimal.ZERO, "Teste"))
+            .isInstanceOf(NegocioException.class)
+            .hasMessageContaining("maior que zero");
+
+        verify(produtoRepository, never()).save(any());
+        verify(movimentacaoEstoqueRepository, never()).save(any());
+    }
+
+    // ---- CF-191: entrada com quantidade negativa deve lançar exceção ----
+
+    @Test
+    void dado_quantidade_negativa_quando_registrar_entrada_entao_lanca_negocio_exception() {
+        assertThatThrownBy(() ->
+                estoqueService.registrarEntrada(1, 1, new BigDecimal("-5"), "Teste"))
+            .isInstanceOf(NegocioException.class)
+            .hasMessageContaining("maior que zero");
+
+        verify(produtoRepository, never()).save(any());
+        verify(movimentacaoEstoqueRepository, never()).save(any());
+    }
+
+    // ---- CF-192/193: saída que leva estoque a negativo com config false ----
+
+    @Test
+    void dado_estoque_zero_quando_registrar_saida_entao_lanca_negocio_exception() {
+        produto.setEstoqueAtual(BigDecimal.ZERO);
+        when(produtoRepository.findById(1)).thenReturn(Optional.of(produto));
+
+        assertThatThrownBy(() ->
+                estoqueService.registrarSaida(1, 1, new BigDecimal("1"), "Saída"))
+            .isInstanceOf(NegocioException.class)
+            .hasMessageContaining("Estoque insuficiente");
+
+        verify(produtoRepository, never()).save(any());
+    }
+
+    @Test
+    void dado_estoque_insuficiente_quando_registrar_saida_entao_lanca_negocio_exception() {
+        produto.setEstoqueAtual(new BigDecimal("5"));
+        when(produtoRepository.findById(1)).thenReturn(Optional.of(produto));
+
+        assertThatThrownBy(() ->
+                estoqueService.registrarSaida(1, 1, new BigDecimal("10"), "Saída"))
+            .isInstanceOf(NegocioException.class)
+            .hasMessageContaining("Estoque insuficiente");
+    }
+
+    // ---- CF-194: saída permitindo negativo (registrarSaidaPermitindoNegativo) ----
+
+    @Test
+    void dado_estoque_zero_quando_registrar_saida_permitindo_negativo_entao_saldo_fica_negativo() {
+        produto.setEstoqueAtual(BigDecimal.ZERO);
+        when(produtoRepository.findById(1)).thenReturn(Optional.of(produto));
+        when(produtoRepository.save(any())).thenReturn(produto);
+        when(movimentacaoEstoqueRepository.save(any())).thenReturn(new MovimentacaoEstoque());
+        when(authService.getUsuarioLogado()).thenReturn(usuario);
+
+        estoqueService.registrarSaidaPermitindoNegativo(1, 1, new BigDecimal("3"), "Saída forçada");
+
+        ArgumentCaptor<MovimentacaoEstoque> captor =
+                ArgumentCaptor.forClass(MovimentacaoEstoque.class);
+        verify(movimentacaoEstoqueRepository).save(captor.capture());
+
+        assertThat(captor.getValue().getSaldoAnterior()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(captor.getValue().getSaldoPosterior()).isEqualByComparingTo(new BigDecimal("-3"));
+        assertThat(produto.getEstoqueAtual()).isEqualByComparingTo(new BigDecimal("-3"));
+    }
+
+    // ---- CF-195: ajuste com quantidade igual ao estoque atual não gera movimentação ----
+    // Já coberto por CF-144: dado_estoque_30_quando_ajustar_para_30_entao_sem_movimentacao
+
+    // ---- CF-196: movimentação registra saldo_anterior e saldo_posterior corretamente ----
+    // Já coberto por CF-139 e CF-140
+
+    // ---- CF-197: movimentação manual registra usuario_id do usuário logado ----
+
+    @Test
+    void dado_usuario_logado_quando_registrar_entrada_entao_movimentacao_tem_usuario() {
+        when(produtoRepository.findById(1)).thenReturn(Optional.of(produto));
+        when(produtoRepository.save(any())).thenReturn(produto);
+        when(movimentacaoEstoqueRepository.save(any())).thenReturn(new MovimentacaoEstoque());
+        when(authService.getUsuarioLogado()).thenReturn(usuario);
+
+        estoqueService.registrarEntrada(1, 1, new BigDecimal("10"), "Entrada manual");
+
+        ArgumentCaptor<MovimentacaoEstoque> captor =
+                ArgumentCaptor.forClass(MovimentacaoEstoque.class);
+        verify(movimentacaoEstoqueRepository).save(captor.capture());
+
+        assertThat(captor.getValue().getUsuario()).isEqualTo(usuario);
+        assertThat(captor.getValue().getUsuario().getId()).isEqualTo(1);
+    }
+
+    // ---- CF-198: movimentação via compra registra origem='COMPRA' ----
+    // Testado em CompraServiceTest CF-125
+
+    // ---- CF-199: histórico por período respeita datas ----
+    // Já coberto por CF-146
+
+    // ---- CF-200: busca de histórico por tipo ----
+
+    @Test
+    void dado_filtro_por_produto_quando_buscar_historico_entao_delega_ao_repository() {
+        when(movimentacaoEstoqueRepository
+                .findByEmpresaIdAndProdutoIdOrderByCriadoEmDesc(1, 1))
+                .thenReturn(List.of(new MovimentacaoEstoque()));
+
+        List<MovimentacaoEstoque> resultado =
+                estoqueService.buscarHistoricoPorProduto(1, 1);
+
+        verify(movimentacaoEstoqueRepository)
+                .findByEmpresaIdAndProdutoIdOrderByCriadoEmDesc(1, 1);
+        assertThat(resultado).hasSize(1);
+    }
+
+    // ---- CF-161: produto sem usaLoteValidade não aceita entrada com lote ----
+
+    @Test
+    void dado_produto_sem_lote_quando_registrar_entrada_com_lote_entao_lanca_negocio_exception() {
+        produto.setUsaLoteValidade(false);
+        when(produtoRepository.findById(1)).thenReturn(Optional.of(produto));
+
+        assertThatThrownBy(() ->
+                estoqueService.registrarEntradaComLote(1, 1, "L001",
+                        LocalDate.now().plusMonths(6), new BigDecimal("10"), "Entrada"))
+            .isInstanceOf(NegocioException.class)
+            .hasMessageContaining("lote e validade");
+
+        verify(movimentacaoEstoqueRepository, never()).save(any());
     }
 
     // ---- CF-147: Lote criado na movimentação ----

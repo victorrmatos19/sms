@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -113,6 +114,17 @@ public class FuncionarioService {
         if (email != null && !email.isBlank()
                 && !EMAIL_PATTERN.matcher(email.trim()).matches()) {
             throw new NegocioException("Email inválido: " + email);
+        }
+
+        // Percentual de comissão — deve ser entre 0 e 100
+        BigDecimal comissao = funcionario.getPercentualComissao();
+        if (comissao != null) {
+            if (comissao.compareTo(BigDecimal.ZERO) < 0) {
+                throw new NegocioException("Percentual de comissão não pode ser negativo.");
+            }
+            if (comissao.compareTo(new BigDecimal("100")) > 0) {
+                throw new NegocioException("Percentual de comissão não pode ser superior a 100%.");
+            }
         }
     }
 }

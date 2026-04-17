@@ -120,6 +120,46 @@ class DashboardUITest extends BaseUITest {
         assertThat(lookup("#lblTotalProdutos").tryQuery()).isPresent();
     }
 
+    // ---- UI-55: Admin enxerga o item Configurações na sidebar ----
+
+    @Test
+    void dado_login_admin_quando_verificar_sidebar_entao_configuracoes_visivel() {
+        fazerLogin("admin", "admin123");
+        sleep(1000);
+
+        // O item "Configurações" só aparece na sidebar para ADMINISTRADOR
+        assertThat(lookup("Configurações").tryQuery()).isPresent();
+    }
+
+    // ---- UI-56: Usuário VENDAS não enxerga Configurações na sidebar ----
+    //
+    // MainController usa setVisible(false)/setManaged(false) no botão de Configurações
+    // para perfis não-administradores. O nó ainda existe na cena, então lookup() por
+    // texto o encontra — verificamos visibilidade em vez de presença.
+
+    @Test
+    void dado_login_vendas_quando_verificar_sidebar_entao_configuracoes_oculto() {
+        fazerLogin("pedro.vendas", "admin123");
+        sleep(1000);
+
+        // Perfil VENDAS: o botão Configurações deve estar invisível ou ausente
+        boolean configuracoesVisivel = lookup("Configurações").tryQuery()
+            .map(javafx.scene.Node::isVisible)
+            .orElse(false);
+        assertThat(configuracoesVisivel).isFalse();
+    }
+
+    // ---- UI-57: Dashboard admin exibe card de Vendas Hoje ----
+
+    @Test
+    void dado_login_admin_quando_carrega_dashboard_entao_card_vendas_hoje_presente() {
+        fazerLogin("admin", "admin123");
+        sleep(1000);
+
+        // O dashboard admin tem o card de vendas do dia
+        assertThat(lookup("#lblVendasHoje").tryQuery()).isPresent();
+    }
+
     // ---- 5. Navegar para módulo e voltar → dashboard recarrega ----
     //
     // O clique no ImageView (logo) usa onMouseClicked que não dispara eventos

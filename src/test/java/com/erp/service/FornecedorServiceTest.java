@@ -492,4 +492,125 @@ class FornecedorServiceTest {
 
         verify(fornecedorRepository, times(1)).save(f);
     }
+
+    // ---- CF-177: PIX tipo CPF com valor inválido ----
+    // GAP: FornecedorService não valida o CONTEÚDO da chave PIX — apenas exige que
+    // tipo e chave sejam fornecidos juntos. Não há validação de CPF/CNPJ/email no valor.
+
+    @Test
+    void dado_fornecedor_pix_tipo_cpf_com_valor_invalido_quando_salvar_entao_persiste_sem_validar_conteudo() {
+        // Documenta que o service NÃO valida o formato do conteúdo da chave PIX.
+        Fornecedor f = Fornecedor.builder()
+            .empresa(empresa).tipoPessoa("PF").nome("Fornecedor PIX CPF Inválido")
+            .cpfCnpj("").ativo(true)
+            .bancoPixTipo("CPF")
+            .bancoPixChave("000-invalido") // formato inválido mas service aceita
+            .build();
+        when(fornecedorRepository.save(any())).thenReturn(f);
+
+        // Atualmente, o service persiste sem validar formato da chave PIX
+        fornecedorService.salvar(f);
+        verify(fornecedorRepository, times(1)).save(f);
+        // GAP: deveria lançar NegocioException("CPF da chave PIX inválido")
+    }
+
+    // ---- CF-178: PIX tipo CNPJ com valor inválido — mesmo gap CF-177 ----
+
+    @Test
+    void dado_fornecedor_pix_tipo_cnpj_com_valor_invalido_quando_salvar_entao_persiste_sem_validar_conteudo() {
+        Fornecedor f = Fornecedor.builder()
+            .empresa(empresa).tipoPessoa("PJ").nome("Fornecedor PIX CNPJ Inválido")
+            .cpfCnpj("").ativo(true)
+            .bancoPixTipo("CNPJ")
+            .bancoPixChave("000-invalido-cnpj")
+            .build();
+        when(fornecedorRepository.save(any())).thenReturn(f);
+
+        fornecedorService.salvar(f);
+        verify(fornecedorRepository, times(1)).save(f);
+    }
+
+    // ---- CF-179: PIX tipo EMAIL com formato inválido ----
+
+    @Test
+    void dado_fornecedor_pix_tipo_email_com_formato_invalido_quando_salvar_entao_persiste_sem_validar() {
+        Fornecedor f = Fornecedor.builder()
+            .empresa(empresa).tipoPessoa("PF").nome("Fornecedor PIX Email Inválido")
+            .cpfCnpj("").ativo(true)
+            .bancoPixTipo("EMAIL")
+            .bancoPixChave("nao-e-um-email") // sem @
+            .build();
+        when(fornecedorRepository.save(any())).thenReturn(f);
+
+        // GAP: service deveria validar email quando pixTipo = "EMAIL"
+        // O campo email do fornecedor é validado, mas a chave PIX não.
+        fornecedorService.salvar(f);
+        verify(fornecedorRepository, times(1)).save(f);
+    }
+
+    // ---- CF-181: PIX tipo CHAVE_ALEATORIA aceita qualquer string não vazia ----
+
+    @Test
+    void dado_fornecedor_pix_tipo_chave_aleatoria_quando_salvar_entao_persiste() {
+        Fornecedor f = Fornecedor.builder()
+            .empresa(empresa).tipoPessoa("PF").nome("Fornecedor PIX Aleatória")
+            .cpfCnpj("").ativo(true)
+            .bancoPixTipo("CHAVE_ALEATORIA")
+            .bancoPixChave("abc123xyz-qualquer-string-aleatoria")
+            .build();
+        when(fornecedorRepository.save(any())).thenReturn(f);
+
+        fornecedorService.salvar(f);
+
+        verify(fornecedorRepository, times(1)).save(f);
+    }
+
+    // ---- CF-182: fornecedor sem dados bancários deve ser permitido ----
+
+    @Test
+    void dado_fornecedor_sem_dados_bancarios_quando_salvar_entao_persiste_normalmente() {
+        Fornecedor f = Fornecedor.builder()
+            .empresa(empresa).tipoPessoa("PJ").nome("Sem Dados Bancários")
+            .cpfCnpj("").ativo(true)
+            .bancoNome(null).bancoAgencia(null).bancoConta(null)
+            .bancoPixTipo(null).bancoPixChave(null)
+            .build();
+        when(fornecedorRepository.save(any())).thenReturn(f);
+
+        fornecedorService.salvar(f);
+
+        verify(fornecedorRepository, times(1)).save(f);
+    }
+
+    // ---- CF-183: inativar fornecedor com compras em RASCUNHO ----
+    // GAP: inativar() não verifica se existem compras em RASCUNHO vinculadas.
+    // Recomendação: adicionar verificação antes de inativar (ou ao menos aviso).
+
+    @Test
+    void dado_fornecedor_ativo_quando_inativar_entao_apenas_desativa_sem_checar_compras() {
+        when(fornecedorRepository.findById(1)).thenReturn(Optional.of(fornecedorPfBase));
+
+        // Atualmente inativa sem verificar compras em RASCUNHO (gap documentado)
+        fornecedorService.inativar(1);
+
+        ArgumentCaptor<Fornecedor> captor = ArgumentCaptor.forClass(Fornecedor.class);
+        verify(fornecedorRepository).save(captor.capture());
+        assertThat(captor.getValue().getAtivo()).isFalse();
+        // GAP: deveria verificar CompraRepository.existsByFornecedorIdAndStatus(1, "RASCUNHO")
+    }
+
+    // ---- CF-180: PIX tipo TELEFONE com formato inválido — mesmo gap CF-177 ----
+    @Test
+    void dado_fornecedor_pix_tipo_telefone_quando_salvar_entao_persiste_sem_validar_formato() {
+        Fornecedor f = Fornecedor.builder()
+            .empresa(empresa).tipoPessoa("PF").nome("Fornecedor PIX Tel")
+            .cpfCnpj("").ativo(true)
+            .bancoPixTipo("TELEFONE")
+            .bancoPixChave("abc") // inválido mas aceito
+            .build();
+        when(fornecedorRepository.save(any())).thenReturn(f);
+
+        fornecedorService.salvar(f);
+        verify(fornecedorRepository, times(1)).save(f);
+    }
 }

@@ -135,4 +135,86 @@ class ConfiguracaoServiceTest {
 
         assertThat(configuracaoService.isModoEscuro(1)).isFalse();
     }
+
+    // ---- CF-213: buscar configuração de empresa inexistente cria padrão ----
+    // Já coberto pelo teste 1: dado_empresa_sem_config_quando_buscar_entao_cria_padrao
+
+    // ---- CF-214: tema da empresa 1 não afeta empresa 2 ----
+
+    @Test
+    void dado_tema_dark_empresa_1_quando_buscar_empresa_2_entao_retorna_config_da_empresa_2() {
+        Empresa empresa2 = Empresa.builder().id(2).razaoSocial("Empresa 2").build();
+        Configuracao configEmpresa1 = Configuracao.builder()
+                .id(1).empresa(empresa).tema("DARK").build();
+        Configuracao configEmpresa2 = Configuracao.builder()
+                .id(2).empresa(empresa2).tema("LIGHT").build();
+
+        when(configuracaoRepository.findByEmpresaId(1)).thenReturn(Optional.of(configEmpresa1));
+        when(configuracaoRepository.findByEmpresaId(2)).thenReturn(Optional.of(configEmpresa2));
+
+        Configuracao c1 = configuracaoService.buscarPorEmpresa(1);
+        Configuracao c2 = configuracaoService.buscarPorEmpresa(2);
+
+        assertThat(c1.getTema()).isEqualTo("DARK");
+        assertThat(c2.getTema()).isEqualTo("LIGHT");
+    }
+
+    // ---- CF-215: usa_lote_validade propagação ----
+    // ConfiguracaoService retorna a entidade Configuracao completa com o campo usaLoteValidade.
+    // EstoqueService e ProdutoService devem consultar este valor ao criar produtos/movimentações.
+    // A responsabilidade de propagação é do controller ou service de produto — gap documentado.
+
+    // ---- CF-216: alerta_estoque_minimo = false ----
+
+    @Test
+    void dado_config_com_alerta_estoque_minimo_false_quando_buscar_entao_retorna_flag() {
+        Configuracao config = Configuracao.builder()
+                .id(1).empresa(empresa).tema("DARK")
+                .alertaEstoqueMinimo(false).build();
+
+        when(configuracaoRepository.findByEmpresaId(1)).thenReturn(Optional.of(config));
+
+        Configuracao resultado = configuracaoService.buscarPorEmpresa(1);
+
+        assertThat(resultado.getAlertaEstoqueMinimo()).isFalse();
+    }
+
+    // ---- CF-217: permite_venda_estoque_zero propagação ----
+
+    @Test
+    void dado_config_com_permite_venda_estoque_zero_true_quando_buscar_entao_retorna_flag() {
+        Configuracao config = Configuracao.builder()
+                .id(1).empresa(empresa).tema("DARK")
+                .permiteVendaEstoqueZero(true).build();
+
+        when(configuracaoRepository.findByEmpresaId(1)).thenReturn(Optional.of(config));
+
+        Configuracao resultado = configuracaoService.buscarPorEmpresa(1);
+
+        assertThat(resultado.getPermiteVendaEstoqueZero()).isTrue();
+    }
+
+    // ---- CF-218: dias_validade_orcamento retornado pela configuração ----
+
+    @Test
+    void dado_config_com_dias_validade_orcamento_30_quando_buscar_entao_retorna_valor() {
+        Configuracao config = Configuracao.builder()
+                .id(1).empresa(empresa).tema("DARK")
+                .diasValidadeOrcamento(30).build();
+
+        when(configuracaoRepository.findByEmpresaId(1)).thenReturn(Optional.of(config));
+
+        Configuracao resultado = configuracaoService.buscarPorEmpresa(1);
+
+        assertThat(resultado.getDiasValidadeOrcamento()).isEqualTo(30);
+    }
+
+    // ---- isModoEscuro sem config → padrão dark ----
+
+    @Test
+    void dado_sem_config_quando_verificar_modo_escuro_entao_retorna_true_como_padrao() {
+        when(configuracaoRepository.findByEmpresaId(99)).thenReturn(Optional.empty());
+
+        assertThat(configuracaoService.isModoEscuro(99)).isTrue();
+    }
 }

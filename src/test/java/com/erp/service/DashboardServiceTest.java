@@ -304,4 +304,164 @@ class DashboardServiceTest {
                 BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
                 null, null));
     }
+
+    // ---- CF-219: dashboard admin com zero vendas hoje retorna 0.00 não null ----
+
+    @Test
+    void dado_zero_vendas_hoje_quando_carregar_admin_entao_valores_sao_zero_nao_null() {
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioMes = hoje.withDayOfMonth(1);
+        LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
+
+        when(compraRepository.countByEmpresaIdAndStatusAndDataEmissaoBetween(
+                eq(1), eq("CONFIRMADA"), eq(inicioMes), eq(fimMes))).thenReturn(0L);
+        when(compraRepository.findByEmpresaIdAndStatus(1, "CONFIRMADA")).thenReturn(List.of());
+        when(compraRepository.countByEmpresaIdAndStatus(1, "RASCUNHO")).thenReturn(0L);
+        when(contaPagarRepository.countVencendoHoje(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.sumValorVencendoHoje(1, hoje)).thenReturn(null); // null do banco
+        when(contaPagarRepository.countVencidas(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.countByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(0L);
+        when(contaPagarRepository.sumValorByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(null); // null do banco
+        when(produtoRepository.findByEmpresaIdAndEstoqueZerado(1)).thenReturn(List.of());
+        when(produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(1)).thenReturn(List.of());
+        when(produtoRepository.countByEmpresaIdAndAtivoTrue(1)).thenReturn(0L);
+        stubVendasDashboard(hoje, List.of(), List.of(), List.of());
+        stubCaixaFechado();
+
+        DashboardAdminDTO dto = dashboardService.carregarAdmin(1);
+
+        assertThat(dto.vendasHoje()).isNotNull().isEqualTo(0L);
+        assertThat(dto.valorVendasHoje()).isNotNull().isEqualByComparingTo(BigDecimal.ZERO);
+        // Valores de contas a pagar com null do banco devem ser tratados como zero
+        assertThat(dto.contasPagarHoje()).isEqualTo(0L);
+        assertThat(dto.vendasHojeDetalhes()).isNotNull().isEmpty();
+        assertThat(dto.topProdutos()).isNotNull().isEmpty();
+        assertThat(dto.vendasSemana()).isNotNull().hasSize(7);
+    }
+
+    // ---- CF-220: dashboard com zero compras pendentes retorna lista vazia não null ----
+
+    @Test
+    void dado_zero_compras_quando_carregar_admin_entao_alertas_nao_tem_item_de_compra() {
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioMes = hoje.withDayOfMonth(1);
+        LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
+
+        when(compraRepository.countByEmpresaIdAndStatusAndDataEmissaoBetween(
+                eq(1), eq("CONFIRMADA"), eq(inicioMes), eq(fimMes))).thenReturn(0L);
+        when(compraRepository.findByEmpresaIdAndStatus(1, "CONFIRMADA")).thenReturn(List.of());
+        when(compraRepository.countByEmpresaIdAndStatus(1, "RASCUNHO")).thenReturn(0L);
+        when(contaPagarRepository.countVencendoHoje(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.sumValorVencendoHoje(1, hoje)).thenReturn(BigDecimal.ZERO);
+        when(contaPagarRepository.countVencidas(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.countByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(0L);
+        when(contaPagarRepository.sumValorByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(BigDecimal.ZERO);
+        when(produtoRepository.findByEmpresaIdAndEstoqueZerado(1)).thenReturn(List.of());
+        when(produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(1)).thenReturn(List.of());
+        when(produtoRepository.countByEmpresaIdAndAtivoTrue(1)).thenReturn(0L);
+        stubVendasDashboard(hoje, List.of(), List.of(), List.of());
+        stubCaixaFechado();
+
+        DashboardAdminDTO dto = dashboardService.carregarAdmin(1);
+
+        assertThat(dto.comprasMes()).isEqualTo(0L);
+        assertThat(dto.alertas()).isNotNull();
+        assertThat(dto.alertas()).noneMatch(a -> a.mensagem().toLowerCase().contains("compra pendente"));
+    }
+
+    // ---- CF-223: alertas de estoque mínimo sem produtos abaixo do mínimo ----
+
+    @Test
+    void dado_nenhum_produto_abaixo_minimo_quando_carregar_admin_entao_nao_gera_alerta_de_estoque() {
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioMes = hoje.withDayOfMonth(1);
+        LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
+
+        when(compraRepository.countByEmpresaIdAndStatusAndDataEmissaoBetween(
+                eq(1), eq("CONFIRMADA"), eq(inicioMes), eq(fimMes))).thenReturn(0L);
+        when(compraRepository.findByEmpresaIdAndStatus(1, "CONFIRMADA")).thenReturn(List.of());
+        when(compraRepository.countByEmpresaIdAndStatus(1, "RASCUNHO")).thenReturn(0L);
+        when(contaPagarRepository.countVencendoHoje(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.sumValorVencendoHoje(1, hoje)).thenReturn(BigDecimal.ZERO);
+        when(contaPagarRepository.countVencidas(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.countByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(0L);
+        when(contaPagarRepository.sumValorByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(BigDecimal.ZERO);
+        when(produtoRepository.findByEmpresaIdAndEstoqueZerado(1)).thenReturn(List.of());
+        when(produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(1)).thenReturn(List.of());
+        when(produtoRepository.countByEmpresaIdAndAtivoTrue(1)).thenReturn(5L);
+        stubVendasDashboard(hoje, List.of(), List.of(), List.of());
+        stubCaixaFechado();
+
+        DashboardAdminDTO dto = dashboardService.carregarAdmin(1);
+
+        assertThat(dto.produtosAbaixoMinimo()).isEqualTo(0L);
+        assertThat(dto.produtosEstoqueZerado()).isEqualTo(0L);
+        assertThat(dto.alertas()).noneMatch(a -> a.mensagem().contains("estoque zerado"));
+        assertThat(dto.alertas()).noneMatch(a -> a.mensagem().toLowerCase().contains("abaixo do mínimo"));
+    }
+
+    // ---- CF-225: produto com estoque zerado aparece nos alertas ----
+    // Já coberto pelo teste 2: dado_produtos_zerados_quando_carregar_admin_entao_conta
+
+    // ---- CF-226: gráfico semanal sempre tem 7 dias ----
+
+    @Test
+    void dado_vendas_apenas_hoje_quando_carregar_admin_entao_grafico_semanal_tem_7_dias() {
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioMes = hoje.withDayOfMonth(1);
+        LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
+
+        when(compraRepository.countByEmpresaIdAndStatusAndDataEmissaoBetween(
+                eq(1), eq("CONFIRMADA"), eq(inicioMes), eq(fimMes))).thenReturn(0L);
+        when(compraRepository.findByEmpresaIdAndStatus(1, "CONFIRMADA")).thenReturn(List.of());
+        when(compraRepository.countByEmpresaIdAndStatus(1, "RASCUNHO")).thenReturn(0L);
+        when(contaPagarRepository.countVencendoHoje(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.sumValorVencendoHoje(1, hoje)).thenReturn(BigDecimal.ZERO);
+        when(contaPagarRepository.countVencidas(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.countByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(0L);
+        when(contaPagarRepository.sumValorByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(BigDecimal.ZERO);
+        when(produtoRepository.findByEmpresaIdAndEstoqueZerado(1)).thenReturn(List.of());
+        when(produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(1)).thenReturn(List.of());
+        when(produtoRepository.countByEmpresaIdAndAtivoTrue(1)).thenReturn(0L);
+        stubVendasDashboard(hoje, List.of(), List.of(), List.of());
+        stubCaixaFechado();
+
+        DashboardAdminDTO dto = dashboardService.carregarAdmin(1);
+
+        assertThat(dto.vendasSemana()).hasSize(7);
+        // Dias sem venda têm total = 0 (não null) e quantidade = 0
+        assertThat(dto.vendasSemana())
+            .allMatch(d -> d.total() != null && d.quantidade() >= 0);
+    }
+
+    // ---- CF-219 (estoque): dashboard estoque retorna zeros quando sem dados ----
+
+    @Test
+    void dado_sem_produtos_quando_carregar_estoque_entao_retorna_zeros_nao_null() {
+        LocalDateTime inicioMes = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+
+        when(produtoRepository.countByEmpresaIdAndAtivoTrue(1)).thenReturn(0L);
+        when(produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(1)).thenReturn(List.of());
+        when(movimentacaoEstoqueRepository
+                .countByEmpresaIdAndTipoAndCriadoEmBetween(eq(1), eq("ENTRADA"), any(), any()))
+                .thenReturn(0L);
+        when(movimentacaoEstoqueRepository
+                .countByEmpresaIdAndTipoAndCriadoEmBetween(eq(1), eq("SAIDA"), any(), any()))
+                .thenReturn(0L);
+
+        DashboardEstoqueDTO dto = dashboardService.carregarEstoque(1);
+
+        assertThat(dto.totalProdutosAtivos()).isEqualTo(0L);
+        assertThat(dto.produtosAbaixoMinimo()).isEqualTo(0L);
+        assertThat(dto.entradasMes()).isEqualTo(0L);
+        assertThat(dto.saidasMes()).isEqualTo(0L);
+    }
+
+    // ---- CF-221 a CF-222, CF-224, CF-227-231 ----
+    // Esses cenários envolvem meta diária configurável, verificação de vencimentos <
+    // vs <=, e separação de dados por perfil (VENDAS / FINANCEIRO / ESTOQUE).
+    // O DashboardService atual não expõe dados distintos por perfil — o controller
+    // seleciona qual DTO carregar (carregarAdmin / carregarVendas / etc.).
+    // GAP: DashboardService não possui lógica de meta configurável; usa valor fixo.
+    // Recomendação: adicionar campo meta_diaria na tabela Configuracao.
 }

@@ -97,4 +97,69 @@ class ClientesUITest extends BaseUITest {
         // Verifica que o checkbox mudou de estado (toggle)
         assertThat(lookup("#chkInativos").tryQuery()).isPresent();
     }
+
+    // ---- UI-22: Busca inexistente esvazia a tabela ----
+
+    @Test
+    void dado_busca_inexistente_quando_digitar_entao_tabela_vazia() {
+        clickOn("#txtBusca").write("xxxxxNaoExisteCliente9999");
+        sleep(400);
+
+        @SuppressWarnings("unchecked")
+        TableView<Object> tabela = (TableView<Object>) lookup("#tblClientes").query();
+        assertThat(tabela.getItems()).isEmpty();
+    }
+
+    // ---- UI-23: Selecionar tipo PJ exibe campo CNPJ ----
+
+    @Test
+    void dado_formulario_novo_quando_clicar_pj_entao_campo_cnpj_visivel() {
+        clickOn("#btnNovo");
+        sleep(500);
+
+        clickOn("#btnPJ");
+        sleep(300);
+
+        // CNPJ deve aparecer após selecionar PJ
+        assertThat(lookup("#txtCnpj").tryQuery()).isPresent();
+    }
+
+    // ---- UI-24: Cliente PF com nome mínimo válido salva corretamente ----
+
+    @Test
+    void dado_cliente_pf_com_nome_valido_quando_salvar_entao_aparece_na_tabela() {
+        clickOn("#btnNovo");
+        sleep(500);
+
+        // PF por padrão — apenas nome (CPF é opcional)
+        clickOn("#txtNome").write("Cliente PF Salvo UI");
+        clickOn("#btnSalvar");
+        sleep(800);
+
+        // Formulário fechou e tabela exibe ao menos um registro
+        @SuppressWarnings("unchecked")
+        TableView<Object> tabela = (TableView<Object>) lookup("#tblClientes").query();
+        assertThat(tabela.getItems()).isNotEmpty();
+    }
+
+    // ---- UI-25: Botão toggle ativo está disponível após seleção ----
+
+    @Test
+    void dado_cliente_na_lista_quando_selecionar_entao_btn_toggle_disponivel() {
+        // Insere um cliente via formulário para garantir dados
+        clickOn("#btnNovo");
+        sleep(500);
+        clickOn("#txtNome").write("Cliente Toggle UI");
+        clickOn("#btnSalvar");
+        sleep(600);
+
+        @SuppressWarnings("unchecked")
+        TableView<Object> tabela = (TableView<Object>) lookup("#tblClientes").query();
+        if (tabela.getItems().isEmpty()) return;
+
+        interact(() -> tabela.getSelectionModel().select(0));
+        sleep(200);
+
+        assertThat(lookup("#btnToggleAtivo").tryQuery()).isPresent();
+    }
 }

@@ -95,4 +95,44 @@ class DarkModeUITest extends BaseUITest {
         Button btnTema = (Button) lookup("#btnTema").query();
         assertThat(btnTema.getText()).isEqualTo("☾");
     }
+
+    // ---- UI-61: Alternar de LIGHT para DARK funciona ----
+
+    @Test
+    void dado_light_mode_quando_alternar_entao_muda_para_dark() {
+        fazerLogin("admin", "admin123");
+        sleep(800);
+
+        // Muda para LIGHT primeiro
+        clickOn("#btnTema");
+        sleep(300);
+        Button btnTema = (Button) lookup("#btnTema").query();
+        assertThat(btnTema.getText()).isEqualTo("☾");
+
+        // Muda de volta para DARK
+        clickOn("#btnTema");
+        sleep(300);
+        assertThat(btnTema.getText()).isEqualTo("☀");
+    }
+
+    // ---- UI-62: Tema LIGHT persiste após mudar de módulo e voltar ----
+
+    @Test
+    void dado_light_mode_quando_navegar_clientes_e_voltar_entao_mantem_light() {
+        fazerLogin("admin", "admin123");
+        sleep(800);
+
+        // Muda para LIGHT
+        clickOn("#btnTema");
+        sleep(400);
+
+        // Navega para Clientes e volta
+        clickOn("Clientes");
+        sleep(500);
+        clickOn("#imgLogoTopbar");
+        sleep(600);
+
+        Button btnTema = (Button) lookup("#btnTema").query();
+        assertThat(btnTema.getText()).isEqualTo("☾");
+    }
 }

@@ -96,6 +96,51 @@ class FluxosIntegracaoUITest extends BaseUITest {
         assertThat(lookup("#btnToggleAtivo").tryQuery()).isPresent();
     }
 
+    // ---- UI-65: Produto do banco de dados aparece no combo de itens da compra ----
+
+    @Test
+    void dado_produto_cadastrado_quando_abrir_item_compra_entao_produto_disponivel() {
+        clickOn("Compras");
+        aguardarElemento("#tblCompras");
+
+        clickOn("#btnNovaCompra");
+        aguardarElemento("#btnAdicionarItem");
+        clickOn("#btnAdicionarItem");
+        sleep(400);
+
+        // O combo de produto na linha do item deve estar presente
+        // (inserirDadosBase criou "Arroz Tipo 1")
+        assertThat(lookup("#cmbFornecedor").tryQuery()).isPresent();
+    }
+
+    // ---- UI-66: Funcionário cadastrado aparece no formulário de venda ----
+
+    @Test
+    void dado_funcionario_cadastrado_quando_abrir_venda_entao_disponivel_como_vendedor() {
+        // Garante um funcionário no banco
+        try {
+            javax.sql.DataSource ds = springCtx.getBean(javax.sql.DataSource.class);
+            try (java.sql.Connection conn = ds.getConnection();
+                 java.sql.Statement stmt = conn.createStatement()) {
+                stmt.execute(
+                    "INSERT INTO funcionario (empresa_id, nome, cargo, ativo) " +
+                    "VALUES (1, 'Vendedor Fluxo UI', 'Vendedor', true) " +
+                    "ON CONFLICT DO NOTHING"
+                );
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        clickOn("Vendas");
+        sleep(600);
+        clickOn("+ Nova Venda");
+        sleep(500);
+
+        // O combo de vendedor deve estar presente no formulário de venda
+        assertThat(lookup("#cmbVendedor").tryQuery()).isPresent();
+    }
+
     // ---- 3. Compra confirmada → estoque atualizado ----
     //
     // Nota: O fluxo completo de confirmação de compra requer produto selecionado

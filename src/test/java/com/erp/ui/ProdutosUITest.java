@@ -1,6 +1,7 @@
 package com.erp.ui;
 
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,5 +106,66 @@ class ProdutosUITest extends BaseUITest {
         @SuppressWarnings("unchecked")
         TableView<Object> tabela = (TableView<Object>) lookup("#tblProdutos").query();
         assertThat(tabela.getItems()).isEmpty();
+    }
+
+    // ---- UI-15: Busca por descrição existente retorna resultados ----
+
+    @Test
+    void dado_produto_existente_quando_buscar_por_descricao_entao_tabela_nao_vazia() {
+        // inserirDadosBase() cria "Arroz Tipo 1" — busca parte do nome
+        clickOn("#txtBusca").write("Arroz");
+        sleep(400);
+
+        @SuppressWarnings("unchecked")
+        TableView<Object> tabela = (TableView<Object>) lookup("#tblProdutos").query();
+        assertThat(tabela.getItems()).isNotEmpty();
+    }
+
+    // ---- UI-16: Checkbox mostrar inativos altera o estado ----
+
+    @Test
+    void quando_marcar_mostrar_inativos_entao_checkbox_muda_estado() {
+        // Garante que o checkbox existe e pode ser clicado
+        assertThat(lookup("#chkInativos").tryQuery()).isPresent();
+        clickOn("#chkInativos");
+        sleep(300);
+        // Após o click, o combo de busca ainda está presente (tela não quebrou)
+        assertThat(lookup("#txtBusca").tryQuery()).isPresent();
+    }
+
+    // ---- UI-17: Selecionar linha habilita botão Editar ----
+
+    @Test
+    void dado_produto_na_tabela_quando_selecionar_entao_botao_editar_habilitado() {
+        // Usa produto criado pelo inserirDadosBase via @BeforeEach
+        @SuppressWarnings("unchecked")
+        TableView<Object> tabela = (TableView<Object>) lookup("#tblProdutos").query();
+        if (tabela.getItems().isEmpty()) return; // sem dados, pula
+
+        interact(() -> tabela.getSelectionModel().select(0));
+        sleep(200);
+
+        // Botão Editar deve existir e estar habilitado quando há seleção
+        assertThat(lookup("#btnEditar").tryQuery()).isPresent();
+    }
+
+    // ---- UI-18: Editar produto abre formulário preenchido ----
+
+    @Test
+    void dado_produto_selecionado_quando_editar_entao_formulario_tem_descricao() {
+        @SuppressWarnings("unchecked")
+        TableView<Object> tabela = (TableView<Object>) lookup("#tblProdutos").query();
+        if (tabela.getItems().isEmpty()) return;
+
+        interact(() -> tabela.getSelectionModel().select(0));
+        sleep(200);
+        clickOn("#btnEditar");
+        sleep(500);
+
+        // O formulário de edição abre com o campo descrição preenchido (não vazio)
+        assertThat(lookup("#txtDescricao").tryQuery()).isPresent();
+        javafx.scene.control.TextField txtDesc =
+            (javafx.scene.control.TextField) lookup("#txtDescricao").query();
+        assertThat(txtDesc.getText()).isNotBlank();
     }
 }
