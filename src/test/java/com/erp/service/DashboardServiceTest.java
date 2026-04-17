@@ -34,6 +34,7 @@ class DashboardServiceTest {
 
     @Mock private CompraRepository compraRepository;
     @Mock private ContaPagarRepository contaPagarRepository;
+    @Mock private ContaReceberRepository contaReceberRepository;
     @Mock private ProdutoRepository produtoRepository;
     @Mock private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     @Mock private VendaRepository vendaRepository;
@@ -88,6 +89,36 @@ class DashboardServiceTest {
     }
 
     // ---- 2. carregarAdmin: produtos zerados/abaixo do mínimo são contados ----
+
+    @Test
+    void dado_contas_a_receber_vencendo_hoje_quando_carregar_admin_entao_exibe_resumo() {
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioMes = hoje.withDayOfMonth(1);
+        LocalDate fimMes = inicioMes.plusMonths(1).minusDays(1);
+
+        when(compraRepository.countByEmpresaIdAndStatusAndDataEmissaoBetween(
+                eq(1), eq("CONFIRMADA"), eq(inicioMes), eq(fimMes)))
+                .thenReturn(0L);
+        when(compraRepository.findByEmpresaIdAndStatus(1, "CONFIRMADA")).thenReturn(List.of());
+        when(compraRepository.countByEmpresaIdAndStatus(1, "RASCUNHO")).thenReturn(0L);
+        when(contaReceberRepository.countVencendoHoje(1, hoje)).thenReturn(2L);
+        when(contaReceberRepository.sumValorVencendoHoje(1, hoje)).thenReturn(new BigDecimal("350.75"));
+        when(contaPagarRepository.countVencendoHoje(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.sumValorVencendoHoje(1, hoje)).thenReturn(BigDecimal.ZERO);
+        when(contaPagarRepository.countVencidas(1, hoje)).thenReturn(0L);
+        when(contaPagarRepository.countByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(0L);
+        when(contaPagarRepository.sumValorByEmpresaIdAndStatus(1, "ABERTA")).thenReturn(BigDecimal.ZERO);
+        when(produtoRepository.findByEmpresaIdAndEstoqueZerado(1)).thenReturn(List.of());
+        when(produtoRepository.findByEmpresaIdAndEstoqueAbaixoMinimo(1)).thenReturn(List.of());
+        when(produtoRepository.countByEmpresaIdAndAtivoTrue(1)).thenReturn(0L);
+        stubVendasDashboard(hoje, List.of(), List.of(), List.of());
+        stubCaixaFechado();
+
+        DashboardAdminDTO dto = dashboardService.carregarAdmin(1);
+
+        assertThat(dto.contasReceberHoje()).isEqualTo(2L);
+        assertThat(dto.valorContasReceberHoje()).isEqualByComparingTo("350.75");
+    }
 
     @Test
     void dado_produtos_zerados_quando_carregar_admin_entao_conta() {

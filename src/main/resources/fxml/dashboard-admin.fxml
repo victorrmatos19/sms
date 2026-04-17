@@ -43,8 +43,8 @@
             <!-- 2. A RECEBER HOJE (azul) -->
             <VBox fx:id="cardReceberHoje" styleClass="dash-card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="5">
                 <Label text="A RECEBER HOJE" styleClass="dash-card-label"/>
-                <Label text="—" styleClass="dash-val-blue"/>
-                <Label text="módulo em breve" styleClass="dash-card-sub"/>
+                <Label fx:id="lblValorAReceberHoje" text="R$ 0,00" styleClass="dash-val-blue"/>
+                <Label fx:id="lblQtdAReceberHoje" text="0 contas" styleClass="dash-card-sub"/>
             </VBox>
 
             <!-- 3. A PAGAR HOJE (vermelho) -->

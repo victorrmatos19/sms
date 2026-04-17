@@ -15,6 +15,9 @@ public record DashboardAdminDTO(
         long vendasHoje,
         BigDecimal valorVendasHoje,
         BigDecimal ticketMedioUltimos7Dias,
+        // Contas a receber
+        long contasReceberHoje,
+        BigDecimal valorContasReceberHoje,
         // Contas a pagar
         long contasPagarHoje,
         BigDecimal valorContasPagarHoje,

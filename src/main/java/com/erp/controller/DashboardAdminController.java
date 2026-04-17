@@ -73,6 +73,8 @@ public class DashboardAdminController implements Initializable {
     // Labels dinâmicos
     @FXML private Label lblVendasHoje;
     @FXML private Label lblSubVendasHoje;
+    @FXML private Label lblValorAReceberHoje;
+    @FXML private Label lblQtdAReceberHoje;
     @FXML private Label lblValorAPagarHoje;
     @FXML private Label lblQtdAPagarHoje;
     @FXML private Label lblCaixaAtual;
@@ -198,9 +200,14 @@ public class DashboardAdminController implements Initializable {
                 ? "nenhuma venda hoje"
                 : dto.vendasHoje() + (dto.vendasHoje() == 1 ? " venda hoje" : " vendas hoje"));
 
-        // Card A PAGAR HOJE — dados reais
-        lblValorAPagarHoje.setText(dto.contasPagarHoje() > 0
-                ? MoneyUtils.formatCurrency(dto.valorContasPagarHoje()) : "R$ 0,00");
+        // Card A RECEBER HOJE
+        lblValorAReceberHoje.setText(MoneyUtils.formatCurrency(dto.valorContasReceberHoje()));
+        lblQtdAReceberHoje.setText(dto.contasReceberHoje() == 0
+                ? "nenhuma hoje"
+                : dto.contasReceberHoje() + (dto.contasReceberHoje() == 1 ? " conta" : " contas"));
+
+        // Card A PAGAR HOJE
+        lblValorAPagarHoje.setText(MoneyUtils.formatCurrency(dto.valorContasPagarHoje()));
         lblQtdAPagarHoje.setText(dto.contasPagarHoje() == 0
                 ? "nenhuma hoje"
                 : dto.contasPagarHoje() + (dto.contasPagarHoje() == 1 ? " conta" : " contas"));

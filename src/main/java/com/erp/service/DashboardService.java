@@ -27,6 +27,7 @@ public class DashboardService {
 
     private final CompraRepository compraRepository;
     private final ContaPagarRepository contaPagarRepository;
+    private final ContaReceberRepository contaReceberRepository;
     private final ProdutoRepository produtoRepository;
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     private final VendaRepository vendaRepository;
@@ -71,13 +72,17 @@ public class DashboardService {
         List<VendaDiariaDTO> vendasSemana = calcularVendasSemana(empresaId, hoje);
         BigDecimal ticketMedioUltimos7Dias = calcularTicketMedio(vendasSemana);
 
+        // ---- Contas a receber ----
+        long contasReceberHoje = contaReceberRepository.countVencendoHoje(empresaId, hoje);
+        BigDecimal valorContasReceberHoje = zeroIfNull(contaReceberRepository.sumValorVencendoHoje(empresaId, hoje));
+
         // ---- Contas a pagar ----
         long contasPagarHoje = contaPagarRepository.countVencendoHoje(empresaId, hoje);
-        BigDecimal valorContasPagarHoje = contaPagarRepository.sumValorVencendoHoje(empresaId, hoje);
+        BigDecimal valorContasPagarHoje = zeroIfNull(contaPagarRepository.sumValorVencendoHoje(empresaId, hoje));
         long contasPagarVencidas = contaPagarRepository.countVencidas(empresaId, hoje);
         long contasPagarAbertas = contaPagarRepository.countByEmpresaIdAndStatus(empresaId, "ABERTA");
-        BigDecimal totalContasPagarAbertas = contaPagarRepository
-                .sumValorByEmpresaIdAndStatus(empresaId, "ABERTA");
+        BigDecimal totalContasPagarAbertas = zeroIfNull(contaPagarRepository
+                .sumValorByEmpresaIdAndStatus(empresaId, "ABERTA"));
 
         // ---- Caixa ----
         CaixaResumoDTO caixa = caixaService.obterResumoAtual(empresaId);
@@ -96,6 +101,7 @@ public class DashboardService {
         return new DashboardAdminDTO(
                 comprasMes, valorComprasMes, rascunhos,
                 vendasHoje, valorVendasHoje, ticketMedioUltimos7Dias,
+                contasReceberHoje, valorContasReceberHoje,
                 contasPagarHoje, valorContasPagarHoje,
                 contasPagarVencidas, contasPagarAbertas, totalContasPagarAbertas,
                 caixa.aberto(), caixa.saldoAtual(), caixa.totalEntradas(), caixa.totalSaidas(),
@@ -302,5 +308,9 @@ public class DashboardService {
 
     private String nvl(String value) {
         return value != null ? value : "";
+    }
+
+    private BigDecimal zeroIfNull(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
     }
 }
