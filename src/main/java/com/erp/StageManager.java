@@ -184,6 +184,28 @@ public class StageManager {
                 });
     }
 
+    public CompletableFuture<Void> verificarAtualizacaoManual() {
+        return CompletableFuture
+                .supplyAsync(() -> {
+                    try {
+                        return updateService.checkForUpdateNow();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .thenAccept(resultado -> Platform.runLater(() -> {
+                    if (resultado.isPresent()) {
+                        mostrarDialogAtualizacao(resultado.get());
+                    } else {
+                        mostrarMensagemAtualizado();
+                    }
+                }))
+                .exceptionally(e -> {
+                    Platform.runLater(() -> mostrarErroVerificacaoAtualizacao(e));
+                    return null;
+                });
+    }
+
     private void mostrarDialogAtualizacao(UpdateCheckResult update) {
         ButtonType btnAtualizar = new ButtonType("Atualizar agora", ButtonBar.ButtonData.OK_DONE);
         ButtonType btnDepois = new ButtonType("Depois", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -275,6 +297,30 @@ public class StageManager {
         erro.initOwner(primaryStage);
         erro.setTitle("Atualizacao nao concluida");
         erro.setHeaderText("Nao foi possivel atualizar automaticamente.");
+        erro.setContentText(causa.getMessage());
+        erro.show();
+    }
+
+    private void mostrarMensagemAtualizado() {
+        Alert info = new Alert(Alert.AlertType.INFORMATION);
+        info.initOwner(primaryStage);
+        info.setTitle("Atualizacoes");
+        info.setHeaderText("Voce ja esta usando a versao mais recente.");
+        info.setContentText("Versao instalada: " + updateService.getCurrentVersion());
+        info.show();
+    }
+
+    private void mostrarErroVerificacaoAtualizacao(Throwable e) {
+        Throwable causa = e.getCause() != null ? e.getCause() : e;
+        if (causa.getCause() != null) {
+            causa = causa.getCause();
+        }
+        log.warn("Erro ao verificar atualizacao manualmente: {}", causa.getMessage(), causa);
+
+        Alert erro = new Alert(Alert.AlertType.WARNING);
+        erro.initOwner(primaryStage);
+        erro.setTitle("Atualizacoes");
+        erro.setHeaderText("Nao foi possivel verificar atualizacoes.");
         erro.setContentText(causa.getMessage());
         erro.show();
     }

@@ -35,6 +35,7 @@ public class LoginController implements Initializable {
     @FXML private TextField txtLogin;
     @FXML private PasswordField txtSenha;
     @FXML private Button btnEntrar;
+    @FXML private Button btnVerificarAtualizacoes;
     @FXML private Label lblErro;
 
     @Override
@@ -94,5 +95,17 @@ public class LoginController implements Initializable {
     private void mostrarErro(String mensagem) {
         lblErro.setText(mensagem);
         lblErro.setVisible(true);
+    }
+
+    @FXML
+    private void verificarAtualizacoes() {
+        btnVerificarAtualizacoes.setDisable(true);
+        btnVerificarAtualizacoes.setText("Verificando...");
+
+        stageManager.verificarAtualizacaoManual()
+                .whenComplete((ignored, error) -> Platform.runLater(() -> {
+                    btnVerificarAtualizacoes.setText("Verificar atualizações");
+                    btnVerificarAtualizacoes.setDisable(false);
+                }));
     }
 }

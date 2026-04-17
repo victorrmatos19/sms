@@ -66,41 +66,50 @@ public class UpdateService {
 
     public Optional<UpdateCheckResult> checkForUpdateIfDue() {
         if (!isUpdateUrlConfigured()) {
-            log.info("URL de atualização não configurada. Verificação ignorada.");
+            log.info("URL de atualizacao nao configurada. Verificacao ignorada.");
             return Optional.empty();
         }
 
         if (!isCheckDue()) {
-            log.info("Verificação de atualização ignorada: intervalo de {} dia(s) ainda não venceu.",
+            log.info("Verificacao de atualizacao ignorada: intervalo de {} dia(s) ainda nao venceu.",
                     checkIntervalDays);
             return Optional.empty();
         }
 
         try {
-            UpdateManifest manifest = fetchManifest();
-            saveCache(new UpdateCache(Instant.now().toString(), manifest, null));
-
-            if (isNewerVersion(manifest.latestVersion(), currentVersion)) {
-                log.info("Nova versão disponível: atual={} nova={}", currentVersion, manifest.latestVersion());
-                return Optional.of(new UpdateCheckResult(currentVersion, manifest));
-            }
-
-            log.info("SMS já está atualizado: {}", currentVersion);
-            return Optional.empty();
+            return checkForUpdate();
         } catch (Exception e) {
-            log.warn("Não foi possível verificar atualização: {}", e.getMessage());
+            log.warn("Nao foi possivel verificar atualizacao: {}", e.getMessage());
             saveCache(new UpdateCache(Instant.now().toString(), loadCache().map(UpdateCache::lastManifest).orElse(null),
                     e.getMessage()));
             return Optional.empty();
         }
     }
 
+    public Optional<UpdateCheckResult> checkForUpdateNow() throws IOException, InterruptedException {
+        if (!isUpdateUrlConfigured()) {
+            throw new IOException("URL de atualizacao nao configurada.");
+        }
+
+        try {
+            return checkForUpdate();
+        } catch (IOException | InterruptedException e) {
+            saveCache(new UpdateCache(Instant.now().toString(), loadCache().map(UpdateCache::lastManifest).orElse(null),
+                    e.getMessage()));
+            throw e;
+        } catch (RuntimeException e) {
+            saveCache(new UpdateCache(Instant.now().toString(), loadCache().map(UpdateCache::lastManifest).orElse(null),
+                    e.getMessage()));
+            throw e;
+        }
+    }
+
     public Path downloadAndValidate(UpdateManifest manifest) throws IOException, InterruptedException {
         if (manifest == null || isBlank(manifest.downloadUrl())) {
-            throw new IllegalArgumentException("Manifest de atualização sem URL de download.");
+            throw new IllegalArgumentException("Manifest de atualizacao sem URL de download.");
         }
         if (isBlank(manifest.sha256())) {
-            throw new IllegalArgumentException("Manifest de atualização sem SHA-256.");
+            throw new IllegalArgumentException("Manifest de atualizacao sem SHA-256.");
         }
 
         URI downloadUri = URI.create(manifest.downloadUrl().replace(" ", "%20"));
@@ -129,7 +138,7 @@ public class UpdateService {
         String actualHash = sha256(destination);
         if (!actualHash.equalsIgnoreCase(manifest.sha256().trim())) {
             Files.deleteIfExists(destination);
-            throw new IOException("SHA-256 inválido. Esperado " + manifest.sha256() + ", obtido " + actualHash);
+            throw new IOException("SHA-256 invalido. Esperado " + manifest.sha256() + ", obtido " + actualHash);
         }
 
         return destination;
@@ -137,7 +146,7 @@ public class UpdateService {
 
     public void scheduleInstallerAfterExit(Path installerPath) throws IOException {
         if (installerPath == null || !Files.exists(installerPath)) {
-            throw new IllegalArgumentException("Instalador não encontrado.");
+            throw new IllegalArgumentException("Instalador nao encontrado.");
         }
 
         long pid = ProcessHandle.current().pid();
@@ -169,6 +178,19 @@ public class UpdateService {
         return false;
     }
 
+    private Optional<UpdateCheckResult> checkForUpdate() throws IOException, InterruptedException {
+        UpdateManifest manifest = fetchManifest();
+        saveCache(new UpdateCache(Instant.now().toString(), manifest, null));
+
+        if (isNewerVersion(manifest.latestVersion(), currentVersion)) {
+            log.info("Nova versao disponivel: atual={} nova={}", currentVersion, manifest.latestVersion());
+            return Optional.of(new UpdateCheckResult(currentVersion, manifest));
+        }
+
+        log.info("SMS ja esta atualizado: {}", currentVersion);
+        return Optional.empty();
+    }
+
     private UpdateManifest fetchManifest() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(updateUrl))
@@ -183,7 +205,7 @@ public class UpdateService {
 
         UpdateManifest manifest = objectMapper.readValue(response.body(), UpdateManifest.class);
         if (isBlank(manifest.latestVersion()) || isBlank(manifest.downloadUrl())) {
-            throw new IOException("Manifest de atualização incompleto.");
+            throw new IOException("Manifest de atualizacao incompleto.");
         }
         return manifest;
     }
@@ -213,7 +235,7 @@ public class UpdateService {
         try {
             return Optional.of(objectMapper.readValue(cachePath.toFile(), UpdateCache.class));
         } catch (Exception e) {
-            log.warn("Cache de atualização inválido: {}", e.getMessage());
+            log.warn("Cache de atualizacao invalido: {}", e.getMessage());
             return Optional.empty();
         }
     }
@@ -223,7 +245,7 @@ public class UpdateService {
             Files.createDirectories(cachePath.getParent());
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(cachePath.toFile(), cache);
         } catch (Exception e) {
-            log.warn("Não foi possível salvar cache de atualização: {}", e.getMessage());
+            log.warn("Nao foi possivel salvar cache de atualizacao: {}", e.getMessage());
         }
     }
 
@@ -243,7 +265,7 @@ public class UpdateService {
             }
             return HexFormat.of().formatHex(digest.digest());
         } catch (Exception e) {
-            throw new IOException("Não foi possível calcular SHA-256.", e);
+            throw new IOException("Nao foi possivel calcular SHA-256.", e);
         }
     }
 

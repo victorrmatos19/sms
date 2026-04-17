@@ -7,7 +7,7 @@
 
     <groupId>com.erp</groupId>
     <artifactId>erp-desktop</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <packaging>jar</packaging>
     <name>ERP Desktop</name>
     <description>ERP Desktop para Pequenas Empresas</description>

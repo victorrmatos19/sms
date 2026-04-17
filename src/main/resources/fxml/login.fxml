@@ -63,4 +63,14 @@
 
         </VBox>
     </center>
+
+    <bottom>
+        <HBox alignment="CENTER_RIGHT">
+            <padding><Insets top="0" right="24" bottom="18" left="24"/></padding>
+            <Button fx:id="btnVerificarAtualizacoes"
+                    text="Verificar atualizações"
+                    onAction="#verificarAtualizacoes"
+                    styleClass="btn-secondary"/>
+        </HBox>
+    </bottom>
 </BorderPane>
