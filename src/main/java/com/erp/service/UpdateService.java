@@ -119,7 +119,7 @@ public class UpdateService {
         Path uriFilename = Paths.get(Optional.ofNullable(downloadUri.getPath()).orElse("")).getFileName();
         String filename = uriFilename != null ? uriFilename.toString() : null;
         if (isBlank(filename)) {
-            filename = "sms-update-" + manifest.latestVersion() + ".exe";
+            filename = defaultInstallerFilename(manifest.latestVersion(), System.getProperty("os.name"));
         }
         filename = SAFE_FILENAME.matcher(filename).replaceAll("_");
         Path destination = updateDir.resolve(filename);
@@ -150,6 +150,23 @@ public class UpdateService {
         }
 
         long pid = ProcessHandle.current().pid();
+        if (isMac(System.getProperty("os.name"))) {
+            scheduleMacDmgAfterExit(installerPath, pid);
+            return;
+        }
+
+        if (!isWindows(System.getProperty("os.name"))) {
+            throw new IOException("Atualizacao automatica nao suportada neste sistema operacional.");
+        }
+
+        scheduleWindowsInstallerAfterExit(installerPath, pid);
+    }
+
+    public String getCurrentVersion() {
+        return currentVersion;
+    }
+
+    private void scheduleWindowsInstallerAfterExit(Path installerPath, long pid) throws IOException {
         String command = "$p=" + pid + ";"
                 + "$installer=" + quotePowerShell(installerPath.toAbsolutePath().toString()) + ";"
                 + "Wait-Process -Id $p -ErrorAction SilentlyContinue;"
@@ -160,8 +177,18 @@ public class UpdateService {
                 .start();
     }
 
-    public String getCurrentVersion() {
-        return currentVersion;
+    private void scheduleMacDmgAfterExit(Path installerPath, long pid) throws IOException {
+        new ProcessBuilder(
+                "/bin/sh",
+                "-c",
+                "pid=\"$1\"; installer=\"$2\"; "
+                        + "while kill -0 \"$pid\" 2>/dev/null; do sleep 1; done; "
+                        + "sleep 1; "
+                        + "open \"$installer\"",
+                "sms-update",
+                String.valueOf(pid),
+                installerPath.toAbsolutePath().toString())
+                .start();
     }
 
     boolean isNewerVersion(String candidate, String current) {
@@ -305,6 +332,29 @@ public class UpdateService {
 
     private static String quotePowerShell(String value) {
         return "'" + value.replace("'", "''") + "'";
+    }
+
+    static String defaultInstallerFilename(String version, String osName) {
+        String safeVersion = isBlank(version) ? "unknown" : version.trim();
+        return "sms-update-" + safeVersion + defaultInstallerExtension(osName);
+    }
+
+    private static String defaultInstallerExtension(String osName) {
+        if (isMac(osName)) {
+            return ".dmg";
+        }
+        if (isWindows(osName)) {
+            return ".exe";
+        }
+        return ".bin";
+    }
+
+    private static boolean isMac(String osName) {
+        return osName != null && osName.toLowerCase().contains("mac");
+    }
+
+    private static boolean isWindows(String osName) {
+        return osName != null && osName.toLowerCase().contains("win");
     }
 
     private static boolean isBlank(String value) {

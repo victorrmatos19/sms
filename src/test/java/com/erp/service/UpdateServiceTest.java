@@ -63,6 +63,16 @@ class UpdateServiceTest {
     }
 
     @Test
+    void escolheExtensaoPadraoDoInstaladorPorSistemaOperacional() {
+        assertThat(UpdateService.defaultInstallerFilename("1.0.6", "Windows 11"))
+                .isEqualTo("sms-update-1.0.6.exe");
+        assertThat(UpdateService.defaultInstallerFilename("1.0.6", "Mac OS X"))
+                .isEqualTo("sms-update-1.0.6.dmg");
+        assertThat(UpdateService.defaultInstallerFilename("1.0.6", "Linux"))
+                .isEqualTo("sms-update-1.0.6.bin");
+    }
+
+    @Test
     void checkForUpdateIfDueRespeitaCacheRecente() throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         Path cachePath = Path.of("target", "test-update-cache-if-due.json");

@@ -186,6 +186,64 @@
                     </GridPane>
                 </VBox>
             </Tab>
+
+            <Tab text="Backup e Restauração">
+                <VBox spacing="16" styleClass="card">
+                    <padding>
+                        <Insets top="16" right="16" bottom="16" left="16"/>
+                    </padding>
+
+                    <Label text="Backups locais automáticos" styleClass="card-title"/>
+                    <Label text="O sistema cria um backup físico frio uma vez por dia ao abrir, antes do banco iniciar."
+                           styleClass="form-hint"/>
+
+                    <GridPane hgap="16" vgap="10">
+                        <columnConstraints>
+                            <ColumnConstraints minWidth="150" prefWidth="180"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                            <ColumnConstraints minWidth="150" prefWidth="180"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Último backup" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <Label fx:id="lblBackupUltimo" text="Carregando..."
+                               GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                        <Label text="Quantidade" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                        <Label fx:id="lblBackupQuantidade" text="0 backup(s)"
+                               GridPane.rowIndex="0" GridPane.columnIndex="3"/>
+
+                        <Label text="Pasta" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <Label fx:id="lblBackupPasta" text="-" wrapText="true"
+                               GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
+
+                        <Label text="Status" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <Label fx:id="lblBackupStatus" text="-" wrapText="true"
+                               GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
+                    </GridPane>
+
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Button text="Atualizar Lista" onAction="#atualizarBackups" styleClass="btn-secondary"/>
+                        <Button text="Abrir Pasta de Backups" onAction="#abrirPastaBackups" styleClass="btn-outline"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnRestaurarBackup" text="Restaurar Backup Selecionado"
+                                onAction="#restaurarBackupSelecionado" styleClass="btn-danger"/>
+                    </HBox>
+
+                    <TableView fx:id="tabelaBackups" prefHeight="320" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colBackupData" text="Data/Hora" prefWidth="140"/>
+                            <TableColumn fx:id="colBackupTipo" text="Tipo" prefWidth="130"/>
+                            <TableColumn fx:id="colBackupArquivo" text="Arquivo" prefWidth="320"/>
+                            <TableColumn fx:id="colBackupTamanho" text="Tamanho" prefWidth="110"/>
+                            <TableColumn fx:id="colBackupValidacao" text="Validação" prefWidth="100"/>
+                        </columns>
+                    </TableView>
+
+                    <Label text="Ao restaurar, o SMS fecha e aplica a restauração na próxima abertura, antes do PostgreSQL embarcado subir."
+                           styleClass="form-hint" wrapText="true"/>
+                </VBox>
+            </Tab>
         </TabPane>
     </ScrollPane>
 

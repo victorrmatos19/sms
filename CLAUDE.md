@@ -51,6 +51,10 @@ src/main/resources/
 ├── fxml/         # Telas JavaFX
 ├── images/       # Logo e ícones
 └── reports/      # Templates JasperReports
+
+scripts/
+├── build-installer.ps1 # Build Windows EXE + update.json
+└── build-dmg.sh        # Build macOS DMG assinado/notarizado + update-mac.json
 ```
 
 Novos arquivos adicionados no módulo Contas a Receber:
@@ -77,6 +81,7 @@ Novos arquivos adicionados no módulo Configurações da Empresa:
 Arquivos expandidos para Configurações:
 
 - `src/main/java/com/erp/service/ConfiguracaoService.java` (empresa, defaults de configuração e persistência de parâmetros)
+- `src/main/java/com/erp/service/BackupService.java` (backup diário local e restauração assistida pré-startup)
 - `src/main/java/com/erp/controller/MainController.java` (carregamento da tela e restrição ADMINISTRADOR)
 - `src/main/java/com/erp/service/OrcamentoPdfService.java` (dados reais da empresa e logotipo configurável no PDF)
 - `src/main/resources/reports/orcamento.jrxml` (parâmetros de endereço e logotipo)
@@ -108,6 +113,13 @@ Migrations recentes de limpeza pré-Fase 2:
 
 - `src/main/resources/db/migration/V8__remove_perfil_id_legado.sql`
 - `src/main/resources/db/migration/V9__remove_categoria_produto.sql`
+
+Arquivos de distribuição:
+
+- `scripts/build-installer.ps1` (Windows EXE via `jpackage`)
+- `scripts/build-dmg.sh` (macOS DMG via perfil Maven `mac-dmg`, assinatura e notarização)
+- `src/main/resources/images/icon.ico` (ícone Windows)
+- `src/main/resources/images/icon.icns` (ícone macOS)
 
 FXMLs principais existentes:
 
@@ -254,6 +266,17 @@ FXMLs principais existentes:
 - Aba Parâmetros do Sistema edita `Configuracao`: lote/validade, alerta de estoque mínimo, venda com estoque zero, validade do orçamento, juros, multa, impressora padrão e exibição de logotipo.
 - `ConfiguracaoService` centraliza busca/salvamento de `Empresa` e `Configuracao`, mantendo criação automática de defaults quando a configuração da empresa ainda não existe.
 - PDFs de orçamento usam dados reais da tabela `empresa` e respeitam `exibir_logotipo_impressao` para mostrar ou ocultar o logotipo.
+- Aba Backup e Restauração lista backups locais, mostra status da última restauração, abre a pasta de backups e permite agendar restauração com confirmação forte (`RESTAURAR`).
+
+### Backup e Restauração
+
+- `BackupService` executa manutenção antes do Spring iniciar o PostgreSQL embarcado, chamado em `MainApp.init`.
+- Backup automático local é físico/frio: compacta `~/erp-desktop/data` uma vez por dia ao abrir o app, antes do banco subir.
+- Backups ficam em `~/erp-desktop/backups` com nome `sms-backup-YYYYMMDD-HHmmss.zip` e sidecar `.metadata.json` contendo tipo, data, versão, tamanho e SHA-256.
+- Retenção automática remove backups com mais de 30 dias, preservando backups recentes e o backup criado no dia.
+- Restauração é assistida: a UI cria `~/erp-desktop/restore-request.json`, fecha o app, e a próxima abertura valida SHA, cria backup `PRE_RESTORE`, substitui a pasta `data` e registra `restore-status.json`.
+- Após extrair backup físico, o restore aplica permissões POSIX seguras para PostgreSQL: diretórios `700` e arquivos `600`. Sem isso o Postgres pode recusar a pasta restaurada e falhar com timeout de startup.
+- Se a restauração falhar, a base atual é preservada, o erro fica registrado em `restore-status.json` e o pedido é arquivado como `restore-request.failed-*.json`.
 
 ### Dashboards
 
@@ -273,6 +296,14 @@ FXMLs principais existentes:
 - `RelatorioPdfService` gera PDFs via JasperReports, salva em temporário e abre externamente usando o mesmo padrão/fallback de `OrcamentoPdfService`.
 - Templates Jasper atuais: `orcamento.jrxml`, `relatorio-vendas.jrxml`, `relatorio-estoque.jrxml`, `relatorio-financeiro.jrxml`, `relatorio-caixa.jrxml`.
 - Dados de empresa/logotipo dos PDFs vêm das Configurações da Empresa.
+
+### Distribuição e Atualizações
+
+- Windows mantém o fluxo existente com `jpackage` gerando instalador `EXE` e `scripts/build-installer.ps1` gerando `target/dist/update.json`.
+- macOS possui perfil Maven `mac-dmg`, que usa `jpackage` com `type=DMG`, ícone `icon.icns`, bundle identifier `br.com.sms.desktop`, assinatura `Developer ID Application` e `macPackageName=SMS`.
+- `scripts/build-dmg.sh` valida macOS, JDK 21 com `jpackage`, certificado de assinatura, gera o JAR, gera o DMG, envia para notarização com `notarytool`, aplica `stapler`, valida com Gatekeeper e gera `target/dist/update-mac.json`.
+- Para builds locais sem notarização, o script aceita `--no-notarize`, mas ainda exige assinatura Developer ID porque o perfil `mac-dmg` é voltado para distribuição.
+- `UpdateService` reaproveita download e validação SHA-256 para Windows e macOS; no Windows agenda o `.exe` via PowerShell, no macOS agenda abertura do `.dmg` via comando nativo `open` após o app encerrar.
 
 ---
 
@@ -416,6 +447,21 @@ Três correções funcionais aplicadas após conclusão da Fase 1 comercial:
 - Cadastro de produto não exibe nem persiste categoria; classificação usa apenas Grupo.
 - `global.css` foi alinhado ao design system Preto & Verde, com dark mode padrão, light mode alternativo e remoção de sobras Navy/Dourado.
 
+### Distribuição macOS
+
+- `pom.xml` ganhou o perfil `mac-dmg`, mantendo o fluxo Windows padrão intacto.
+- `src/main/resources/images/icon.icns` foi criado para o pacote macOS.
+- `scripts/build-dmg.sh` automatiza build do DMG assinado/notarizado, staple, validação Gatekeeper e geração do manifest `update-mac.json`.
+- `UpdateService` agora escolhe extensão padrão por sistema operacional (`.exe` no Windows, `.dmg` no macOS) quando a URL não traz nome de arquivo e abre o DMG com `open` no fluxo de atualização.
+
+### Backup Diário Local
+
+- `BackupService` foi adicionado como serviço independente de banco para rodar antes do Spring/Flyway/Postgres.
+- `MainApp.init` chama a manutenção pré-startup antes de `SpringApplication.run`.
+- `configuracoes.fxml` ganhou a aba administrativa "Backup e Restauração".
+- `ConfiguracoesController` lista backups, mostra validação SHA e agenda restauração para o próximo startup.
+- `BackupServiceTest` cobre primeira instalação sem base, backup diário único, retenção de 30 dias e restauração assistida.
+
 ### PDF de Orçamento
 
 - JasperReports está em versão 6.21.4.
@@ -463,9 +509,12 @@ Os dados reais ficam em `~/erp-desktop/data`, não nessa pasta temporária.
 - Perfis continuam departamentais e sem matriz granular de permissões por ação nesta fase.
 - Usuários nunca são excluídos fisicamente; desativação lógica preserva histórico operacional.
 - Dados reais da empresa são editáveis em Configurações e são a fonte para PDFs e parâmetros operacionais.
+- Backup local usa cópia física fria da pasta do PostgreSQL embarcado; não usar cópia da pasta `data` enquanto o banco estiver rodando.
+- Restauração sempre é aplicada no próximo startup, antes do Postgres subir, nunca durante a sessão atual.
 - Categoria de produto removida do escopo; classificação de produtos usa apenas Grupos.
 - Busca global removida do topbar; cada módulo tem busca própria. Busca global planejada para versão futura.
 - Design system oficial é Preto & Verde: dark mode padrão com acento verde e light mode alternativo.
+- Distribuição macOS usa bundle identifier estável `br.com.sms.desktop`; trocar apenas se houver decisão definitiva de domínio/empresa antes da primeira release pública.
 
 ---
 
@@ -594,11 +643,17 @@ Comandos mais usados:
 # Rodar teste específico
 ./mvnw -q -Dtest=DashboardServiceTest test
 
+# Rodar testes de backup/restauração
+./mvnw -q -Dtest=BackupServiceTest test
+
 # Rodar smoke UI headless
 ./mvnw -q -P ui-tests -Dtest=RegressaoGeralUITest#smoke_dashboard_admin_carrega test
 
 # Verificar whitespace/diff
 git diff --check
+
+# Validar sintaxe do script de DMG
+bash -n scripts/build-dmg.sh
 ```
 
 Testes de UI usam TestFX/Monocle e podem emitir logs longos do PostgreSQL embarcado. O importante é o exit code do Maven.
@@ -619,6 +674,20 @@ rm -rf ~/erp-desktop/data && ./mvnw javafx:run
 
 # Limpar cache de extração do Postgres embarcado no macOS
 rm -rf /var/folders/vb/s6_m_53s1315y206glb3xdwc0000gn/T/embedded-pg
+
+# Gerar instalador Windows + update.json
+powershell -ExecutionPolicy Bypass -File scripts/build-installer.ps1 -SkipTests
+
+# Gerar DMG macOS assinado/notarizado + update-mac.json
+MAC_SIGNING_KEY_USER_NAME="Developer ID Application: Sua Empresa (TEAMID)" \
+APPLE_ID="apple-id@empresa.com" \
+APPLE_TEAM_ID="TEAMID" \
+APPLE_APP_PASSWORD="app-specific-password" \
+./scripts/build-dmg.sh --skip-tests
+
+# Gerar DMG macOS assinado, sem notarizar, para validação local
+MAC_SIGNING_KEY_USER_NAME="Developer ID Application: Sua Empresa (TEAMID)" \
+./scripts/build-dmg.sh --skip-tests --no-notarize
 ```
 
 ---

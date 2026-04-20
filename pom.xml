@@ -7,7 +7,7 @@
 
     <groupId>com.erp</groupId>
     <artifactId>erp-desktop</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <packaging>jar</packaging>
     <name>ERP Desktop</name>
     <description>ERP Desktop para Pequenas Empresas</description>
@@ -17,6 +17,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mac.package.identifier>br.com.sms.desktop</mac.package.identifier>
 
         <!-- Versões principais -->
         <spring.boot.version>3.2.5</spring.boot.version>
@@ -451,6 +452,39 @@
     <!-- escpos-coffee 4.1.0 está disponível no Maven Central, sem repositório extra necessário -->
 
     <profiles>
+        <!-- ./mvnw jpackage:jpackage -Pmac-dmg — gera DMG macOS assinado -->
+        <profile>
+            <id>mac-dmg</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <version>1.6.5</version>
+                        <configuration combine.self="override">
+                            <name>SMS - Simple Manage System</name>
+                            <type>DMG</type>
+                            <appVersion>${project.version}</appVersion>
+                            <vendor>SMS</vendor>
+                            <destination>target/dist</destination>
+                            <input>target/jpackage-input</input>
+                            <mainClass>org.springframework.boot.loader.launch.JarLauncher</mainClass>
+                            <mainJar>${project.artifactId}-${project.version}.jar</mainJar>
+                            <icon>src/main/resources/images/icon.icns</icon>
+                            <javaOptions>
+                                <option>-Dfile.encoding=UTF-8</option>
+                                <option>--add-opens=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED</option>
+                            </javaOptions>
+                            <macPackageIdentifier>${mac.package.identifier}</macPackageIdentifier>
+                            <macPackageName>SMS</macPackageName>
+                            <macSign>true</macSign>
+                            <macSigningKeyUserName>${env.MAC_SIGNING_KEY_USER_NAME}</macSigningKeyUserName>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <!-- mvn test -P ui-tests — executa apenas os testes de UI com JavaFX headless -->
         <profile>
             <id>ui-tests</id>

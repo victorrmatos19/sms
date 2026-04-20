@@ -1,5 +1,6 @@
 package com.erp;
 
+import com.erp.service.BackupService;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;
@@ -25,6 +26,9 @@ public class MainApp extends Application {
 
     @Override
     public void init() {
+        // Backup/restauração precisam rodar antes do Spring iniciar o PostgreSQL embarcado.
+        BackupService.executarManutencaoPreStartup();
+
         // Spring sobe antes da janela aparecer (carrega BD, migrations, etc.)
         springContext = SpringApplication.run(MainApp.class, savedArgs);
     }
