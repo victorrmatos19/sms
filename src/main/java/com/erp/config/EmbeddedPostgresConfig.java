@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,17 +46,66 @@ public class EmbeddedPostgresConfig {
         log.info("Iniciando PostgreSQL embarcado em: {}", dataDir);
         log.info("Porta: {}", postgresPort);
 
+        // Tenta iniciar normalmente; se falhar por cache de extração corrompido,
+        // limpa o diretório temporário e tenta uma segunda vez.
+        try {
+            return iniciarPostgres(dataDir);
+        } catch (Exception primeiroErro) {
+            log.warn("Falha ao iniciar PostgreSQL embarcado ({}). Limpando cache de extração e tentando novamente...",
+                    primeiroErro.getMessage());
+            limparCacheExtracaoPg();
+            return iniciarPostgres(dataDir);
+        }
+    }
+
+    /**
+     * Constrói e inicia a instância do EmbeddedPostgres.
+     * Separado para permitir retry limpo após falha de extração.
+     */
+    private EmbeddedPostgres iniciarPostgres(Path dataDir) throws IOException {
         EmbeddedPostgres pg = EmbeddedPostgres.builder()
                 .setPort(postgresPort)
                 .setDataDirectory(dataDir)
                 .setCleanDataDirectory(false)
                 .start();
 
-        // Cria o banco de dados da aplicação se não existir
-        // O Postgres embarcado inicia com o banco "postgres" por padrão
+        // Cria o banco de dados da aplicação se não existir.
+        // O Postgres embarcado inicia com o banco "postgres" por padrão.
         criarBancoSeNaoExistir(pg);
 
         return pg;
+    }
+
+    /**
+     * Remove o diretório de cache de extração dos binários do Postgres embarcado
+     * ({java.io.tmpdir}/embedded-pg). Isso é seguro enquanto apenas uma instância
+     * do aplicativo estiver em execução.
+     */
+    private void limparCacheExtracaoPg() {
+        try {
+            Path cacheDir = Paths.get(System.getProperty("java.io.tmpdir"), "embedded-pg");
+            if (cacheDir.toFile().exists()) {
+                log.info("Removendo cache de extração do PostgreSQL embarcado: {}", cacheDir);
+                deletarDiretorioRecursivo(cacheDir.toFile());
+                log.info("Cache removido com sucesso.");
+            }
+        } catch (Exception e) {
+            log.warn("Não foi possível remover cache de extração do PostgreSQL: {}", e.getMessage());
+        }
+    }
+
+    private void deletarDiretorioRecursivo(File dir) {
+        if (dir.isDirectory()) {
+            File[] filhos = dir.listFiles();
+            if (filhos != null) {
+                for (File filho : filhos) {
+                    deletarDiretorioRecursivo(filho);
+                }
+            }
+        }
+        if (!dir.delete()) {
+            log.warn("Não foi possível deletar: {}", dir.getAbsolutePath());
+        }
     }
 
     private void criarBancoSeNaoExistir(EmbeddedPostgres pg) {
