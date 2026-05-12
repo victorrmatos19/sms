@@ -1,70 +1,92 @@
+﻿# ============================================================
+# build-installer.ps1
+# Gera o instalador .exe + update-manifest.json do SMS.
+#
+# Uso:
+#   .\scripts\build-installer.ps1
+#   .\scripts\build-installer.ps1 -ReleaseNotes "Descricao da versao" -Mandatory $true
+#
+# O script:
+#   1. Le a versao atual do pom.xml
+#   2. Garante que WiX esta no PATH
+#   3. Compila e empacota com Maven + jpackage
+#   4. Calcula SHA256 do .exe gerado
+#   5. Grava target\dist\update-manifest.json
+# ============================================================
 param(
-    [switch]$SkipTests,
-    [string]$DownloadBaseUrl = "https://seudominio.com.br/downloads",
-    [string]$ReleaseNotes = "Correcoes de bugs e melhorias gerais."
+    [string]$ReleaseNotes = "",
+    [bool]$Mandatory = $false
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$wixDir = Join-Path $repoRoot ".build-tools\wix314"
-$wixZip = Join-Path $repoRoot ".build-tools\wix314-binaries.zip"
-$wixUrl = "https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314-binaries.zip"
+$projectRoot = Split-Path -Parent $PSScriptRoot
 
-Set-Location $repoRoot
+# 1. Ler versao do pom.xml
+Write-Host ""
+Write-Host "==> Lendo versao do pom.xml..."
+[xml]$pom = Get-Content "$projectRoot\pom.xml" -Encoding UTF8
+$version = $pom.project.version
+Write-Host "    Versao: $version"
 
-if (-not (Test-Path (Join-Path $wixDir "candle.exe")) -or -not (Test-Path (Join-Path $wixDir "light.exe"))) {
-    Write-Host "Baixando WiX Toolset 3.14.1 portatil..."
-    New-Item -ItemType Directory -Force -Path (Split-Path $wixZip) | Out-Null
-    Invoke-WebRequest -Uri $wixUrl -OutFile $wixZip
-
-    if (Test-Path $wixDir) {
-        Remove-Item -Recurse -Force $wixDir
+# 2. Garantir WiX no PATH
+$wixDir = "$env:LOCALAPPDATA\wix314"
+if (Test-Path "$wixDir\candle.exe") {
+    if ($env:PATH -notlike "*wix314*") {
+        $env:PATH = "$env:PATH;$wixDir"
+        Write-Host "==> WiX adicionado ao PATH da sessao."
     }
-
-    New-Item -ItemType Directory -Force -Path $wixDir | Out-Null
-    Expand-Archive -Path $wixZip -DestinationPath $wixDir -Force
-}
-
-$env:PATH = "$wixDir;$env:PATH"
-
-if ($SkipTests) {
-    mvn clean package -DskipTests
 } else {
-    mvn clean package
+    Write-Host ""
+    Write-Host "[AVISO] WiX nao encontrado em $wixDir."
+    exit 1
 }
 
-mvn jpackage:jpackage -DskipTests
+# 3. Build Maven + jpackage
+Write-Host ""
+Write-Host "==> Compilando e empacotando (Maven + jpackage)..."
+Push-Location $projectRoot
+try {
+    mvn clean package -DskipTests jpackage:jpackage
+    if ($LASTEXITCODE -ne 0) { throw "Maven falhou com codigo $LASTEXITCODE" }
+} finally {
+    Pop-Location
+}
+Write-Host "==> Build concluido."
 
-$exe = Get-ChildItem (Join-Path $repoRoot "target\dist") -Filter "*.exe" |
-    Sort-Object LastWriteTime -Descending |
-    Select-Object -First 1
+# 4. Localizar o .exe gerado
+$distDir = "$projectRoot\target\dist"
+$exeFile = Get-ChildItem $distDir -Filter "*.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+if (-not $exeFile) { throw "Nenhum .exe encontrado em $distDir" }
+Write-Host ""
+Write-Host "==> Instalador: $($exeFile.Name)  ($([math]::Round($exeFile.Length/1MB,1)) MB)"
 
-if ($null -eq $exe) {
-    throw "Instalador .exe nao encontrado em target\dist."
+# 5. SHA256
+Write-Host "==> Calculando SHA256..."
+$sha256 = (Get-FileHash $exeFile.FullName -Algorithm SHA256).Hash.ToLower()
+Write-Host "    $sha256"
+
+# 6. Nome do asset no GitHub (espacos -> pontos)
+$assetName = $exeFile.Name -replace " ", "."
+$downloadUrl = "https://github.com/victorrmatos19/sms/releases/download/v$version/$assetName"
+
+# 7. Release notes default
+if (-not $ReleaseNotes) {
+    $ReleaseNotes = "Versao $version do SMS - Simple Manage System."
 }
 
-$projectVersion = ([xml](Get-Content (Join-Path $repoRoot "pom.xml"))).project.version
-$hash = (Get-FileHash -Path $exe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-$baseUrl = $DownloadBaseUrl.TrimEnd("/")
-$downloadUrl = "$baseUrl/$([Uri]::EscapeDataString($exe.Name))"
-
-$updateManifest = [ordered]@{
-    latestVersion = $projectVersion
-    downloadUrl = $downloadUrl
-    sha256 = $hash
-    releaseNotes = $ReleaseNotes
-    mandatory = $false
-    publishedAt = (Get-Date -Format "yyyy-MM-dd")
-}
-
-$updateJsonPath = Join-Path $repoRoot "target\dist\update.json"
-$updateManifest | ConvertTo-Json | Set-Content -Path $updateJsonPath -Encoding UTF8
+# 8. Gerar update-manifest.json
+$today = Get-Date -Format "yyyy-MM-dd"
+$manifest = "{`n  `"latestVersion`": `"$version`",`n  `"downloadUrl`": `"$downloadUrl`",`n  `"sha256`": `"$sha256`",`n  `"releaseNotes`": `"$ReleaseNotes`",`n  `"mandatory`": $($Mandatory.ToString().ToLower()),`n  `"publishedAt`": `"$today`"`n}"
+$manifestPath = "$distDir\update-manifest.json"
+[System.IO.File]::WriteAllText($manifestPath, $manifest, [System.Text.Encoding]::UTF8)
 
 Write-Host ""
-Write-Host "Instalador gerado em:"
-$exe | Select-Object FullName, Length, LastWriteTime
-
+Write-Host "==> update-manifest.json:"
+Write-Host $manifest
 Write-Host ""
-Write-Host "Manifest de atualizacao gerado em:"
-Get-Item $updateJsonPath | Select-Object FullName, Length, LastWriteTime
+Write-Host "==> Arquivos em target\dist\:"
+Get-ChildItem $distDir | ForEach-Object { Write-Host "    $($_.Name)  ($([math]::Round($_.Length/1MB,1)) MB)" }
+Write-Host ""
+Write-Host "==> Concluido!"
