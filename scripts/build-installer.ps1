@@ -30,17 +30,25 @@ Write-Host "==> Lendo versao do pom.xml..."
 $version = $pom.project.version
 Write-Host "    Versao: $version"
 
-# 2. Garantir WiX no PATH
+# 2. Garantir WiX no PATH (baixa automaticamente se nao encontrado)
 $wixDir = "$env:LOCALAPPDATA\wix314"
-if (Test-Path "$wixDir\candle.exe") {
-    if ($env:PATH -notlike "*wix314*") {
-        $env:PATH = "$env:PATH;$wixDir"
-        Write-Host "==> WiX adicionado ao PATH da sessao."
+if (-not (Test-Path "$wixDir\candle.exe")) {
+    Write-Host "==> WiX nao encontrado. Baixando WiX 3.14.1 (sem admin necessario)..."
+    $zipPath = "$env:TEMP\wix314-binaries.zip"
+    Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314-binaries.zip" -OutFile $zipPath -UseBasicParsing
+    if (-not (Test-Path $wixDir)) { New-Item -ItemType Directory -Path $wixDir | Out-Null }
+    Expand-Archive -Path $zipPath -DestinationPath $wixDir -Force
+    Remove-Item $zipPath -ErrorAction SilentlyContinue
+    Write-Host "==> WiX instalado em $wixDir"
+}
+if ($env:PATH -notlike "*wix314*") {
+    $env:PATH = "$env:PATH;$wixDir"
+    # Persiste para futuras sessoes do usuario
+    $userPath = [Environment]::GetEnvironmentVariable("PATH", "User")
+    if ($userPath -notlike "*wix314*") {
+        [Environment]::SetEnvironmentVariable("PATH", "$userPath;$wixDir", "User")
     }
-} else {
-    Write-Host ""
-    Write-Host "[AVISO] WiX nao encontrado em $wixDir."
-    exit 1
+    Write-Host "==> WiX adicionado ao PATH."
 }
 
 # 3. Build Maven + jpackage
